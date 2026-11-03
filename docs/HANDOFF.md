@@ -5,9 +5,9 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`46/46` unit & structural tests)
+  - `npm test` — passed (`48/48` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `17` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -39,9 +39,11 @@ Last updated: 2026-11-02
 
 - **Problems tab (`P7-04`, `D-018`)**: static link/missing-file checker with badge and click-to-jump (`src/links.js`, `src/app/problems-ui.js`).
 
+- **Project-wide find/replace (`P7-05`, `D-019`)**: Project scope on the find bar with results list and Replace All in Project (`src/app/find-project.js`, `Finding.findInFiles`).
+
 ### In flight
 
-- `P7-04` is complete but uncommitted. Nothing half-built.
+- `P7-05` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -56,7 +58,7 @@ Last updated: 2026-11-02
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order is `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states (`P7-04` is done).
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order is `P7-06` palette drag-to-insert, then `P7-07` CSS Designer pseudo-states (`P7-04`, `P7-05` are done).
 
 ### Open questions
 
@@ -67,6 +69,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2h: 2026-11-02: P7-05 project-wide find and replace
+
+- **Did**: `Finding.findInFiles` / `replaceInFiles` ([`src/finding.js`](../src/finding.js)); [`src/app/find-project.js`](../src/app/find-project.js) (Project toggle, results list, per-file checkboxes, Replace All in Project, `Ctrl/Cmd+Shift+F`); small hooks in [`src/app/find.js`](../src/app/find.js).
+- **Decided**: `D-019` (scope of the existing find bar; literal text, case toggle).
+- **Verified**: `npm test` (`48/48`); browser check of shortcut, results, jump, exclusion, replace, one-step undo/redo, dirty dots, and returning to file mode. Full check results are in this session's final report.
+- **Next**: `P7-06` palette drag-to-insert.
 
 ### Session 2g: 2026-11-02: P7-04 broken-link checker and Problems tab
 

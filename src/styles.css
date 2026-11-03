@@ -1345,3 +1345,24 @@ body.shaded #editor {
 .explorer-act:hover { color: var(--text-strong); background: var(--btn-hover); }
 .explorer-act.danger:hover { color: var(--danger-soft-text); background: var(--danger-soft-bg); }
 .file-tab.dirty .tab-label::after, .explorer-row.dirty .explorer-name::after { content: " \2022"; color: var(--focus); font-weight: 700; }
+
+.find-results {
+    flex-shrink: 0;
+    max-height: 11rem;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-void);
+    background-color: var(--bg-void);
+}
+
+.find-results[hidden] { display: none; }
+.find-results-head { padding: 0.25rem 0.85rem; font-size: 0.72rem; color: var(--text-void-muted); border-bottom: 1px solid var(--border-void); }
+.find-results-list { overflow-y: auto; font-family: var(--font-code); font-size: 0.74rem; }
+.fr-file { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.85rem; font-weight: 700; color: var(--text-strong); background: var(--bg-raised); position: sticky; top: 0; cursor: pointer; }
+.fr-row { display: flex; gap: 0.6rem; width: 100%; padding: 0.12rem 0.85rem 0.12rem 1.6rem; text-align: left; background: none; border: 0; color: var(--text-void); font: inherit; cursor: pointer; }
+.fr-row:hover, .fr-row:focus-visible { background: var(--bg-raised); outline: none; }
+.fr-line { flex: 0 0 2.4rem; text-align: right; color: var(--text-void-muted); }
+.fr-text { white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+.fr-text mark { background-color: rgba(245, 158, 11, 0.55); color: inherit; border-radius: 2px; }
+.fr-more { padding: 0.2rem 0.85rem; color: var(--text-void-muted); font-style: italic; }
+.find-bar .mini:disabled { opacity: 0.45; cursor: not-allowed; }

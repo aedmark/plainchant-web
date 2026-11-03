@@ -94,6 +94,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/importing.js` | Text/code file extension filter and UTF-8/UTF-16/Windows-1252 decoder (UMD) |
 | `src/app/explorer-ui.js` | Explorer Rename / Duplicate / Delete, file context menu, and unsaved-file dots |
 | `src/finding.js` | Plain-text search and replace offset helpers for the find bar (UMD, no DOM) |
+| `src/app/find-project.js` | Project scope of the find bar: results list, per-file selection, and Replace All in Project |
 | `src/app/find.js` | Find/Replace bar, match highlight layer, and `Ctrl/Cmd+F` / `Ctrl/Cmd+H` shortcuts |
 | `src/links.js` | Static link and missing-file checker for HTML and CSS (UMD, no DOM) |
 | `src/app/problems-ui.js` | Problems Inspector tab: results list, badge, re-check, and click-to-jump |

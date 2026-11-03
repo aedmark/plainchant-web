@@ -183,3 +183,10 @@ test('structure: the Problems tab, links.js, and problems-ui.js are wired in (P7
     assert.ok(listed.indexOf('problems-ui.js') > listed.indexOf('inspector-ui.js'), 'problems-ui.js loads after inspector-ui.js');
     assert.includes(readRoot('src/app/core.js'), 'scheduleProblemsCheck');
 });
+
+test('structure: the project-wide search scope, results list, and find-project.js are wired in (P7-05)', () => {
+    ['id="findScopeBtn"', 'id="findResults"', 'id="findResultsList"', 'id="findResultsSummary"'].forEach((needle) => assert.includes(html, needle));
+    assert.ok(listed.indexOf('find-project.js') > listed.indexOf('find.js'), 'find-project.js loads after find.js');
+    const find = readRoot('src/app/find.js');
+    ['onFindChanged', 'setFindProject', 'replaceAcrossProject', 'hideFindResults'].forEach((hook) => assert.includes(find, hook));
+});

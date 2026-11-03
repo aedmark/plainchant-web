@@ -12,6 +12,7 @@ const FIND_MARK_LIMIT = 2000;
 let findMatches = [];
 let findCurrent = -1;
 let findAnchor = null;
+let findProject = false;
 
 function placeFindLayer() {
     if (findBar.hidden || editor.offsetParent === null) return;
@@ -44,6 +45,7 @@ function recomputeFind(anchor) {
     findMatches = Finding.findAll(editor.value, findInput.value, { caseSensitive: findCaseBtn.getAttribute('aria-pressed') === 'true' });
     findCurrent = Finding.nearest(findMatches, anchor);
     paintFind();
+    if (typeof onFindChanged === 'function') onFindChanged(false);
 }
 
 function refreshFind() {
@@ -72,11 +74,12 @@ function stepFind(direction) {
     showFindMatch(Finding.step(findMatches, findCurrent, direction));
 }
 
-function openFind(focusReplace) {
+function openFind(focusReplace, projectScope) {
     if (panesShown() === 'preview') setPanes('both');
     const sel = editor.value.slice(editor.selectionStart, editor.selectionEnd);
     if (sel && sel.indexOf('\n') === -1 && sel.length <= 200) findInput.value = sel;
     findBar.hidden = false;
+    if (typeof setFindProject === 'function') setFindProject(projectScope === true || (projectScope !== false && findProject));
     recomputeFind(editor.selectionStart);
     (focusReplace ? replaceInput : findInput).focus();
     (focusReplace ? replaceInput : findInput).select();
@@ -85,6 +88,7 @@ function openFind(focusReplace) {
 
 function closeFind() {
     findBar.hidden = true;
+    if (typeof hideFindResults === 'function') hideFindResults();
     findLayer.textContent = '';
     placeShade();
     editor.focus({ preventScroll: true });
@@ -105,6 +109,7 @@ function replaceCurrentMatch() {
 }
 
 function replaceEveryMatch() {
+    if (findProject) { replaceAcrossProject(); return; }
     const res = Finding.replaceAll(editor.value, findInput.value, replaceInput.value, { caseSensitive: findCaseBtn.getAttribute('aria-pressed') === 'true' });
     if (!res.count) return;
     findAnchor = 0;
@@ -112,9 +117,10 @@ function replaceEveryMatch() {
     showNotice('Replaced ' + res.count + (res.count === 1 ? ' match' : ' matches') + ' in ' + activeFile + '.');
 }
 
-findInput.addEventListener('input', () => recomputeFind(editor.selectionStart));
+findInput.addEventListener('input', () => { if (typeof onFindChanged === 'function') onFindChanged(true); recomputeFind(editor.selectionStart); });
 findCaseBtn.addEventListener('click', () => {
     findCaseBtn.setAttribute('aria-pressed', String(findCaseBtn.getAttribute('aria-pressed') !== 'true'));
+    if (typeof onFindChanged === 'function') onFindChanged(true);
     recomputeFind(editor.selectionStart);
 });
 document.getElementById('findNextBtn').addEventListener('click', () => stepFind(1));
@@ -135,14 +141,15 @@ findBar.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-    if (e.isComposing || e.altKey || e.shiftKey || !(e.ctrlKey || e.metaKey)) return;
+    if (e.isComposing || e.altKey || !(e.ctrlKey || e.metaKey)) return;
     const key = e.key.toLowerCase();
     if (key !== 'f' && key !== 'h') return;
+    if (e.shiftKey && key !== 'f') return;
     const active = document.activeElement;
     const typing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     if (typing && active !== editor && !findBar.contains(active)) return;
     e.preventDefault();
-    openFind(key === 'h');
+    openFind(key === 'h', e.shiftKey ? true : undefined);
 });
 
 editor.addEventListener('scroll', () => { findLayer.scrollTop = editor.scrollTop; });

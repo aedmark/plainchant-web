@@ -38,6 +38,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Problems tab (broken-link checker)**: A new Inspector tab lists broken links and missing files across every page and stylesheet: dead page links, images, stylesheets, scripts, CSS `url()`, links that leave the project, case-only matches, and missing `#anchor` targets. A badge shows the count, and clicking a row jumps to the exact spot (`P7-04`, `D-018`).
 
+- **Project-wide find and replace**: Press `Ctrl/Cmd+Shift+F` or click **Project** on the find bar to search every file. Results show the line, jump to the match when clicked, and can be excluded per file; **Replace All in Project** changes the checked files in one undoable step (`P7-05`, `D-019`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

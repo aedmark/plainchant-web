@@ -232,13 +232,13 @@
         {
           "id": "line-numbers-and-find",
           "title": "Line-number gutter and Find / Replace",
-          "summary": "Line numbers that follow wrapped lines, plus in-file find and replace with undo.",
+          "summary": "Line numbers that follow wrapped lines, plus in-file and project-wide find and replace with undo.",
           "tags": ["editor", "find", "D-015"],
-          "what": "The code editor shows line numbers (highlighting the caret line and the Stage-selected block). `Ctrl/Cmd+F` opens a find bar that highlights every match in the current file; `Ctrl/Cmd+H` focuses the Replace box. `Enter` and `Shift+Enter` step through matches, `Aa` toggles case matching, and **Replace** / **Replace All** edit the file.",
+          "what": "The code editor shows line numbers (highlighting the caret line and the Stage-selected block). `Ctrl/Cmd+F` opens a find bar that highlights every match in the current file; `Ctrl/Cmd+H` focuses the Replace box. `Enter` and `Shift+Enter` step through matches, `Aa` toggles case matching, and **Replace** / **Replace All** edit the file. The **Project** toggle (`Ctrl/Cmd+Shift+F`) lists matches in every file, lets you exclude files, and replaces across the project in one undo step.",
           "how": [
             "`drawGutter()` in `src/app/shade.js` lays the lines out in a hidden copy of the editor to learn each wrapped line's height, so row `n` lines up with line `n`.",
             "`Finding.findAll()` (`src/finding.js`) returns literal, non-overlapping match offsets; `src/app/find.js` draws them as `<mark>` elements on a transparent layer under the text.",
-            "Replacements go through `applyEdit()` with a minimal `Editing.diffEdit()` change, so they are one undo step in the project-wide history."
+            "Replacements go through `applyEdit()` with a minimal `Editing.diffEdit()` change, so they are one undo step in the project-wide history; project scope uses `Finding.findInFiles()` / `replaceInFiles()` and commits every changed file together (D-019)."
           ],
           "why": "Recorded in D-015: measuring from a hidden mirror and drawing matches on their own layer keeps both features working when syntax colours are off, which is the failure mode of the transparent-textarea editor of D-002.",
           "evidence": [

@@ -438,3 +438,40 @@ test('links: finds missing pages, images, stylesheets, scripts, CSS urls, and ri
     assert.ok(!checker.check(fixed, ['img/a.png']).problems.some((p) => p.ref === 'nowhere.html'), 'adding the target clears the problem');
     assert.equal(Links.createChecker().check({ 'index.html': '<p>nothing to check</p>' }, []).problems.length, 0);
 });
+
+test('finding: findInFiles and replaceInFiles search and replace across a whole project', () => {
+    const entries = {
+        'index.html': '<h1>Acme Corp</h1>\n<p>Welcome to ACME.\nacme again</p>',
+        'about.html': '<p>About Acme</p>',
+        'style.css': 'body { color: red; }',
+        'script.js': 'var name = "Acme";'
+    };
+    const found = Finding.findInFiles(entries, 'acme');
+    assert.equal(found.total, 5);
+    assert.deepEqual(found.files.map((f) => f.path + ':' + f.matches.length), ['index.html:3', 'about.html:1', 'script.js:1']);
+    const first = found.files[0].matches;
+    assert.deepEqual(first.map((m) => m.line), [1, 2, 3]);
+    assert.equal(entries['index.html'].slice(first[1].start, first[1].end), 'ACME');
+    assert.equal(first[1].before + first[1].hit + first[1].after, '<p>Welcome to ACME.');
+    assert.equal(first[0].column, 5);
+    assert.equal(Finding.findInFiles(entries, 'acme', { caseSensitive: true }).total, 1, 'only the lowercase "acme again"');
+    assert.equal(Finding.findInFiles(entries, 'Acme', { caseSensitive: true }).total, 3);
+    assert.deepEqual(Finding.findInFiles(entries, ''), { files: [], total: 0 });
+
+    const long = Finding.findInFiles({ 'a.txt': 'x'.repeat(100) + 'NEEDLE' + 'y'.repeat(100) }, 'needle').files[0].matches[0];
+    assert.ok(long.before.startsWith('…') && long.after.endsWith('…'), 'long lines are shortened around the match');
+    assert.ok(long.before.length <= 31 && long.after.length <= 51);
+
+    const all = Finding.replaceInFiles(entries, 'acme', 'Globex');
+    assert.equal(all.count, 5);
+    assert.deepEqual(all.files, ['index.html', 'about.html', 'script.js']);
+    assert.equal(all.entries['index.html'], '<h1>Globex Corp</h1>\n<p>Welcome to Globex.\nGlobex again</p>');
+    assert.equal(all.entries['style.css'], entries['style.css'], 'files without matches are untouched');
+    assert.equal(entries['about.html'], '<p>About Acme</p>', 'the input is not modified');
+    const some = Finding.replaceInFiles(entries, 'acme', '$&', { paths: ['about.html'] });
+    assert.deepEqual(some.files, ['about.html']);
+    assert.equal(some.entries['about.html'], '<p>About $&</p>', 'only the chosen files change, and the replacement is literal');
+    assert.equal(some.entries['index.html'], entries['index.html']);
+    assert.deepEqual(Finding.replaceInFiles(entries, 'zzz', 'x').files, []);
+    assert.equal(Finding.replaceInFiles(entries, 'zzz', 'x').count, 0);
+});
