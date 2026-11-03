@@ -252,10 +252,11 @@
         {
           "id": "menus-and-context-insert",
           "title": "Top menu bar, Insert dropdown, and right-click context menu",
-          "summary": "Unified element insertion and DOM manipulation from the top menu bar or right-click context menu.",
+          "summary": "Unified element insertion and DOM manipulation from the top menu bar, drag onto the Stage, or the right-click context menu.",
           "tags": ["ui", "menus", "workflow"],
           "what": "Places the primary Studio command bar (`Projects`, `Open Folder`, `Insert ▾`, `Undo`, `Redo`, `History`, `Export`, `Inspector`, `Settings`, `Help`) above the file tab strip and provides an **Insert Element** submenu inside the right-click context menu on both the Design Stage and HTML editor.",
           "how": [
+            "Dragging an item from the menu over the Design Stage (`src/app/insert-drag.js`) shows a before / after / inside guide chosen by `DomOutline.dropPlacement()` and inserts with `HtmlAst.insertElementAt()` on release (D-020).",
             "`#insertMenuBtn` opens `#insertDropdown` to insert semantic HTML5 snippets (`header`, `nav`, `section`, `div`, `p`, `h1`, `h2`, `button`, `a`, `img`, `ul`, `form`, `input`, `table`) inside the selected Stage element or at the Code caret.",
             "Right-clicking any element on the Stage (`pc-contextmenu`) or inside `#editor` opens `#contextMenu` (`src/app/inspector-ui.js`) with Select Parent, Move Up/Down, Duplicate, Edit/Jump to CSS, Delete, and the **Insert Element ▸** flyout."
           ],
@@ -263,7 +264,8 @@
           "evidence": [
             {"label": "Studio toolbar & menu markup", "target": "app.html"},
             {"label": "Context menu & insert handlers", "target": "src/app/inspector-ui.js"},
-            {"label": "HTML5 snippets", "target": "src/editing.js"}
+            {"label": "HTML5 snippets", "target": "src/editing.js"},
+            {"label": "Drag-to-insert", "target": "src/app/insert-drag.js"}
           ],
           "related": ["stage-drag-and-actions", "multi-file-undo-redo"]
         }

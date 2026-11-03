@@ -5,9 +5,9 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`48/48` unit & structural tests)
+  - `npm test` — passed (`51/51` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `17` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -41,9 +41,11 @@ Last updated: 2026-11-02
 
 - **Project-wide find/replace (`P7-05`, `D-019`)**: Project scope on the find bar with results list and Replace All in Project (`src/app/find-project.js`, `Finding.findInFiles`).
 
+- **Drag-to-insert (`P7-06`, `D-020`)**: drag Insert menu items onto the Design Stage with a before/after/inside guide (`src/app/insert-drag.js`).
+
 ### In flight
 
-- `P7-05` is complete but uncommitted. Nothing half-built.
+- `P7-06` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -52,13 +54,14 @@ Last updated: 2026-11-02
 - **Service worker is cache-first (`sw.js`)**: after changing any app file, a browser that already installed the app can keep serving old scripts; hard-reload when testing. `CACHE_NAME` has never been bumped, so consider a version bump per release.
 - **Browser folder open was not driven end to end**: `showDirectoryPicker` cannot be automated, so `P7-09` was checked by calling `activateImportedFolderProject` with a real PNG. Try it by hand in Chromium with a folder of images.
 - **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
+- **Insert drag was driven with synthetic pointer events (`D-020`)**: try a real mouse drag, and a drag in the Tauri WebKitGTK shell (pointer capture on `document.body`, `elementFromPoint` into the Stage).
 - **Dialogs in the desktop shell (`D-017`)**: Rename, New File, and Make Part use `window.prompt`; not verified in Tauri WebKitGTK. If it returns `null` there, replace with an in-app modal.
 - **Syntax colours can still switch off (`D-002`)**: `checkShade` permanently disables colouring on a detected wrap mismatch. The known cause (dropped `/` in `/>`) is fixed and guarded by a round-trip test, but any new tokenizer change must keep run text identical to the source. Settings > Syntax colours off/on re-enables without reload.
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order is `P7-06` palette drag-to-insert, then `P7-07` CSS Designer pseudo-states (`P7-04`, `P7-05` are done).
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen next is `P7-07` CSS Designer pseudo-states (`P7-04`, `P7-05`, `P7-06` are done).
 
 ### Open questions
 
@@ -69,6 +72,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2i: 2026-11-02: P7-06 drag-to-insert onto the Stage
+
+- **Did**: `HtmlAst.insertElementAt` (offset and new id; `insertElement` now wraps it); `DomOutline.dropPlacement`; [`src/app/insert-drag.js`](../src/app/insert-drag.js) (pointer drag, ghost, guide, edge scroll, Escape/cancel); `inside` guide CSS in the bridge; ghost CSS.
+- **Decided**: `D-020`.
+- **Verified**: `npm test` (`51/51`); browser check with synthetic pointer events of threshold, ghost, before/after/inside drops, Escape, pointercancel, release outside, Live mode, undo, and click-to-insert. Full check results are in this session's final report.
+- **Next**: `P7-07` pseudo-states in the CSS Designer.
 
 ### Session 2h: 2026-11-02: P7-05 project-wide find and replace
 

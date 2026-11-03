@@ -113,3 +113,48 @@ test('html-ast: duplicateElement and moveElement reorder and clone elements clea
     assert.ok(dragUp.moved, 'dragged a back before b');
     assert.ok(dragUp.html.indexOf('class="a"') < dragUp.html.indexOf('class="b"'), 'a is before b again');
 });
+
+test('html-ast: insertElementAt reports where the snippet landed and which element it became', () => {
+    const html = '<body>\n  <section>\n    <p>one</p>\n    <p>two</p>\n  </section>\n</body>';
+    const ast = HtmlAst.parse(html);
+    const p1 = ast.elements.find((e) => e.tag === 'p');
+    const section = ast.elements.find((e) => e.tag === 'section');
+    ['before', 'after', 'inside-start', 'inside-end'].forEach((pos) => {
+        const res = HtmlAst.insertElementAt(html, p1.id, pos, '<h2>New</h2>');
+        assert.equal(res.html, HtmlAst.insertElement(html, p1.id, pos, '<h2>New</h2>'), pos + ': insertElement is unchanged');
+        assert.equal(res.html.slice(res.offset, res.offset + 12), '<h2>New</h2>', pos + ': offset points at the snippet');
+        const node = HtmlAst.findById(HtmlAst.parse(res.html), res.id);
+        assert.equal(node.tag, pos.startsWith('inside') ? node.tag : 'h2');
+    });
+    const before = HtmlAst.insertElementAt(html, p1.id, 'before', '<h2>New</h2>');
+    assert.equal(HtmlAst.findById(HtmlAst.parse(before.html), before.id).tag, 'h2', 'the new element, not its neighbour, is reported');
+    assert.equal(HtmlAst.parse(before.html).elements.find((e) => e.id === before.id).attrs.class, undefined);
+    const inside = HtmlAst.insertElementAt(html, section.id, 'inside-end', '<div class="box">\n  <p>x</p>\n</div>');
+    const innerNode = HtmlAst.findById(HtmlAst.parse(inside.html), inside.id);
+    assert.equal(innerNode.tag, 'div');
+    assert.equal(innerNode.attrs.class, 'box', 'a multi-line snippet resolves to its outer element');
+    const prior = HtmlAst.insertElementAt('<body><p>a</p><p>b</p></body>', HtmlAst.parse('<body><p>a</p><p>b</p></body>').elements[1].id, 'after', '<p>new</p>');
+    assert.equal(HtmlAst.findById(HtmlAst.parse(prior.html), prior.id).tag, 'p');
+    assert.equal(prior.html, '<body><p>a</p>\n<p>new</p><p>b</p></body>', 'an element is inserted after the one it follows');
+    assert.deepEqual(HtmlAst.insertElementAt(html, 'pc-1', 'after', '   '), { html: html, offset: -1, id: null }, 'an empty snippet changes nothing');
+    const noBody = HtmlAst.insertElementAt('', null, null, '<p>x</p>');
+    assert.equal(noBody.html, '<p>x</p>');
+    assert.equal(noBody.offset, 0);
+});
+
+test('dom-outline: dropPlacement chooses before, after, or inside from the pointer position', () => {
+    const div = { tag: 'div', selfClosing: false };
+    const p = { tag: 'p', selfClosing: false };
+    const img = { tag: 'img', selfClosing: true };
+    assert.deepEqual(DomOutline.dropPlacement(div, 0.1), { zone: 'before', position: 'before' });
+    assert.deepEqual(DomOutline.dropPlacement(div, 0.5), { zone: 'inside', position: 'inside-end' });
+    assert.deepEqual(DomOutline.dropPlacement(div, 0.9), { zone: 'after', position: 'after' });
+    assert.deepEqual(DomOutline.dropPlacement(p, 0.5).position, 'after', 'a paragraph cannot hold blocks, so it splits into before and after');
+    assert.deepEqual(DomOutline.dropPlacement(p, 0.49).position, 'before');
+    assert.deepEqual(DomOutline.dropPlacement(img, 0.2).position, 'before');
+    assert.deepEqual(DomOutline.dropPlacement({ tag: 'ul', selfClosing: false }, 0.5).position, 'after', 'lists accept only items');
+    assert.deepEqual(DomOutline.dropPlacement({ tag: 'body' }, 0.1), { zone: 'inside', position: 'inside-end' });
+    assert.deepEqual(DomOutline.dropPlacement(null, 0.5), { zone: 'inside', position: 'inside-end' });
+    assert.equal(DomOutline.dropPlacement(div, -3).zone, 'before');
+    assert.equal(DomOutline.dropPlacement(div, 7).zone, 'after');
+});

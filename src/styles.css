@@ -1366,3 +1366,24 @@ body.shaded #editor {
 .fr-text mark { background-color: rgba(245, 158, 11, 0.55); color: inherit; border-radius: 2px; }
 .fr-more { padding: 0.2rem 0.85rem; color: var(--text-void-muted); font-style: italic; }
 .find-bar .mini:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.insert-ghost {
+    position: fixed;
+    z-index: 1500;
+    max-width: 14rem;
+    padding: 0.25rem 0.55rem;
+    font: 600 0.74rem var(--font-code);
+    color: #1c1100;
+    background: #f59e0b;
+    border-radius: 0.3rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.insert-ghost[hidden] { display: none; }
+.insert-ghost.no-drop { color: var(--text-strong); background: var(--bg-raised); border: 1px solid var(--border-strong); }
+body.insert-dragging, body.insert-dragging * { cursor: grabbing !important; user-select: none !important; }
+.ins-btn { touch-action: none; }

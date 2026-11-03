@@ -190,3 +190,12 @@ test('structure: the project-wide search scope, results list, and find-project.j
     const find = readRoot('src/app/find.js');
     ['onFindChanged', 'setFindProject', 'replaceAcrossProject', 'hideFindResults'].forEach((hook) => assert.includes(find, hook));
 });
+
+test('structure: dragging from the Insert menu onto the Stage is wired in (P7-06)', () => {
+    assert.ok(listed.indexOf('insert-drag.js') > listed.indexOf('stage.js'), 'insert-drag.js loads after stage.js');
+    const drag = readRoot('src/app/insert-drag.js');
+    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'DomOutline.dropPlacement', 'HtmlAst.insertElementAt'].forEach((needle) => assert.includes(drag, needle));
+    assert.ok(!/\bdragstart\b|\bdraggable\b|\bdataTransfer\b/.test(drag), 'the Stage drag uses pointer events, not HTML5 drag and drop (D-008)');
+    assert.includes(readRoot('src/app/stage.js'), '[data-pc-drop-target="inside"]');
+    assert.includes(css, '.insert-ghost');
+});

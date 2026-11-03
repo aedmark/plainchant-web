@@ -21,6 +21,7 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
   - **Properties (HTML):** Edit `id`, `class`, `href`, `src`, `alt`, inline text, move up/down, duplicate, wrap in `<div>`, or delete.
   - **Rich CSS Designer:** Reads live `getComputedStyle` telemetry from the Stage iframe to display computed placeholders and box summaries, syncs color pickers, targets either shared stylesheet rules (with **Go to CSS ↗** to jump directly to the rule in the Code editor) or inline `element.style`, and edits Display, Padding, Margin, Gap, Width, Font Size, Text Align, Border Radius, Text Color, and Background Color.
 - **Insert Dropdown & Right-Click Context Menu:**
+  - Drag an **Insert ▾** item onto the Design Stage to drop it before, after, or inside any element.
   - Use the top **Insert ▾** dropdown or **right-click** anywhere on the Design Stage or HTML Code Editor to insert semantic HTML5 blocks (`Section`, `Card`, `Flex Row`, `3-Col Grid`, `Container`, `Heading`, `Paragraph`, `Button`, `Link`, `Image`, `List`, `Form`) or run element actions.
 - **Multi-File Undo & Redo (`Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, `Ctrl/Cmd+Y`):**
   - Unified history stack across all project files, visual Stage manipulations, Inspector edits, and Code editor typing bursts.

@@ -40,6 +40,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Project-wide find and replace**: Press `Ctrl/Cmd+Shift+F` or click **Project** on the find bar to search every file. Results show the line, jump to the match when clicked, and can be excluded per file; **Replace All in Project** changes the checked files in one undoable step (`P7-05`, `D-019`).
 
+- **Drag to insert**: Press and drag any item in the **Insert ▾** menu onto the Design Stage. A guide shows whether it will go before, after, or inside the element under the pointer; release to insert it (one undo step, new element selected). `Escape` cancels, and clicking an item still inserts as before (`P7-06`, `D-020`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

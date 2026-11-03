@@ -316,37 +316,58 @@
         return m ? m[0] : '';
     }
 
-    function insertElement(html, targetId, position, snippet) {
+    function insertElementAt(html, targetId, position, snippet) {
         const ast = parse(html);
         const code = String(snippet || '').trim();
-        if (!code) return ast.text;
+        if (!code) return { html: ast.text, offset: -1, id: null };
         let el = findById(ast, targetId);
         if (!el) {
             el = ast.elements.find((n) => n.tag === 'body') || ast.elements[ast.elements.length - 1];
         }
-        if (!el) return ast.text ? ast.text + '\n' + code : code;
-
-        const indent = lineIndentAt(ast.text, el.start);
-        const pos = position || (el.selfClosing ? 'after' : 'inside-end');
-
-        if (pos === 'before') {
-            return ast.text.slice(0, el.start) + code + '\n' + indent + ast.text.slice(el.start);
-        }
-        if (pos === 'after' || el.selfClosing) {
-            return ast.text.slice(0, el.end) + '\n' + indent + code + ast.text.slice(el.end);
-        }
-        if (pos === 'inside-start') {
+        let head;
+        let lead = '';
+        let trail = '';
+        let tail = '';
+        if (!el) {
+            head = ast.text;
+            lead = ast.text ? '\n' : '';
+        } else {
+            const indent = lineIndentAt(ast.text, el.start);
             const childIndent = indent + '  ';
-            return ast.text.slice(0, el.openEnd) + '\n' + childIndent + code + ast.text.slice(el.openEnd);
+            const pos = position || (el.selfClosing ? 'after' : 'inside-end');
+            if (pos === 'before') {
+                head = ast.text.slice(0, el.start);
+                trail = '\n' + indent;
+                tail = ast.text.slice(el.start);
+            } else if (pos === 'after' || el.selfClosing) {
+                head = ast.text.slice(0, el.end);
+                lead = '\n' + indent;
+                tail = ast.text.slice(el.end);
+            } else if (pos === 'inside-start') {
+                head = ast.text.slice(0, el.openEnd);
+                lead = '\n' + childIndent;
+                tail = ast.text.slice(el.openEnd);
+            } else {
+                const beforeClose = ast.text.slice(el.openEnd, el.closeStart);
+                if (beforeClose.indexOf('\n') !== -1) {
+                    head = ast.text.slice(0, el.openEnd) + beforeClose.replace(/[ \t]*$/, '');
+                    lead = childIndent;
+                } else {
+                    head = ast.text.slice(0, el.closeStart);
+                    lead = '\n' + childIndent;
+                }
+                trail = '\n' + indent;
+                tail = ast.text.slice(el.closeStart);
+            }
         }
-        const childIndent = indent + '  ';
-        const beforeClose = ast.text.slice(el.openEnd, el.closeStart);
-        const hasNewline = beforeClose.indexOf('\n') !== -1;
-        if (hasNewline) {
-            const trimClose = beforeClose.replace(/[ \t]*$/, '');
-            return ast.text.slice(0, el.openEnd) + trimClose + childIndent + code + '\n' + indent + ast.text.slice(el.closeStart);
-        }
-        return ast.text.slice(0, el.closeStart) + '\n' + childIndent + code + '\n' + indent + ast.text.slice(el.closeStart);
+        const result = head + lead + code + trail + tail;
+        const offset = head.length + lead.length;
+        const placed = nodeAtOffset(parse(result), offset);
+        return { html: result, offset: offset, id: placed ? placed.id : null };
+    }
+
+    function insertElement(html, targetId, position, snippet) {
+        return insertElementAt(html, targetId, position, snippet).html;
     }
 
     function wrapElement(html, targetId, tag, attrsObj) {
@@ -541,6 +562,7 @@
         setText: setText,
         setInnerHtml: setInnerHtml,
         insertElement: insertElement,
+        insertElementAt: insertElementAt,
         wrapElement: wrapElement,
         removeElement: removeElement,
         duplicateElement: duplicateElement,

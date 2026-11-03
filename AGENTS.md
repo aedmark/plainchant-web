@@ -101,6 +101,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/parts.js` | Shared page parts: marker-region finder, status scanner, and synchronizer (UMD, no DOM) |
 | `src/app/parts-ui.js` | Parts Inspector tab, Make Part, Insert Part, and part-edit propagation |
 | `src/app/assets.js` | Binary project assets (Blobs, `blob:` preview URLs, IndexedDB persistence) for the browser build |
+| `src/app/insert-drag.js` | Pointer-based drag from the Insert menu onto the Design Stage (drop guide, ghost label, insert) |
 | `src/app/stage-live.js` | Live JS link bridge and project link following (loaded after `stage.js`) |
 | `src/app/console-ui.js` | Console Inspector tab: log rows, filters, unread badge, click-to-jump (loaded after `inspector-ui.js`) |
 | `src/app/` | Classic scripts sharing one global scope, loaded in order by `app.html` (`core.js` first, `main.js` last) |

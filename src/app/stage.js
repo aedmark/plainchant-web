@@ -4,6 +4,7 @@ const BRIDGE_CSS = [
     '[data-pc-dragging="true"] { opacity: 0.5 !important; }',
     '[data-pc-drop-target="before"] { box-shadow: 0 -3px 0 0 #f59e0b, -3px 0 0 0 #f59e0b !important; }',
     '[data-pc-drop-target="after"] { box-shadow: 0 3px 0 0 #f59e0b, 3px 0 0 0 #f59e0b !important; }',
+    '[data-pc-drop-target="inside"] { outline: 2px dashed #f59e0b !important; outline-offset: -2px !important; background-color: rgba(245, 158, 11, 0.08) !important; }',
     '[data-pc-editing="true"] { outline: 2px solid #16a34a !important; outline-offset: 3px !important; background-color: rgba(22, 163, 74, 0.04); cursor: text !important; }',
     '#pc-margin-box, #pc-padding-box { position: fixed; z-index: 2147483645; pointer-events: none; box-sizing: border-box; border-style: solid; display: none; }',
     '#pc-margin-box { border-color: rgba(245, 158, 11, 0.24); }',
