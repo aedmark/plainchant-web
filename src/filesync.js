@@ -20,5 +20,10 @@
         return scriptChanged ? 'write' : 'none';
     }
 
-    return { canon: canon, decide: decide, TYPES: TYPES };
+    function dirtyPaths(entries, saved) {
+        const base = saved || {};
+        return Object.keys(entries || {}).filter((path) => entries[path] !== base[path]);
+    }
+
+    return { canon: canon, decide: decide, dirtyPaths: dirtyPaths, TYPES: TYPES };
 });

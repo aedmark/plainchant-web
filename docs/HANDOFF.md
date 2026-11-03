@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-5 complete; `P6-01`, `P7-09`, `P7-10` done; `P6-02` next (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-09`, `P7-10`, `P7-16` done early; Phase 7 backlog next (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`39/39` unit & structural tests)
+  - `npm test` — passed (`44/44` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `15` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `16` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -35,9 +35,11 @@ Last updated: 2026-11-02
 
 - **Inspector docking (`P7-16`, `D-016`)**: bottom/top/left/right/float via the Dock menu; side docks resizable and remembered (`src/app/dock-ui.js`, `src/app/panes.js`).
 
+- **Explorer file operations & unsaved dots (`P6-02`, `D-017`)**: Rename/Duplicate/Delete with link updates and undo; `•` markers (`src/app/explorer-ui.js`).
+
 ### In flight
 
-- `P7-16` is complete but uncommitted. Nothing half-built.
+- `P6-02` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -46,14 +48,13 @@ Last updated: 2026-11-02
 - **Service worker is cache-first (`sw.js`)**: after changing any app file, a browser that already installed the app can keep serving old scripts; hard-reload when testing. `CACHE_NAME` has never been bumped, so consider a version bump per release.
 - **Browser folder open was not driven end to end**: `showDirectoryPicker` cannot be automated, so `P7-09` was checked by calling `activateImportedFolderProject` with a real PNG. Try it by hand in Chromium with a folder of images.
 - **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
+- **Dialogs in the desktop shell (`D-017`)**: Rename, New File, and Make Part use `window.prompt`; not verified in Tauri WebKitGTK. If it returns `null` there, replace with an in-app modal.
 - **Syntax colours can still switch off (`D-002`)**: `checkShade` permanently disables colouring on a detected wrap mismatch. The known cause (dropped `/` in `/>`) is fixed and guarded by a round-trip test, but any new tokenizer change must keep run text identical to the source. Settings > Syntax colours off/on re-enables without reload.
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
 ### Next up
 
-1. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
-
-2. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order after Phase 6 is `P7-04` link checker, `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order after Phase 6 is `P7-04` link checker, `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states.
 
 ### Open questions
 
@@ -64,6 +65,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2f: 2026-11-02: syntax colour fix and P6-02 Explorer file operations
+
+- **Did**: HTML shader keeps every character and falls back to plain text per line (`D-002`); `P6-02`: file helpers in [`src/project.js`](../src/project.js), `FileSync.dirtyPaths`, [`src/app/explorer-ui.js`](../src/app/explorer-ui.js), undo snapshots store tabs and tree, dirty baseline resets on load, explicit Save, and Export.
+- **Decided**: `D-017` (rename rewrites links; dirty = changed since explicit save).
+- **Verified**: `npm test` (`44/44`); browser check of dots, rename with link updates, duplicate, context menu, delete (active file and last page), undo/redo. Full check results are in this session's final report.
+- **Next**: Phase 7 backlog in the maintainer's order (`P7-04`, `P7-05`, `P7-06`, `P7-07`).
 
 ### Session 2e: 2026-11-02: Stage anchor fix, Inspector header overflow, dockable Inspector
 

@@ -292,3 +292,90 @@ test('code-shade: the coloured copy never loses or adds characters (self-closing
         [0.13, 0.37, 0.61, 0.89].forEach((frac) => check(text.slice(0, Math.floor(text.length * frac)), lang, f + ' cut at ' + frac));
     });
 });
+
+test('files: validateFilePath normalizes names and rejects unsafe or clashing ones', () => {
+    const entries = { 'index.html': '', 'About.html': '', 'css/site.css': '' };
+    const v = (p, cur) => Project.validateFilePath(entries, p, cur);
+    assert.equal(v('  ./sub\\page.html ').path, 'sub/page.html');
+    assert.equal(v('/lead//ing.html').path, 'lead/ing.html');
+    ['', '   ', 'a/', '../x.html', 'a/../b.html', 'a/./b.html', 'bad:name.html', 'a|b.html', 'x'.repeat(201)].forEach((p) => assert.ok(!v(p).ok, JSON.stringify(p) + ' is rejected'));
+    assert.ok(!v('about.html').ok, 'a case-only clash with another file is rejected');
+    assert.ok(v('about.html', 'About.html').ok, 'renaming a file by case alone is allowed');
+    assert.ok(!v('index.html').ok);
+});
+
+test('files: renameFile moves a file in place and rewrites every reference to it', () => {
+    const entries = {
+        'index.html': '<link rel="stylesheet" href="style.css"><a href="about.html#team">About</a><a href="./about.html?x=1">b</a><a href="/about.html">c</a><a href="https://example.com/about.html">ext</a><a href="#top">top</a>',
+        'about.html': '<link rel="stylesheet" href="style.css"><img src="img/a.png"><a href="index.html">Home</a>',
+        'style.css': 'body { background: url("img/a.png"); } .x { background: url(other.css); }',
+        'pages/team.html': '<link rel="stylesheet" href="../style.css"><!-- pc:part src="../parts/header.html" -->x<!-- /pc:part -->',
+        'parts/header.html': '<header>h</header>',
+        'script.js': 'var href = "style.css";'
+    };
+    const res = Project.renameFile(entries, 'style.css', 'css/site.css', { known: ['img/a.png'] });
+    const unknown = Project.renameFile(entries, 'style.css', 'css/site.css');
+    assert.includes(unknown.entries['css/site.css'], 'url("img/a.png")', 'paths that are not known project files are left alone');
+    assert.equal(res.error, null);
+    assert.deepEqual(Object.keys(res.entries), ['index.html', 'about.html', 'css/site.css', 'pages/team.html', 'parts/header.html', 'script.js'], 'the file keeps its position');
+    assert.includes(res.entries['index.html'], '<link rel="stylesheet" href="css/site.css">');
+    assert.includes(res.entries['about.html'], 'href="css/site.css"');
+    assert.includes(res.entries['pages/team.html'], 'href="../css/site.css"');
+    assert.includes(res.entries['css/site.css'], 'url("../img/a.png")', 'a moved file keeps pointing at what it pointed at');
+    assert.equal(res.entries['script.js'], entries['script.js'], 'scripts are not rewritten');
+    assert.ok(res.refsUpdated >= 4);
+
+    const page = Project.renameFile(entries, 'about.html', 'company/about us.html', { known: ['img/a.png'] });
+    assert.includes(page.entries['index.html'], 'href="company/about%20us.html#team"');
+    assert.includes(page.entries['index.html'], 'href="company/about%20us.html?x=1"');
+    assert.includes(page.entries['index.html'], 'href="/company/about%20us.html"', 'root-relative links stay root-relative');
+    assert.includes(page.entries['index.html'], 'href="https://example.com/about.html"');
+    assert.includes(page.entries['index.html'], 'href="#top"');
+    const moved = page.entries['company/about us.html'];
+    assert.includes(moved, 'href="../style.css"');
+    assert.includes(moved, 'src="../img/a.png"', 'binary assets listed in options.known are re-pointed too');
+    assert.includes(moved, 'href="../index.html"');
+
+    const part = Project.renameFile(entries, 'parts/header.html', 'parts/top.html');
+    assert.includes(part.entries['pages/team.html'], 'pc:part src="../parts/top.html"');
+
+    const same = Project.renameFile(entries, 'about.html', 'about.html');
+    assert.equal(same.entries, entries);
+    assert.ok(Project.renameFile(entries, 'about.html', 'index.html').error);
+    assert.ok(Project.renameFile(entries, 'missing.html', 'x.html').error);
+    const sameDir = Project.renameFile({ 'a.html': '<a href="./b.html">b</a>', 'b.html': '' }, 'b.html', 'c.html');
+    assert.includes(sameDir.entries['a.html'], 'href="c.html"');
+});
+
+test('files: duplicateFile, deleteFile, and treeAfter keep the file list and tree consistent', () => {
+    const entries = { 'index.html': 'a', 'about.html': 'b', 'style.css': 'c', 'style-copy.css': 'd' };
+    const dup = Project.duplicateFile(entries, 'style.css');
+    assert.equal(dup.path, 'style-copy-2.css');
+    assert.deepEqual(Object.keys(dup.entries), ['index.html', 'about.html', 'style.css', 'style-copy-2.css', 'style-copy.css']);
+    assert.equal(dup.entries['style-copy-2.css'], 'c');
+    assert.equal(Project.duplicateFile({ 'a/b': 'x' }, 'a/b').path, 'a/b-copy', 'files without an extension and dotted folders');
+    assert.equal(Project.duplicateFile({ 'v1.2/readme': 'x' }, 'v1.2/readme').path, 'v1.2/readme-copy');
+    assert.ok(Project.duplicateFile(entries, 'nope.html').error);
+
+    const del = Project.deleteFile(entries, 'style.css');
+    assert.ok(!('style.css' in del.entries));
+    assert.equal(Project.deleteFile({ 'index.html': 'a', 'x.css': '' }, 'index.html').error.includes('at least one .html'), true, 'the last page cannot be deleted');
+    assert.equal(Project.deleteFile({ 'index.html': 'a', 'about.htm': '' }, 'index.html').error, null, 'another page remains');
+    assert.ok(Project.deleteFile(entries, 'nope.html').error);
+
+    const tree = [{ path: 'img', kind: 'dir', is_text: false }, { path: 'img/a.png', kind: 'file', is_text: false }, { path: 'index.html', kind: 'file', is_text: true }];
+    assert.equal(Project.treeAfter(null, { type: 'delete', path: 'x' }), null);
+    assert.deepEqual(Project.treeAfter(tree, { type: 'delete', path: 'index.html' }).map((t) => t.path), ['img', 'img/a.png']);
+    const renamed = Project.treeAfter(tree, { type: 'rename', from: 'index.html', to: 'pages/home.html' });
+    assert.deepEqual(renamed.map((t) => t.path), ['img', 'img/a.png', 'pages', 'pages/home.html'], 'new folders appear in the tree');
+    assert.equal(renamed.find((t) => t.path === 'pages').kind, 'dir');
+    assert.deepEqual(Project.treeAfter(tree, { type: 'duplicate', from: 'index.html', to: 'index-copy.html' }).map((t) => t.path), ['img', 'img/a.png', 'index-copy.html', 'index.html']);
+    assert.equal(tree.length, 3, 'the input tree is not modified');
+});
+
+test('filesync: dirtyPaths lists files that differ from the saved baseline, including new files', () => {
+    const saved = { 'index.html': 'a', 'style.css': 'b' };
+    assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a', 'style.css': 'b' }, saved), []);
+    assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a!', 'style.css': 'b', 'new.js': '' }, saved), ['index.html', 'new.js']);
+    assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a' }, null), ['index.html']);
+});

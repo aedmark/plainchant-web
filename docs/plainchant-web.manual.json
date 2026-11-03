@@ -275,6 +275,26 @@
       "description": "How multi-file projects, undo history, local folders, and static assets are managed safely.",
       "entries": [
         {
+          "id": "explorer-file-operations",
+          "title": "Explorer file operations and unsaved dots",
+          "summary": "Rename, duplicate, and delete project files with link updates, undo, and per-file unsaved markers.",
+          "tags": ["explorer", "files", "D-017"],
+          "what": "Hovering or right-clicking a file in the Explorer offers **Rename**, **Duplicate**, and **Delete**. Renaming or moving a file rewrites links to it (`href`, `src`, `poster`, CSS `url()`, and shared-part markers); the last `.html` file cannot be deleted. Tabs and Explorer rows show a `•` when a file differs from the last load, explicit **Save**, or **Export**.",
+          "how": [
+            "`Project.renameFile()`, `duplicateFile()`, `deleteFile()`, and `treeAfter()` are pure helpers; `src/app/explorer-ui.js` applies them as one project-wide undo step that now also restores the tab list and file tree.",
+            "`FileSync.dirtyPaths()` compares the current files with `savedFileEntries`, which is reset on project load, explicit Save (not the 1.5 second auto-save), and Export.",
+            "Names are normalized and rejected if they escape the project, contain forbidden characters, or clash with another file ignoring case."
+          ],
+          "why": "Recorded in D-017: renames that left links stale would silently break pages, and clearing the dot on every auto-save would make it meaningless, so the dot tracks explicit saves and exports.",
+          "evidence": [
+            {"label": "File operation helpers", "target": "src/project.js"},
+            {"label": "Explorer UI and dirty marks", "target": "src/app/explorer-ui.js"},
+            {"label": "Dirty comparison", "target": "src/filesync.js"},
+            {"label": "File operation tests", "target": "test/project.test.js"}
+          ],
+          "related": ["multi-file-undo-redo", "browser-binary-assets"]
+        },
+        {
           "id": "multi-file-undo-redo",
           "title": "Project-wide multi-file Undo and Redo stack",
           "summary": "Snapshots all project files, active tabs, and Stage selection across Code, Stage, and Inspector edits.",

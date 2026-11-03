@@ -165,3 +165,13 @@ test('structure: the Inspector can dock bottom, top, left, right, or float, with
     ['.canvas-body[data-dock="left"]', '.inspector-panel.dock-top', '.inspector-panel.dock-left', '.inspector-panel.dock-right'].forEach((sel) => assert.includes(css, sel));
     assert.ok(/\.dock-left \.insp-grid,\s*\.dock-right \.insp-grid \{ grid-template-columns: minmax\(0, 1fr\); \}/.test(css), 'side docks use one column');
 });
+
+test('structure: the Explorer file menu, dirty markers, and explorer-ui.js are wired in (P6-02)', () => {
+    ['id="fileMenu"', 'data-file-cmd="rename"', 'data-file-cmd="duplicate"', 'data-file-cmd="delete"'].forEach((needle) => assert.includes(html, needle));
+    assert.ok(listed.indexOf('explorer-ui.js') > listed.indexOf('typing.js'), 'explorer-ui.js loads after typing.js');
+    const core = readRoot('src/app/core.js');
+    ['refreshDirtyMarks', 'decorateExplorerRow', 'markFilesSaved'].forEach((hook) => assert.includes(core, hook));
+    assert.includes(readRoot('src/app/persistence.js'), 'markFilesSaved(savedCopy)');
+    assert.includes(readRoot('src/app/typing.js'), 'tree: Array.isArray(projectFiles.tree)');
+    assert.includes(css, '.file-tab.dirty .tab-label::after');
+});

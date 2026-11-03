@@ -7,7 +7,7 @@ Why things are this way lives in [DECISIONS.md](DECISIONS.md); this file says *w
 
 ## The shape, in one paragraph
 
-The browser or Tauri v2 desktop window loads `app.html`, which loads 14 pure UMD modules (`src/*.js`) followed by 25 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
+The browser or Tauri v2 desktop window loads `app.html`, which loads 14 pure UMD modules (`src/*.js`) followed by 26 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
 
 ## Code map
 
@@ -18,6 +18,7 @@ The browser or Tauri v2 desktop window loads `app.html`, which loads 14 pure UMD
 | Syntax shader & line gutter | `src/code-shade.js`, `src/app/shade.js` | `CodeShade.shade()`, `drawShade()`, `highlightCodeRange()`, `drawGutter()` | `#editor`, `.editor-shade`, `#editorGutter` (D-002, D-015) |
 | Find / Replace | `src/finding.js`, `src/app/find.js` | `Finding.findAll()`, `openFind()`, `replaceCurrentMatch()`, `replaceEveryMatch()` | `#findBar`, `.editor-find` layer, `applyEdit()` in `typing.js` (D-015) |
 | Project & preview bundler | `src/project.js` | `Project.pack()`, `unpack()`, `assemblePreview()`, `primaryCssFile()` | `HtmlAst` (`stamp` only in preview) (D-004, D-006) |
+| Explorer file operations & dirty marks | `src/app/explorer-ui.js`, `Project.renameFile()` / `duplicateFile()` / `deleteFile()` / `treeAfter()`, `FileSync.dirtyPaths()` | `renameProjectFile()`, `duplicateProjectFile()`, `deleteProjectFile()`, `markFilesSaved()`, `refreshDirtyMarks()` | `core.js` (`renderExplorer`, `renderFileTabs`), `typing.js` undo snapshots, `persistence.js` and `tauri-files.js` (baseline resets) (D-017) |
 | Core state & File Explorer | `src/app/core.js` | `loadProjectIntoEditor()`, `openFileInEditor()`, `applyHtmlTransform()`, `applyCssTransform()`, `render()` | `HtmlAst`, `CssAst`, `Project`, `shade.js`, `stage.js`, `typing.js` |
 | Code typing & Undo/Redo | `src/app/typing.js`, `src/editing.js`, `src/suggest.js` | `applyEdit()`, `performUndo()`, `performRedo()`, `insertSnippet()` | `Editing`, `Suggest`, `core.js` (D-010) |
 | Stage bridge & WYSIWYG | `src/app/stage.js` | `drawStageNow()`, `buildBridgeScript()` | `#stageFrame` via `srcdoc` and `window.postMessage` (D-008, D-009) |
@@ -73,6 +74,7 @@ Code / Stage / Inspector input -> HtmlAst / CssAst byte-range splice -> projectF
 | What | Where | Written by | Reset by | Committed? |
 | --- | --- | --- | --- | --- |
 | Studio projects & snapshots | Browser/WebView IndexedDB (`plainchant_web_db`) | `src/store.js`, `src/app/persistence.js` | Clearing site data or deleting in Projects modal | No |
+| Unsaved-file baseline | In memory (`savedFileEntries`) | `markFilesSaved()` on load, explicit Save, and Export | Project switch | No |
 | Emergency unsaved buffer | `localStorage['plainchant_web_emergency']` | `src/app/persistence.js` | Reconciled and cleared on next IndexedDB open | No |
 | UI & Inspector settings | `localStorage['plainchant_web_settings']` (includes Inspector visibility, dock, and side width) | `src/app/settings.js`, `src/app/panes.js`, `src/app/dock-ui.js` | Browser storage clear | No |
 | Project binary assets (browser build) | IndexedDB `assets` store (`plainchant_web` v2) and in-memory Blob URLs (`projectAssetUrls`) | `src/app/tauri-files.js` folder scan, `src/app/assets.js` | Deleting the project (trash purge) or clearing site data; Blob URLs are revoked on every project load | No |

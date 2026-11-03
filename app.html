@@ -481,6 +481,13 @@
     </div>
 </div>
 
+<div id="fileMenu" class="ctx-menu" role="menu" aria-label="File actions" hidden>
+    <div id="fileMenuLabel" class="ctx-header">file</div>
+    <button type="button" class="ctx-item" role="menuitem" data-file-cmd="rename"><span>Rename&hellip;</span></button>
+    <button type="button" class="ctx-item" role="menuitem" data-file-cmd="duplicate"><span>Duplicate</span></button>
+    <button type="button" class="ctx-item" role="menuitem" data-file-cmd="delete"><span>Delete</span></button>
+</div>
+
 <div id="dockMenu" class="ctx-menu" role="menu" aria-label="Inspector position" hidden>
     <button type="button" class="ctx-item" role="menuitemradio" aria-checked="true" data-dock="bottom"><span>Dock at bottom</span></button>
     <button type="button" class="ctx-item" role="menuitemradio" aria-checked="false" data-dock="top"><span>Dock at top</span></button>
@@ -560,6 +567,7 @@
 <script src="src/app/console-ui.js"></script>
 <script src="src/app/parts-ui.js"></script>
 <script src="src/app/outline-ui.js"></script>
+<script src="src/app/explorer-ui.js"></script>
 <script src="src/app/export.js"></script>
 <script src="src/app/import.js"></script>
 <script src="src/app/tauri-files.js"></script>

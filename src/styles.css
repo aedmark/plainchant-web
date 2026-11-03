@@ -1316,3 +1316,26 @@ body.shaded #editor {
 .dock-left .inspector-resizer { right: -4px; }
 .dock-right .inspector-resizer { left: -4px; }
 .inspector-resizer:hover, .inspector-resizer:focus-visible { background-color: var(--border-strong); outline: none; }
+
+.explorer-row { display: flex; align-items: center; }
+.explorer-row .explorer-item { flex: 1 1 auto; width: auto; min-width: 0; }
+.explorer-row:hover .explorer-item { background: var(--bg-raised); color: var(--text-strong); }
+.explorer-row:hover .explorer-item.active { background: var(--btn-bg); }
+.explorer-actions { display: none; flex: 0 0 auto; gap: 0.15rem; padding-right: 0.3rem; }
+.explorer-row:hover .explorer-actions, .explorer-row:focus-within .explorer-actions { display: inline-flex; }
+.explorer-act {
+    width: 1.35rem;
+    height: 1.35rem;
+    padding: 0;
+    font-size: 0.72rem;
+    line-height: 1;
+    color: var(--text-void-muted);
+    background: var(--bg-void);
+    border: 1px solid var(--border-mid);
+    border-radius: 0.2rem;
+    cursor: pointer;
+}
+
+.explorer-act:hover { color: var(--text-strong); background: var(--btn-hover); }
+.explorer-act.danger:hover { color: var(--danger-soft-text); background: var(--danger-soft-bg); }
+.file-tab.dirty .tab-label::after, .explorer-row.dirty .explorer-name::after { content: " \2022"; color: var(--focus); font-weight: 700; }

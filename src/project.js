@@ -272,6 +272,131 @@
         return rewriteCssUrls(withAttrs, fromFile, urls);
     }
 
+    function relativePath(fromFile, target) {
+        const from = String(fromFile || '').split('/').slice(0, -1);
+        const to = String(target || '').split('/');
+        let i = 0;
+        while (i < from.length && i < to.length - 1 && from[i] === to[i]) i++;
+        return from.slice(i).map(() => '..').concat(to.slice(i)).join('/');
+    }
+
+    function normalizeFilePath(raw) {
+        return String(raw == null ? '' : raw).trim().replace(/\\/g, '/').replace(/^(?:\.?\/)+/, '').replace(/\/{2,}/g, '/');
+    }
+
+    function validateFilePath(entries, candidate, current) {
+        const path = normalizeFilePath(candidate);
+        if (!path) return { ok: false, error: 'Enter a file name.' };
+        if (path.length > 200) return { ok: false, error: 'That path is too long.' };
+        if (path.endsWith('/')) return { ok: false, error: 'A file name cannot end with a slash.' };
+        const segments = path.split('/');
+        if (segments.some((s) => s === '.' || s === '..')) return { ok: false, error: 'Use a path inside the project, without . or .. parts.' };
+        if (segments.some((s) => /[<>:"|?*\u0000-\u001f]/.test(s))) return { ok: false, error: 'File names cannot contain < > : " | ? * or control characters.' };
+        const clash = Object.keys(entries).find((k) => k !== current && k.toLowerCase() === path.toLowerCase());
+        if (clash) return { ok: false, error: clash + ' already exists (file names are compared without regard to case).' };
+        return { ok: true, path: path };
+    }
+
+    function mapRefs(text, visit) {
+        const attrRe = /(\s)(src|poster|href)(\s*=\s*)(?:"([^"]*)"|'([^']*)')/gi;
+        const out = String(text).replace(/<[a-z][^<>]*>/gi, (tag) => tag.replace(attrRe, (full, sp, name, eq, dq, sq) => {
+            const next = visit(dq != null ? dq : sq);
+            return next == null ? full : sp + name + eq + (dq != null ? '"' + next + '"' : "'" + next + "'");
+        })).replace(/(<!--\s*pc:part\s+src=)(?:"([^"]*)"|'([^']*)')/g, (full, head, dq, sq) => {
+            const next = visit(dq != null ? dq : sq);
+            return next == null ? full : head + (dq != null ? '"' + next + '"' : "'" + next + "'");
+        });
+        return out.replace(/url\(\s*(['"]?)([^'")]*?)\1\s*\)/gi, (full, quote, raw) => {
+            const next = visit(raw);
+            return next == null ? full : 'url("' + next + '")';
+        });
+    }
+
+    function renameFile(entries, from, to, options) {
+        if (!Object.prototype.hasOwnProperty.call(entries, from)) return { error: from + ' was not found.' };
+        const check = validateFilePath(entries, to, from);
+        if (!check.ok) return { error: check.error };
+        const target = check.path;
+        if (target === from) return { error: null, entries: entries, path: from, refsUpdated: 0 };
+        const known = new Set(Object.keys(entries).concat((options && options.known) || []));
+        const next = {};
+        let refsUpdated = 0;
+        Object.keys(entries).forEach((oldPath) => {
+            const newPath = oldPath === from ? target : oldPath;
+            let text = entries[oldPath];
+            if (/\.(html?|css)$/i.test(oldPath)) {
+                const updated = mapRefs(text, (raw) => {
+                    const m = /^([^?#]*)(.*)$/.exec(String(raw).trim());
+                    const was = resolveRelativePath(oldPath, m[1]);
+                    if (!was) return null;
+                    const points = was === from;
+                    if (!points && (oldPath === newPath || !known.has(was))) return null;
+                    const now = points ? target : was;
+                    if (resolveRelativePath(newPath, m[1]) === now) return null;
+                    const rel = m[1].charAt(0) === '/' ? '/' + now : relativePath(newPath, now);
+                    return rel.replace(/ /g, '%20') + m[2];
+                });
+                if (updated !== text) { refsUpdated++; text = updated; }
+            }
+            next[newPath] = text;
+        });
+        return { error: null, entries: next, path: target, refsUpdated: refsUpdated };
+    }
+
+    function uniqueCopyPath(entries, path) {
+        const dot = path.lastIndexOf('.');
+        const slash = path.lastIndexOf('/');
+        const stem = dot > slash + 1 ? path.slice(0, dot) : path;
+        const ext = dot > slash + 1 ? path.slice(dot) : '';
+        const taken = new Set(Object.keys(entries).map((k) => k.toLowerCase()));
+        let candidate = stem + '-copy' + ext;
+        for (let n = 2; taken.has(candidate.toLowerCase()); n++) candidate = stem + '-copy-' + n + ext;
+        return candidate;
+    }
+
+    function duplicateFile(entries, path) {
+        if (!Object.prototype.hasOwnProperty.call(entries, path)) return { error: path + ' was not found.' };
+        const copy = uniqueCopyPath(entries, path);
+        const next = {};
+        Object.keys(entries).forEach((k) => {
+            next[k] = entries[k];
+            if (k === path) next[copy] = entries[path];
+        });
+        return { error: null, entries: next, path: copy };
+    }
+
+    function deleteFile(entries, path) {
+        if (!Object.prototype.hasOwnProperty.call(entries, path)) return { error: path + ' was not found.' };
+        if (/\.html?$/i.test(path) && Object.keys(entries).filter((k) => /\.html?$/i.test(k)).length <= 1) {
+            return { error: 'A project needs at least one .html file, so ' + path + ' cannot be deleted.' };
+        }
+        const next = Object.assign({}, entries);
+        delete next[path];
+        return { error: null, entries: next };
+    }
+
+    function treeAfter(tree, op) {
+        if (!Array.isArray(tree)) return tree;
+        let next = tree.map((item) => Object.assign({}, item));
+        if (op.type === 'delete') return next.filter((item) => item.path !== op.path);
+        const add = (path, source) => {
+            const parts = path.split('/');
+            for (let i = 1; i < parts.length; i++) {
+                const dir = parts.slice(0, i).join('/');
+                if (!next.some((item) => item.path === dir)) next.push({ path: dir, kind: 'dir', is_text: false });
+            }
+            next.push({ path: path, kind: 'file', is_text: source ? source.is_text !== false : true });
+        };
+        if (op.type === 'rename') {
+            const old = next.find((item) => item.path === op.from);
+            next = next.filter((item) => item.path !== op.from);
+            add(op.to, old);
+        } else if (op.type === 'duplicate') {
+            add(op.to, next.find((item) => item.path === op.from));
+        }
+        return next.sort((a, b) => (a.path < b.path ? -1 : (a.path > b.path ? 1 : 0)));
+    }
+
     function normalizeEntries(files) {
         const f = files || {};
         const entries = Object.assign({}, f.entries || {});
@@ -686,6 +811,13 @@
         DEFAULT_JS: DEFAULT_JS,
         resolveRelPath: resolveRelPath,
         resolveRelativePath: resolveRelativePath,
+        relativePath: relativePath,
+        normalizeFilePath: normalizeFilePath,
+        validateFilePath: validateFilePath,
+        renameFile: renameFile,
+        duplicateFile: duplicateFile,
+        deleteFile: deleteFile,
+        treeAfter: treeAfter,
         mimeFor: mimeFor,
         rewriteAssetUrls: rewriteAssetUrls,
         rewriteCssUrls: rewriteCssUrls,

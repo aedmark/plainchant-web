@@ -191,6 +191,7 @@ async function exportProjectToFolder(forceNewFolder = false) {
                 updateFolderBar();
             }
             if (typeof refreshExportModal === 'function') refreshExportModal();
+            markFilesSaved();
             showNotice('Exported ' + fileCount + ' project files (retaining folder structure) to ' + savedPath);
         } catch (err) {
             showNotice('Disk export failed: ' + (err.message || err), true);
@@ -211,6 +212,7 @@ async function exportProjectToFolder(forceNewFolder = false) {
                 updateFolderBar();
             }
             if (typeof refreshExportModal === 'function') refreshExportModal();
+            markFilesSaved();
             showNotice('Exported ' + fileCount + ' project files (retaining folder structure) to ' + dirHandle.name);
         } catch (err) {
             if (err && err.name !== 'AbortError') {

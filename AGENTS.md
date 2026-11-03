@@ -92,6 +92,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/versions.js` | Project snapshot retention and pruning rules (UMD) |
 | `src/filesync.js` | Disk vs. studio content comparison helpers (UMD) |
 | `src/importing.js` | Text/code file extension filter and UTF-8/UTF-16/Windows-1252 decoder (UMD) |
+| `src/app/explorer-ui.js` | Explorer Rename / Duplicate / Delete, file context menu, and unsaved-file dots |
 | `src/finding.js` | Plain-text search and replace offset helpers for the find bar (UMD, no DOM) |
 | `src/app/find.js` | Find/Replace bar, match highlight layer, and `Ctrl/Cmd+F` / `Ctrl/Cmd+H` shortcuts |
 | `src/parts.js` | Shared page parts: marker-region finder, status scanner, and synchronizer (UMD, no DOM) |

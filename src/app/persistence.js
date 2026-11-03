@@ -172,6 +172,7 @@ function flushSave() {
 function saveScript(isAuto = false) {
     syncBufferFromEditor();
     const packed = Project.pack(projectFiles);
+    const savedCopy = Object.assign({}, projectFiles.entries);
     if (!storageMode) return;
     const title = Project.extractTitle(projectFiles);
 
@@ -213,6 +214,7 @@ function saveScript(isAuto = false) {
             if (currentScriptId === record.id) currentScriptId = stored.id;
         }
         announce({ put: [stored] });
+        if (!isAuto && typeof markFilesSaved === 'function') markFilesSaved(savedCopy);
         finish(true);
         if (!isAuto) {
             showNotice(linkedFolder

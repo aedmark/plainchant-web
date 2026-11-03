@@ -112,6 +112,7 @@ function loadProjectIntoEditor(rawOrFiles, options = {}) {
     renderExplorer();
     if (typeof resetHistory === 'function') resetHistory();
     if (typeof adoptProjectAssets === 'function') adoptProjectAssets(options.assets);
+    if (typeof markFilesSaved === 'function') markFilesSaved();
 }
 
 function renderFileTabs() {
@@ -127,6 +128,7 @@ function renderFileTabs() {
         btn.setAttribute('aria-selected', String(filePath === activeFile));
 
         const label = document.createElement('span');
+        label.className = 'tab-label';
         label.textContent = filePath.split('/').pop();
         btn.title = filePath;
         btn.appendChild(label);
@@ -146,6 +148,7 @@ function renderFileTabs() {
         btn.addEventListener('click', () => openFileInEditor(filePath));
         fileTabsBox.appendChild(btn);
     });
+    if (typeof refreshDirtyMarks === 'function') refreshDirtyMarks();
 }
 
 function closeFileTab(filePath) {
@@ -271,8 +274,14 @@ function renderExplorer() {
                 showNotice('Binary file: ' + item.path);
             }
         });
-        explorerTree.appendChild(btn);
+        const row = document.createElement('div');
+        row.className = 'explorer-row';
+        row.dataset.path = item.path;
+        row.appendChild(btn);
+        if (typeof decorateExplorerRow === 'function') decorateExplorerRow(row, item.path in projectFiles.entries);
+        explorerTree.appendChild(row);
     });
+    if (typeof refreshDirtyMarks === 'function') refreshDirtyMarks();
 }
 
 function applyHtmlTransform(newHtml, keepSelectId, options = {}) {
@@ -343,6 +352,7 @@ function scheduleAutoSave() {
     autoSaveTimer = setTimeout(() => {
         saveScript(true);
     }, 1500);
+    if (typeof refreshDirtyMarks === 'function') refreshDirtyMarks();
 }
 
 function render(typed) {

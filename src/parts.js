@@ -43,13 +43,7 @@
         return trimEnd(html.slice(region.openEnd, region.closeStart));
     }
 
-    function relPath(fromFile, target) {
-        const from = String(fromFile || '').split('/').slice(0, -1);
-        const to = String(target || '').split('/');
-        let i = 0;
-        while (i < from.length && i < to.length - 1 && from[i] === to[i]) i++;
-        return from.slice(i).map(() => '..').concat(to.slice(i)).join('/');
-    }
+    const relPath = Project.relativePath;
 
     function wrap(src, text, indent) {
         return '<!-- pc:part src="' + src + '" -->\n' + (indent || '') + trimEnd(text) + '\n' + (indent || '') + '<!-- /pc:part -->';

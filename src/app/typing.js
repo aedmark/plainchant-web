@@ -27,6 +27,8 @@ function captureSnapshot() {
         entries: entriesCopy,
         activeFile: activeFile,
         activeHtmlFile: activeHtmlFile,
+        openTabs: openTabs.slice(),
+        tree: Array.isArray(projectFiles.tree) ? projectFiles.tree.map((item) => Object.assign({}, item)) : null,
         selectedPcId: selectedPcId,
         selStart: editor.selectionStart || 0,
         selEnd: editor.selectionEnd || 0,
@@ -101,6 +103,8 @@ function restoreSnapshot(snap) {
     clearTimeout(typingBatchTimer);
     typingBatchOpen = false;
     projectFiles.entries = Object.assign({}, snap.entries);
+    if (snap.tree !== undefined) projectFiles.tree = snap.tree ? snap.tree.map((item) => Object.assign({}, item)) : null;
+    if (Array.isArray(snap.openTabs)) openTabs = snap.openTabs.filter((p) => p in projectFiles.entries);
     if (snap.activeHtmlFile && (snap.activeHtmlFile in projectFiles.entries)) {
         activeHtmlFile = snap.activeHtmlFile;
     }
@@ -108,6 +112,8 @@ function restoreSnapshot(snap) {
         activeFile = snap.activeFile;
         if (!openTabs.includes(activeFile)) openTabs.push(activeFile);
     }
+    if (!(activeFile in projectFiles.entries)) activeFile = Object.keys(projectFiles.entries)[0] || 'index.html';
+    if (!openTabs.includes(activeFile)) openTabs.push(activeFile);
     activeTab = langForFile(activeFile);
     syncMirrors();
     applyingEdit = true;
