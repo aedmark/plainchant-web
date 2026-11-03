@@ -7,3 +7,6 @@ Thumbs.db
 
 src-tauri/target/
 src-tauri/dist/
+
+__pycache__/
+*.pyc
