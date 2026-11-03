@@ -1,0 +1,30 @@
+# Security
+
+Security model, trust boundaries, and known limitations for Plainchant Web.
+
+## Threat model & trust boundaries
+
+Plainchant Web is a local web and desktop application (Tauri v2 + Rust backend) that opens, previews, and exports user-authored or third-party HTML/CSS/JS project folders.
+
+### Trust boundaries
+
+1. **Untrusted Project Files vs. Studio Shell**:
+   - Users may open downloaded or third-party HTML/CSS/JS folders.
+   - Untrusted project markup and scripts are rendered inside the `#stageFrame` iframe (`sandbox="allow-scripts allow-same-origin"`), separate from the parent [`app.html`](../app.html) window.
+2. **Design Mode Script Stripping (`D-003`)**:
+   - When `designMode` is enabled (the default in Split and Design views), [`Project.assemblePreview`](../src/project.js) strips all user `<script>` tags from the HTML before injecting the studio bridge script (`src/app/stage.js`).
+   - User scripts only run when the user explicitly switches the Stage to **Live JS** mode.
+3. **Localhost Asset Server Path Traversal Protection (`D-006`)**:
+   - [`src-tauri/src/main.rs`](../src-tauri/src/main.rs) runs an HTTP server bound strictly to `127.0.0.1:0` (loopback only, ephemeral port).
+   - Every incoming request path is percent-decoded, stripped of query strings, and checked to reject `..` (`Component::ParentDir`) and root/prefix components before joining with the active project root directory.
+4. **Isolated Studio Workspace (`D-006`)**:
+   - Opening a local directory via `open_project_folder` reads text files into memory and sets the asset server root, but **never** automatically writes back to disk during editing. Disk writes occur only when the user explicitly triggers **Export** (`save_project_folder` in [`src-tauri/src/main.rs`](../src-tauri/src/main.rs)).
+
+## Secrets & configuration
+
+- Plainchant Web requires no API keys, cloud credentials, or external network access.
+- Never commit `.env` files, private keys, or user project exports into the repository.
+
+## Reporting
+
+Report security issues by opening a private security advisory on the GitHub repository (`https://github.com/aedmark/plainchant-web`).

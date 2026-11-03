@@ -1,0 +1,27 @@
+# Changelog
+
+User-visible changes by release. Internal refactors and doc-only edits belong in git history and [`docs/HANDOFF.md`](HANDOFF.md), not here.
+
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+
+## [Unreleased]
+
+### Added
+
+- **Home Screen & Starter Templates**: Welcome studio launcher ([`index.html`](../index.html)) with Blank HTML5, Product Landing Page, Creative Portfolio, and 90s GeoCities Retro starter templates plus Open Local Folder.
+- **Split-View WYSIWYG Studio**: Code, Split, and Design view modes ([`app.html`](../app.html)) with responsive viewport presets (`100%`, `768px`, `375px`), live DOM breadcrumb bar, collapsible File Explorer (`#fileExplorer`), and dockable/collapsible/floating/hideable Inspector (`D-007`).
+- **Direct Stage Manipulation**:
+  - Single-click direct WYSIWYG text editing on the Design Stage (`contenteditable` live sync to HTML source without stealing focus to the code editor, `D-009`).
+  - Pointer-based drag-and-drop element reordering (`before`, `after`, `inside`) with live amber drop indicators and target badges (`D-008`).
+  - On-stage selection action badge (`↑` move up, `↓` move down, `⧉` duplicate, `✕` delete).
+  - Top **Insert ▾** dropdown menu and right-click context menu on both the Design Stage and HTML code editor (`P2-06`).
+- **Rich CSS Designer**:
+  - Live `getComputedStyle` placeholders across Layout, Spacing, Size, Typography, and Background & Border sections (`D-007`).
+  - Interactive visual Box Model diagram with live margin (amber) and padding (emerald) overlays on the Design Stage.
+  - Matching stylesheet rule inspector with one-click **Go to CSS ↗** rule navigation.
+- **Project-Wide Multi-File Undo & Redo**: Top bar `↶` / `↷` buttons and `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, `Ctrl+Y` across code edits, Stage text edits, drag-and-drop moves, Inspector edits, and CSS Designer changes (`D-010`).
+- **Isolated Studio Project Environment**: Opening a local folder loads files into an isolated in-memory studio workspace (`[Folder Mode — Unsaved in Studio]`) without auto-overwriting disk files; **Export** preserves the original folder and subfolder structure when saving back to disk (`D-006`).
+
+### Fixed
+
+- Fixed Stage drag-and-drop element reordering on Linux WebKitGTK by replacing native HTML5 drag events with deterministic pointer-based hit testing (`D-008`) and single-pass byte-offset splicing in `HtmlAst.moveElement`.
