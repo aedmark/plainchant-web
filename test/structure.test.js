@@ -143,3 +143,15 @@ test('structure: the Live JS bridge keeps anchors, empty links, and forms from n
     handlers.submit(submit);
     assert.ok(submit.prevented, 'forms do not navigate the Stage');
 });
+
+test('structure: the floating Inspector wraps its header and clips overflow so controls stay inside the window', () => {
+    const rule = (selector) => {
+        const m = css.match(new RegExp('(?:^|\\n)' + selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\{([^}]*)\\}'));
+        assert.ok(m, selector + ' rule is missing');
+        return m[1];
+    };
+    ['.inspector-header', '.inspector-tabs', '.insp-actions', '.inspector-selection-badge'].forEach((sel) => {
+        assert.includes(rule(sel), 'flex-wrap: wrap', sel + ' must wrap');
+    });
+    assert.includes(rule('.inspector-panel.floating'), 'overflow: hidden');
+});

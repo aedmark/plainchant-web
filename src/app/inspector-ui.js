@@ -91,6 +91,7 @@ function refreshInspector() {
     const isMovable = Boolean(hasNode && node.tag !== 'body');
 
     inspSelectedTag.textContent = hasNode ? '<' + DomOutline.formatLabel(node) + '> (line ' + (node.line + 1) + ')' : 'No element selected';
+    inspSelectedTag.title = inspSelectedTag.textContent;
     if (inspMoveUpBtn) inspMoveUpBtn.disabled = !isMovable;
     if (inspMoveDownBtn) inspMoveDownBtn.disabled = !isMovable;
     if (inspDupBtn) inspDupBtn.disabled = !isMovable;

@@ -38,5 +38,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ### Fixed
 
+- The floating Inspector no longer lets its header controls spill past the window edge: the tabs, selection label, and action buttons now wrap onto a second row, long element labels are truncated (full text on hover), and anything left over is clipped inside the window. Docked mode wraps the same way on narrow screens.
 - Clicking a `#anchor` link (or an empty link, or submitting a form) in Live JS mode no longer loads a second copy of the editor inside the Stage. The Stage frame resolves such links against the editor page, so the Live bridge now scrolls to the anchor itself and cancels the navigation.
 - Fixed Stage drag-and-drop element reordering on Linux WebKitGTK by replacing native HTML5 drag events with deterministic pointer-based hit testing (`D-008`) and single-pass byte-offset splicing in `HtmlAst.moveElement`.
