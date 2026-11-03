@@ -23,6 +23,7 @@ function sendForceState() {
 }
 
 function refreshCssStateUi(node) {
+    if (typeof refreshCssMediaUi === 'function') refreshCssMediaUi();
     const inline = activeCssTarget === 'inline';
     if (inline && activeCssState) activeCssState = '';
     cssStateButtons.forEach((btn) => {
@@ -34,7 +35,7 @@ function refreshCssStateUi(node) {
     } else if (!activeCssState) {
         cssStateHint.textContent = '';
     } else {
-        const rule = CssAst.findRuleBySelector(currentCssAst, cssEditSelector(node));
+        const rule = CssAst.findRuleBySelector(currentCssAst, cssEditSelector(node), cssEditMedia());
         cssStateHint.textContent = 'Editing ' + cssEditSelector(node) + (rule ? '' : ' (new rule on first change)') +
             (stageMode === 'design' ? ' · previewing :' + activeCssState + ' on the Stage' : ' · switch to Design mode to preview');
     }

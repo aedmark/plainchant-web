@@ -142,6 +142,7 @@
             "When an element is selected on the Stage, the bridge reads `window.getComputedStyle(el)` and `getBoundingClientRect()` and posts them to `src/app/inspector-ui.js`.",
             "Inputs display live computed values as placeholders while editing either inline `style` (`HtmlAst.setAttr`) or linked stylesheet rules (`CssAst.setProperty`).",
             "A **State** bar (Normal, `:hover`, `:focus`, `:active`, `:focus-visible`, `:focus-within`) switches the designer to the matching `<selector>:<state>` rule and previews it on the selected Stage element: the preview copy of each stylesheet gets `[data-pc-force~=\"state\"]` twins of its pseudo-class selectors (`CssAst.forceStates()`) and the bridge sets `data-pc-force` (D-021).",
+            "A **Breakpoint** bar (All sizes, ≤ 768px, ≤ 375px) passes a `media` argument to `CssAst.getDeclarations()`, `findRuleBySelector()`, and `setProperty()`, which create or edit rules inside the matching `@media (max-width: …)` block (kept in cascade order) while `src/app/css-media.js` resizes the Stage so the real query applies (D-026).",
             "When the selected element is `display: flex` or `grid`, a second bridge script (`src/app/stage-layout.js`, built around the pure `src/layout.js`) draws grid track guides and amber gap handles between items; dragging a handle previews the new gap and writes `gap`, `column-gap`, or `row-gap` through `applyCssPropertyChange()` (D-025). A **Layout** group in the designer sets direction, wrap, justify, and align-items.",
             "Hovering or editing Box Model inputs draws amber margin and emerald padding overlays on the Stage; clicking **Go to CSS ↗** locates the rule via `CssAst.findRuleBySelector()` and highlights it in the Code editor."
           ],
@@ -151,6 +152,7 @@
             {"label": "Inspector docking & floating modal", "target": "src/app/panes.js"},
             {"label": "Dock menu & side resizer", "target": "src/app/dock-ui.js"},
             {"label": "Pseudo-state bar", "target": "src/app/css-states.js"},
+            {"label": "Breakpoint bar", "target": "src/app/css-media.js"},
             {"label": "Flex and grid gap handles", "target": "src/layout.js"},
             {"label": "Layout bridge and group", "target": "src/app/stage-layout.js"},
             {"label": "CSS selector locator", "target": "src/css-ast.js"}

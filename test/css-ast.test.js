@@ -112,3 +112,49 @@ test('project: design previews make pseudo-class rules forceable, live previews 
     assert.excludes(Project.assemblePreview(files, { liveJs: false }), 'data-pc-force');
     assert.equal(files.entries['s.css'], '.btn:hover { color: blue; }', 'the project source is untouched');
 });
+
+test('css: media-scoped lookups only see rules in the matching @media block', () => {
+    const css = '.a { color: red; }\n@media (max-width: 768px) {\n  .a { color: blue; padding: 4px; }\n}\n@media screen and (max-width: 375px) { .a { color: green; } }\n';
+    assert.deepEqual(CssAst.getDeclarations(css, '.a'), { color: 'red' }, 'no media argument reads the base rule only');
+    assert.deepEqual(CssAst.getDeclarations(css, '.a', ''), { color: 'red' });
+    assert.deepEqual(CssAst.getDeclarations(css, '.a', '(max-width: 768px)'), { color: 'blue', padding: '4px' });
+    assert.deepEqual(CssAst.getDeclarations(css, '.a', '@media (MAX-WIDTH:768px)'), { color: 'blue', padding: '4px' }, 'queries compare by normalised text');
+    assert.deepEqual(CssAst.getDeclarations(css, '.a', '(max-width: 375px)'), {}, 'a different query is not a match');
+    assert.equal(CssAst.findRuleBySelector(css, '.a', '(max-width: 768px)').declarations.length, 2);
+    assert.equal(CssAst.findRuleBySelector(css, '.a', '(max-width: 375px)'), null);
+    assert.equal(CssAst.findRuleBySelector(css, '.a', '').declarations[0].value, 'red');
+    assert.equal(CssAst.parse(css).blocks.length, 2);
+});
+
+test('css: setProperty edits an existing media rule in place and keeps its indentation', () => {
+    const css = '.a { color: red; }\n@media (max-width: 768px) {\n  .a {\n    color: blue;\n  }\n}\n';
+    const changed = CssAst.setProperty(css, '.a', 'color', 'teal', '(max-width: 768px)');
+    assert.equal(changed, css.replace('blue', 'teal'));
+    const added = CssAst.setProperty(css, '.a', 'padding', '8px', '(max-width: 768px)');
+    assert.equal(added, '.a { color: red; }\n@media (max-width: 768px) {\n  .a {\n    color: blue;\n    padding: 8px;\n  }\n}\n');
+    assert.equal(CssAst.setProperty(css, '.a', 'color', 'pink'), css.replace('red', 'pink'), 'the base rule is untouched by media edits and vice versa');
+    const removed = CssAst.setProperty(css, '.a', 'color', '', '(max-width: 768px)');
+    assert.ok(!removed.includes('blue') && removed.includes('@media (max-width: 768px)'));
+});
+
+test('css: setProperty creates media blocks and rules in cascade order', () => {
+    const base = '.a { color: red; }\n';
+    const tablet = CssAst.setProperty(base, '.b', 'padding', '4px', '(max-width: 768px)');
+    assert.equal(tablet, '.a { color: red; }\n\n@media (max-width: 768px) {\n  .b {\n    padding: 4px;\n  }\n}\n');
+
+    const both = CssAst.setProperty(tablet, '.b', 'padding', '2px', '(max-width: 375px)');
+    assert.ok(both.indexOf('(max-width: 768px)') < both.indexOf('(max-width: 375px)'), 'a narrower query is appended after a wider one');
+
+    const mobileFirst = CssAst.setProperty(base, '.b', 'padding', '2px', '(max-width: 375px)');
+    const tabletLater = CssAst.setProperty(mobileFirst, '.b', 'padding', '4px', '(max-width: 768px)');
+    assert.ok(tabletLater.indexOf('(max-width: 768px)') < tabletLater.indexOf('(max-width: 375px)'), 'a wider query is inserted before a narrower one so the narrow rules still win');
+    assert.equal(CssAst.parse(tabletLater).blocks.length, 2);
+
+    const second = CssAst.setProperty(tablet, '.c', 'margin', '0', '(max-width: 768px)');
+    assert.equal(CssAst.parse(second).blocks.length, 1, 'a second rule joins the existing block');
+    assert.equal(CssAst.getDeclarations(second, '.c', '(max-width: 768px)').margin, '0');
+
+    const baseAfter = CssAst.setProperty(tablet, '.d', 'color', 'green');
+    assert.ok(baseAfter.indexOf('.d {') < baseAfter.indexOf('@media'), 'a new base rule goes before the first media block so it cannot override it');
+    assert.equal(CssAst.setProperty(base, '.b', 'padding', '', '(max-width: 768px)'), base, 'clearing a value that was never set creates nothing');
+});

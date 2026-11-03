@@ -246,6 +246,13 @@
                 <button type="button" class="mini" id="cssAddRuleBtn">Use Selector</button>
                 <span id="cssBoxSummary" class="css-box-summary" aria-live="polite"></span>
             </div>
+            <div id="cssMediaBar" class="css-state-bar" role="group" aria-label="Breakpoint to edit and preview">
+                <span class="insp-inline-label">Breakpoint:</span>
+                <button type="button" class="mini css-state-btn css-media-btn" data-media="" aria-pressed="true" title="Edit the base styles that apply at every screen size">All sizes</button>
+                <button type="button" class="mini css-state-btn css-media-btn" data-media="(max-width: 768px)" aria-pressed="false" title="Edit styles inside @media (max-width: 768px) and preview at 768px">&le; 768px</button>
+                <button type="button" class="mini css-state-btn css-media-btn" data-media="(max-width: 375px)" aria-pressed="false" title="Edit styles inside @media (max-width: 375px) and preview at 375px">&le; 375px</button>
+                <span id="cssMediaHint" class="css-state-hint" aria-live="polite"></span>
+            </div>
             <div id="cssStateBar" class="css-state-bar" role="group" aria-label="Pseudo-class state to edit and preview">
                 <span class="insp-inline-label">State:</span>
                 <button type="button" class="mini css-state-btn" data-state="" aria-pressed="true" title="Edit the normal (resting) rule">Normal</button>
@@ -669,6 +676,7 @@
 <script src="src/app/insert-drag.js"></script>
 <script src="src/app/inspector-ui.js"></script>
 <script src="src/app/css-states.js"></script>
+<script src="src/app/css-media.js"></script>
 <script src="src/app/layout-ui.js"></script>
 <script src="src/app/console-ui.js"></script>
 <script src="src/app/parts-ui.js"></script>

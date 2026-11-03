@@ -85,6 +85,7 @@
         const text = String(css || '');
         const starts = lineStarts(text);
         const rules = [];
+        const blocks = [];
         let i = 0;
         const len = text.length;
 
@@ -125,6 +126,7 @@
 
             if (rawSel.startsWith('@') && text.slice(bodyStart, bodyEnd).indexOf('{') !== -1) {
                 const inner = parse(text.slice(bodyStart, bodyEnd));
+                blocks.push({ media: rawSel, start: selStart, end: j, bodyStart: bodyStart, bodyEnd: bodyEnd });
                 inner.rules.forEach((r) => {
                     rules.push({
                         selector: r.selector,
@@ -162,7 +164,26 @@
             }
             i = j;
         }
-        return { rules: rules, text: text };
+        return { rules: rules, text: text, blocks: blocks };
+    }
+
+    const MEDIA_PRESETS = [
+        { key: 'tablet', query: '(max-width: 768px)', width: '768px' },
+        { key: 'mobile', query: '(max-width: 375px)', width: '375px' }
+    ];
+
+    function mediaQuery(raw) {
+        return String(raw || '').trim().replace(/^@media\s*/i, '').replace(/\s+/g, ' ').replace(/\s*:\s*/g, ': ').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')').toLowerCase();
+    }
+
+    function sameMedia(rule, media) {
+        const want = mediaQuery(media);
+        return want ? Boolean(rule.media) && mediaQuery(rule.media) === want : !rule.media;
+    }
+
+    function maxWidthOf(raw) {
+        const m = /^\(max-width: (\d+(?:\.\d+)?)px\)$/.exec(mediaQuery(raw));
+        return m ? parseFloat(m[1]) : null;
     }
 
     function selectorMatchesElement(selector, el) {
@@ -207,11 +228,17 @@
         return ast.rules.filter((r) => !r.media && selectorMatchesElement(r.selector, el));
     }
 
-    function findRuleBySelector(css, selector) {
+    function findRuleBySelector(css, selector, media) {
         const ast = typeof css === 'string' ? parse(css) : css;
         if (!ast || !ast.rules) return null;
         const norm = String(selector || '').trim().replace(/\s+/g, ' ');
         if (!norm) return null;
+        if (typeof media === 'string') {
+            const scoped = ast.rules.filter((r) => sameMedia(r, media));
+            for (let i = scoped.length - 1; i >= 0; i--) if (scoped[i].selector === norm) return scoped[i];
+            for (let i = scoped.length - 1; i >= 0; i--) if (scoped[i].selector.split(',').map((x) => x.trim()).indexOf(norm) !== -1) return scoped[i];
+            return null;
+        }
         for (let i = ast.rules.length - 1; i >= 0; i--) {
             if (!ast.rules[i].media && ast.rules[i].selector === norm) return ast.rules[i];
         }
@@ -225,19 +252,42 @@
         return null;
     }
 
-    function getDeclarations(css, selector) {
+    function getDeclarations(css, selector, media) {
         const ast = typeof css === 'string' ? parse(css) : css;
         const norm = String(selector || '').trim().replace(/\s+/g, ' ');
         const map = {};
         ast.rules.forEach((r) => {
-            if (!r.media && r.selector === norm) {
+            if (sameMedia(r, media) && r.selector === norm) {
                 r.declarations.forEach((d) => { map[d.prop] = d.value; });
             }
         });
         return map;
     }
 
-    function setProperty(css, selector, prop, value) {
+    function addRule(ast, selector, prop, value, query) {
+        const text = ast.text;
+        const body = (indent) => indent + selector + ' {\n' + indent + '  ' + prop + ': ' + value + ';\n' + indent + '}\n';
+        const blocks = ast.blocks || [];
+        if (!query) {
+            const first = blocks[0];
+            if (first) return text.slice(0, first.start) + body('') + '\n' + text.slice(first.start);
+            const prefix = text.length > 0 && !/\n\s*$/.test(text) ? '\n\n' : (text.length > 0 && !text.endsWith('\n\n') ? '\n' : '');
+            return text + prefix + body('');
+        }
+        const same = blocks.filter((b) => mediaQuery(b.media) === query);
+        if (same.length) {
+            const block = same[same.length - 1];
+            return text.slice(0, block.bodyEnd).replace(/\s*$/, '') + '\n\n' + body('  ') + text.slice(block.bodyEnd);
+        }
+        const width = maxWidthOf(query);
+        const later = width === null ? null : blocks.find((b) => { const w = maxWidthOf(b.media); return w !== null && w < width; });
+        const block = '@media ' + query + ' {\n' + body('  ') + '}\n';
+        if (later) return text.slice(0, later.start) + block + '\n' + text.slice(later.start);
+        const prefix = text.length > 0 && !/\n\s*$/.test(text) ? '\n\n' : (text.length > 0 && !text.endsWith('\n\n') ? '\n' : '');
+        return text + prefix + block;
+    }
+
+    function setProperty(css, selector, prop, value, media) {
         const ast = parse(css);
         const text = ast.text;
         const normSel = String(selector || '').trim().replace(/\s+/g, ' ');
@@ -247,7 +297,7 @@
 
         let targetRule = null;
         for (let i = ast.rules.length - 1; i >= 0; i--) {
-            if (!ast.rules[i].media && ast.rules[i].selector === normSel) {
+            if (sameMedia(ast.rules[i], media) && ast.rules[i].selector === normSel) {
                 targetRule = ast.rules[i];
                 break;
             }
@@ -255,8 +305,7 @@
 
         if (!targetRule) {
             if (!cleanVal) return text;
-            const prefix = text.length > 0 && !/\n\s*$/.test(text) ? '\n\n' : (text.length > 0 && !text.endsWith('\n\n') ? '\n' : '');
-            return text + prefix + normSel + ' {\n  ' + cleanProp + ': ' + cleanVal + ';\n}\n';
+            return addRule(ast, normSel, cleanProp, cleanVal, mediaQuery(media));
         }
 
         let existing = null;
@@ -285,10 +334,14 @@
         const bodySlice = text.slice(targetRule.bodyStart, targetRule.bodyEnd);
         const isMultiline = bodySlice.indexOf('\n') !== -1;
         if (isMultiline) {
-            const trimmed = bodySlice.replace(/[ \t]*$/, '');
+            const tail = /[ \t]*$/.exec(bodySlice)[0];
+            const trimmed = bodySlice.slice(0, bodySlice.length - tail.length);
             const endsWithNewline = trimmed.endsWith('\n');
-            const insertion = (endsWithNewline ? '' : '\n') + '  ' + cleanProp + ': ' + cleanVal + ';\n';
-            return text.slice(0, targetRule.bodyStart) + trimmed + insertion + text.slice(targetRule.bodyEnd);
+            const lineStart = text.lastIndexOf('\n', targetRule.start - 1) + 1;
+            const lead = text.slice(lineStart, targetRule.start);
+            const indent = /^[ \t]*$/.test(lead) ? lead : '';
+            const insertion = (endsWithNewline ? '' : '\n') + indent + '  ' + cleanProp + ': ' + cleanVal + ';\n';
+            return text.slice(0, targetRule.bodyStart) + trimmed + insertion + tail + text.slice(targetRule.bodyEnd);
         }
         const sep = bodySlice.trim().length ? (bodySlice.trim().endsWith(';') ? ' ' : '; ') : ' ';
         return text.slice(0, targetRule.bodyEnd).replace(/\s*$/, '') + sep + cleanProp + ': ' + cleanVal + '; ' + text.slice(targetRule.bodyEnd);
@@ -414,6 +467,8 @@
         getDeclarations: getDeclarations,
         setProperty: setProperty,
         STATES: STATES,
+        MEDIA_PRESETS: MEDIA_PRESETS,
+        mediaQuery: mediaQuery,
         splitTopLevel: splitTopLevel,
         stateOf: stateOf,
         baseSelector: baseSelector,

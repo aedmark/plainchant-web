@@ -217,6 +217,12 @@ test('structure: the Export dialog offers a whole-project .zip built by zip.js (
     assert.includes(readRoot('src/app/zip-ui.js'), 'Zip.build');
 });
 
+test('structure: the CSS Designer breakpoint bar and css-media.js are wired in (P7-03)', () => {
+    ['id="cssMediaBar"', 'id="cssMediaHint"', 'data-media="(max-width: 768px)"', 'data-media="(max-width: 375px)"'].forEach((needle) => assert.includes(html, needle));
+    assert.ok(listed.indexOf('css-media.js') > listed.indexOf('css-states.js'), 'css-media.js loads after css-states.js');
+    assert.includes(readRoot('src/app/inspector-ui.js'), 'cssEditMedia()', 'the Designer reads and writes through the active breakpoint');
+});
+
 test('structure: the flex/grid gap handles, layout.js, stage-layout.js, and the Layout group are wired in (P7-01)', () => {
     ['id="cssLayoutGroup"', 'id="cssFlexDir"', 'id="cssFlexWrap"', 'id="cssJustify"', 'id="cssAlign"'].forEach((needle) => assert.includes(html, needle));
     const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);

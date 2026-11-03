@@ -44,6 +44,7 @@ const APP_FILES = [
     'src/app/insert-drag.js',
     'src/app/inspector-ui.js',
     'src/app/css-states.js',
+    'src/app/css-media.js',
     'src/app/layout-ui.js',
     'src/app/console-ui.js',
     'src/app/parts-ui.js',

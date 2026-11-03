@@ -172,7 +172,7 @@ function populateCssValues(node) {
     if (activeCssTarget === 'inline') {
         decls = node && node.attrs ? CssAst.parseInlineStyle(node.attrs.style || '') : {};
     } else if (activeCssTarget) {
-        decls = CssAst.getDeclarations(currentCssAst, cssEditSelector(node));
+        decls = CssAst.getDeclarations(currentCssAst, cssEditSelector(node), cssEditMedia());
     }
 
     const comp = lastComputedStyle || {};
@@ -225,7 +225,7 @@ function applyCssPropertyChange(prop, value) {
         return;
     }
     const sel = cssEditSelector(node) || defaultSelectorFor(node);
-    const nextCss = CssAst.setProperty(projectFiles.css, sel, prop, value);
+    const nextCss = CssAst.setProperty(projectFiles.css, sel, prop, value, cssEditMedia());
     applyCssTransform(nextCss);
 }
 
@@ -268,11 +268,16 @@ function jumpToActiveCssRule() {
     }
     const targetFile = activeCssFile || 'styles.css';
     const sel = cssEditSelector();
-    let rule = CssAst.findRuleBySelector(currentCssAst, sel);
+    const media = cssEditMedia();
+    let rule = CssAst.findRuleBySelector(currentCssAst, sel, media);
+    if (!rule && sel && media) {
+        showNotice('No rule for ' + sel + ' inside @media ' + media + ' yet. Change a value to create it.');
+        return;
+    }
     if (!rule && sel) {
         const nextCss = (projectFiles.css ? projectFiles.css.replace(/\s*$/, '\n\n') : '') + sel + ' {\n  \n}\n';
         applyCssTransform(nextCss);
-        rule = CssAst.findRuleBySelector(currentCssAst, sel);
+        rule = CssAst.findRuleBySelector(currentCssAst, sel, media);
     }
     if (panesShown() === 'preview') setPanes('both');
     openFileInEditor(targetFile);
