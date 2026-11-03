@@ -12,6 +12,7 @@ const propId = document.getElementById('propId');
 const propClass = document.getElementById('propClass');
 const propText = document.getElementById('propText');
 const propHref = document.getElementById('propHref');
+const propFollowBtn = document.getElementById('propFollowBtn');
 const propSrc = document.getElementById('propSrc');
 const propAlt = document.getElementById('propAlt');
 
@@ -106,10 +107,12 @@ function refreshInspector() {
         propText.disabled = hasElementChildren || node.selfClosing;
         propText.value = (!hasElementChildren && !node.selfClosing) ? HtmlAst.innerText(currentHtmlAst, node.id).trim() : '';
         propHref.value = node.attrs.href || '';
+        propFollowBtn.disabled = !projectLinkTarget(propHref.value);
         propSrc.value = node.attrs.src || '';
         propAlt.value = node.attrs.alt || node.attrs.title || '';
     } else {
         lastComputedStyle = null;
+        propFollowBtn.disabled = true;
     }
 
     populateCssTargets(hasNode ? node : null);
@@ -284,6 +287,7 @@ propText.addEventListener('change', () => {
     applyHtmlTransform(HtmlAst.setText(projectFiles.html, selectedPcId, propText.value), selectedPcId);
 });
 
+propFollowBtn.addEventListener('click', () => followProjectLink(propHref.value));
 propHref.addEventListener('change', () => {
     if (!selectedPcId) return;
     applyHtmlTransform(HtmlAst.setAttr(projectFiles.html, selectedPcId, 'href', propHref.value.trim() || null), selectedPcId);

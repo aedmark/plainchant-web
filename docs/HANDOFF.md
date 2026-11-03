@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phase 5 in progress: `P5-01` done, `P5-02` next; Phase 6 specced (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phase 5 complete (`P5-01`, `P5-02`); Phase 6 specced (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`26/26` unit & structural tests)
+  - `npm test` — passed (`28/28` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `11` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `12` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -26,22 +26,23 @@ Last updated: 2026-11-02
 
 - **JS Console (`P5-01`, `D-011`)**: Console Inspector tab (`src/app/console-ui.js`) fed by `Project.consoleBridge` in Live JS mode.
 
+- **Link navigation (`P5-02`, `D-012`)**: Live JS click and Design `Ctrl/Cmd+Click` / `Follow ↗` / **Follow Link ↗** open linked project pages (`src/app/stage-live.js`, `Project.resolveRelativePath`).
+
 ### In flight
 
-- `P5-01` is complete but uncommitted (nothing else half-built).
+- `P5-02` is complete but uncommitted (nothing else half-built).
 
 ### Known issues & gotchas
 
 - **WebKitGTK HTML5 Drag-and-Drop**: Native `draggable="true"` / `dragover` / `drop` inside an `iframe[srcdoc]` is unreliable on Linux WebKitGTK (`D-008`). Keep Stage drag-and-drop on deterministic pointer events (`mousedown` / `mousemove` / `mouseup` in [`src/app/stage.js`](../src/app/stage.js)).
 - **500-Line Module Cap**: [`test/structure.test.js`](../test/structure.test.js) enforces a hard 500-line ceiling on every `.js` file under `src/app/` (`D-001`). [`src/app/stage.js`](../src/app/stage.js) (~458 lines) and [`src/app/core.js`](../src/app/core.js) are near the limit; extract helpers before adding large features.
-- **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~458 lines.
+- **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
 ### Next up
 
-1. **`P5-02`**: Multi-Page Link Navigation on the Stage (`Project.resolveRelativePath`, click in Live JS mode or `Ctrl/Cmd+Click` / badge button in Design mode).
-2. **`P6-01`**: Line Numbers Gutter (`#editorGutter`) & Find/Replace bar (`#findBar`, `Ctrl/Cmd+F`, `Ctrl/Cmd+H`, `src/app/find.js`) in the Code editor.
-3. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
+1. **`P6-01`**: Line Numbers Gutter (`#editorGutter`) & Find/Replace bar (`#findBar`, `Ctrl/Cmd+F`, `Ctrl/Cmd+H`, `src/app/find.js`) in the Code editor.
+2. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
 
 ### Open questions
 
@@ -52,6 +53,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2b: 2026-11-02: P5-02 Multi-Page Link Navigation
+
+- **Did**: `Project.resolveRelativePath` ([`src/project.js`](../src/project.js)); new [`src/app/stage-live.js`](../src/app/stage-live.js) (Live link bridge, `followProjectLink`); `Ctrl/Cmd+Click` and `Follow ↗` badge button in [`src/app/stage.js`](../src/app/stage.js); **Follow Link ↗** in Properties.
+- **Decided**: `D-012`.
+- **Verified**: `npm test` (`28/28`); browser check of Live click, Design `Ctrl/Cmd+Click`, plain Design click (selects only), badge and Properties buttons, and a missing target. Full check results are in this session's final report.
+- **Next**: `P6-01`.
 
 ### Session 2: 2026-11-02: P5-01 In-App JS Console
 

@@ -24,6 +24,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Console tab**: Third Inspector tab showing `console.log/info/warn/error`, uncaught errors, and unhandled promise rejections from Live JS mode, with `All` / `Errors` / `Warnings` / `Logs` filters, an unread badge (red when an error is present), **Clear**, and click-to-jump `file:line` links for errors (`P5-01`, `D-011`).
 
+- **Multi-page link navigation**: In Live JS mode, clicking a relative link to a project page opens that file in the Studio. In Design mode, `Ctrl/Cmd+Click` a link, the `Follow ↗` Stage badge button, or **Follow Link ↗** in Properties does the same; a plain click still selects and edits text (`P5-02`, `D-012`, `D-009`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

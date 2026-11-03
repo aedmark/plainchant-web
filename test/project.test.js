@@ -127,3 +127,21 @@ test('project: console bridge forwards console calls, errors with file lines, an
     assert.equal(sent[3].level, 'error');
     assert.includes(sent[3].args[0], 'nope');
 });
+
+test('project: resolveRelativePath normalizes project links and ignores external or same-page ones', () => {
+    const r = Project.resolveRelativePath;
+    assert.equal(r('index.html', 'resume.html'), 'resume.html');
+    assert.equal(r('index.html', './resume.html'), 'resume.html');
+    assert.equal(r('index.html', 'sub/page.html#section'), 'sub/page.html');
+    assert.equal(r('index.html', 'gallery.html?x=1'), 'gallery.html');
+    assert.equal(r('sub/page.html', '../index.html'), 'index.html');
+    assert.equal(r('sub/page.html', 'other.html'), 'sub/other.html');
+    assert.equal(r('sub/page.html', '/resume.html'), 'resume.html');
+    assert.equal(r('index.html', 'my%20page.html'), 'my page.html');
+    assert.equal(r('index.html', 'sub/'), 'sub/index.html');
+    assert.equal(r('a/b/c.html', '../../d/e.html'), 'd/e.html');
+    assert.equal(r('index.html', '../outside.html'), null, 'cannot climb above the project root');
+    ['https://example.com/a.html', 'http://x.test', 'mailto:a@b.test', 'tel:+15550100', 'javascript:void(0)', 'data:text/html,hi', '//cdn.test/x.html', '#top', '', '   ', null, undefined].forEach((href) => {
+        assert.equal(r('index.html', href), null, String(href) + ' is not a project path');
+    });
+});

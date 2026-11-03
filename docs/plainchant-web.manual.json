@@ -171,6 +171,25 @@
           "related": ["inspector-and-css-designer"]
         },
         {
+          "id": "stage-link-navigation",
+          "title": "Multi-page link navigation on the Stage",
+          "summary": "Following a relative link on the Stage opens the linked project page in the Studio.",
+          "tags": ["stage", "navigation", "D-012"],
+          "what": "In Live JS mode a normal click on a relative link opens the linked `.html` file in the Studio. In Design mode `Ctrl/Cmd+Click`, the `Follow ↗` badge button, or **Follow Link ↗** in Properties does the same, while a plain click still selects and edits the link text.",
+          "how": [
+            "The Live bridge in `src/app/stage-live.js` cancels clicks on relative, non-anchor links that page scripts did not handle and posts `pc-navigate`; Design-mode actions post `pc-navigate` or `pc-follow-link`.",
+            "`Project.resolveRelativePath(fromFile, rawHref)` normalizes `./`, `../`, `?query`, `#hash`, and encoded paths, and returns nothing for `http:`, `mailto:`, `tel:`, `javascript:`, `data:`, `//`, or same-page anchors.",
+            "`followProjectLink()` opens the target with `openFileInEditor()` only when it is an `.html` file in the project; otherwise it shows a notice."
+          ],
+          "why": "Recorded in D-012: the iframe cannot see project files, so it only cancels navigation and the Studio decides, which keeps the Stage from navigating away from the active document and keeps D-009 text editing intact.",
+          "evidence": [
+            {"label": "Path resolver", "target": "src/project.js"},
+            {"label": "Live bridge and link handlers", "target": "src/app/stage-live.js"},
+            {"label": "Resolver unit tests", "target": "test/project.test.js"}
+          ],
+          "related": ["js-console", "stage-drag-and-actions"]
+        },
+        {
           "id": "menus-and-context-insert",
           "title": "Top menu bar, Insert dropdown, and right-click context menu",
           "summary": "Unified element insertion and DOM manipulation from the top menu bar or right-click context menu.",

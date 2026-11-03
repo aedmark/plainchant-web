@@ -14,7 +14,7 @@ const BRIDGE_CSS = [
 ].join('\n');
 
 function buildBridgeScript(designMode, initialSelectedId) {
-    if (!designMode) return '';
+    if (!designMode) return buildLiveBridgeScript();
     return [
         '(function() {',
         '  var selectedId = ' + JSON.stringify(initialSelectedId || null) + ';',
@@ -144,6 +144,7 @@ function buildBridgeScript(designMode, initialSelectedId) {
         '        { cmd: "pc-duplicate", txt: "⧉", title: "Duplicate" },',
         '        { cmd: "pc-delete", txt: "✕", title: "Delete" }',
         '      ];',
+        '      if (el.tagName === "A" && el.getAttribute("href")) actions.unshift({ cmd: "pc-follow-link", txt: "Follow ↗", title: "Open the linked page (Ctrl/Cmd+Click)" });',
         '      actions.forEach(function(a) {',
         '        var btn = document.createElement("button");',
         '        btn.type = "button";',
@@ -290,6 +291,8 @@ function buildBridgeScript(designMode, initialSelectedId) {
         '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
         '    if (!el) return;',
         '    var id = el.getAttribute("data-pc-id");',
+        '    var link = (e.ctrlKey || e.metaKey) && el.closest("a[href]");',
+        '    if (link) { window.parent.postMessage({ type: "pc-navigate", href: link.getAttribute("href") }, "*"); return; }',
         '    setSelect(id);',
         '    window.parent.postMessage({ type: "pc-select", id: id, computed: readComputed(el) }, "*");',
         '    if (isTextEditable(el)) {',
@@ -453,6 +456,10 @@ window.addEventListener('message', (e) => {
         performUndo();
     } else if (data.type === 'pc-redo') {
         performRedo();
+    } else if (data.type === 'pc-navigate' && typeof data.href === 'string') {
+        followProjectLink(data.href);
+    } else if (data.type === 'pc-follow-link' && data.id) {
+        followSelectedLink(data.id);
     } else if (data.type === 'pc-console') {
         addConsoleEntry(data);
     }

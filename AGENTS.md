@@ -92,6 +92,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/versions.js` | Project snapshot retention and pruning rules (UMD) |
 | `src/filesync.js` | Disk vs. studio content comparison helpers (UMD) |
 | `src/importing.js` | Text/code file extension filter and UTF-8/UTF-16/Windows-1252 decoder (UMD) |
+| `src/app/stage-live.js` | Live JS link bridge and project link following (loaded after `stage.js`) |
 | `src/app/console-ui.js` | Console Inspector tab: log rows, filters, unread badge, click-to-jump (loaded after `inspector-ui.js`) |
 | `src/app/` | Classic scripts sharing one global scope, loaded in order by `app.html` (`core.js` first, `main.js` last) |
 | `src-tauri/` | Tauri v2 Rust desktop shell, recursive project folder loader, and localhost static asset server |

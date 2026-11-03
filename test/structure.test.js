@@ -87,3 +87,10 @@ test('structure: the Console inspector tab, its pane, and its script are wired i
     });
     assert.ok(listed.indexOf('console-ui.js') > listed.indexOf('inspector-ui.js'), 'console-ui.js loads after inspector-ui.js');
 });
+
+test('structure: the Live JS link bridge and Follow Link controls are wired in (P5-02)', () => {
+    assert.includes(html, 'id="propFollowBtn"');
+    assert.ok(listed.indexOf('stage-live.js') > listed.indexOf('stage.js'), 'stage-live.js loads after stage.js');
+    const stage = fs.readFileSync(path.join(appDir, 'stage.js'), 'utf8');
+    ['pc-navigate', 'pc-follow-link'].forEach((type) => assert.includes(stage, type));
+});

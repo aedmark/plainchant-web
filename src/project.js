@@ -207,6 +207,26 @@
         return stack.join('/');
     }
 
+    function resolveRelativePath(fromFile, rawHref) {
+        let raw = String(rawHref == null ? '' : rawHref).trim().split('#')[0].split('?')[0];
+        if (!raw || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(raw)) return null;
+        try { raw = decodeURIComponent(raw); } catch (e) { /* keep the raw text */ }
+        const stack = raw.startsWith('/') ? [] : String(fromFile || '').split('/').slice(0, -1);
+        const segments = raw.split('/');
+        for (let i = 0; i < segments.length; i++) {
+            const seg = segments[i];
+            if (!seg || seg === '.') continue;
+            if (seg === '..') {
+                if (!stack.length) return null;
+                stack.pop();
+            } else {
+                stack.push(seg);
+            }
+        }
+        if (raw.endsWith('/')) stack.push('index.html');
+        return stack.length ? stack.join('/') : null;
+    }
+
     function normalizeEntries(files) {
         const f = files || {};
         const entries = Object.assign({}, f.entries || {});
@@ -618,6 +638,7 @@
         DEFAULT_CSS: DEFAULT_CSS,
         DEFAULT_JS: DEFAULT_JS,
         resolveRelPath: resolveRelPath,
+        resolveRelativePath: resolveRelativePath,
         consoleBridge: consoleBridge,
         normalizeEntries: normalizeEntries,
         linkedStylesheets: linkedStylesheets,
