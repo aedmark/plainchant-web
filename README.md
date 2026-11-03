@@ -32,8 +32,9 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
 - **Explorer File Operations & Unsaved Dots:**
   - Create folders with **+ Folder**, drag files or folders onto a folder to move them (links update), and drag file tabs to reorder them.
   - Rename, duplicate, or delete files from the Explorer (hover buttons or right-click); renames update links to the file, and everything is undoable. A `•` marks files changed since the last Save or Export.
-- **Problems Tab (Broken-Link Checker):**
+- **Problems Tab (Links, Accessibility, Markup):**
   - Checks every page and stylesheet for dead links, missing images, stylesheets, and scripts, and missing `#anchor` targets; click a problem to jump to it.
+  - Also flags missing `alt` text, skipped heading levels, unnamed links, buttons, and form fields, a missing `lang` or `<title>`, duplicate ids, and unclosed or stray tags; a **Show** filter limits the list.
 - **Project-Wide Find & Replace (`Ctrl/Cmd+Shift+F`):**
   - The **Project** toggle on the find bar lists matches in every file, lets you skip files, and replaces across the project in one undo step.
 - **Zip Export:**

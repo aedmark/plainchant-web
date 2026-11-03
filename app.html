@@ -377,9 +377,16 @@
             <div id="partsList" class="parts-list"></div>
         </div>
         <div id="inspProblemsPane" class="inspector-body" hidden>
+            <div id="problemsFilterBar" class="css-state-bar" role="group" aria-label="Kinds of problems to show">
+                <span class="insp-inline-label">Show:</span>
+                <button type="button" class="mini css-state-btn problems-filter-btn" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="mini css-state-btn problems-filter-btn" data-filter="links" aria-pressed="false" title="Broken links and missing files">Links</button>
+                <button type="button" class="mini css-state-btn problems-filter-btn" data-filter="accessibility" aria-pressed="false" title="Missing alt text, heading order, labels, and page language">Accessibility</button>
+                <button type="button" class="mini css-state-btn problems-filter-btn" data-filter="markup" aria-pressed="false" title="Duplicate ids, unclosed or stray tags, and obsolete elements">Markup</button>
+            </div>
             <div class="console-bar">
                 <span id="problemsSummary" class="parts-help" aria-live="polite"></span>
-                <button type="button" class="mini" id="problemsRecheckBtn" title="Check every page and stylesheet for broken links and missing files">Re-check</button>
+                <button type="button" class="mini" id="problemsRecheckBtn" title="Check every page and stylesheet for broken links, accessibility, and markup problems">Re-check</button>
             </div>
             <div id="problemsList" class="parts-list"></div>
         </div>
@@ -656,6 +663,7 @@
 <script src="src/zip.js"></script>
 <script src="src/imagelib.js"></script>
 <script src="src/layout.js"></script>
+<script src="src/hints.js"></script>
 <script src="src/importing.js"></script>
 <script src="src/app/core.js"></script>
 <script src="src/app/layout.js"></script>

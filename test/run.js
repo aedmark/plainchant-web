@@ -20,10 +20,12 @@ globalThis.Finding = require('../src/finding.js');
 globalThis.Zip = require('../src/zip.js');
 globalThis.ImageLib = require('../src/imagelib.js');
 globalThis.Layout = require('../src/layout.js');
+globalThis.Hints = require('../src/hints.js');
 
 require('./html-ast.test.js');
 require('./css-ast.test.js');
 require('./layout.test.js');
+require('./hints.test.js');
 require('./project.test.js');
 require('./structure.test.js');
 

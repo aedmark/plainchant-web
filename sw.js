@@ -23,6 +23,7 @@ const APP_FILES = [
     'src/zip.js',
     'src/imagelib.js',
     'src/layout.js',
+    'src/hints.js',
     'src/importing.js',
     'src/app/core.js',
     'src/app/layout.js',

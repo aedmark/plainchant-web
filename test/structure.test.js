@@ -217,6 +217,14 @@ test('structure: the Export dialog offers a whole-project .zip built by zip.js (
     assert.includes(readRoot('src/app/zip-ui.js'), 'Zip.build');
 });
 
+test('structure: the Problems filter, hints.js, and the problemsFilter setting are wired in (P7-11)', () => {
+    ['id="problemsFilterBar"', 'data-filter="accessibility"', 'data-filter="markup"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/hints.js') !== -1 && order.indexOf('src/hints.js') < order.indexOf('src/importing.js'), 'hints.js loads before importing.js');
+    assert.includes(readRoot('src/app/problems-ui.js'), 'hintChecker.check(entries)', 'the Problems tab runs the hint checker');
+    assert.includes(readRoot('src/app/settings.js'), "problemsFilter: 'all'");
+});
+
 test('structure: the Explorer + Folder button, folder rows, and explorer-move.js are wired in (P7-08)', () => {
     assert.includes(html, 'id="newFolderBtn"');
     assert.ok(listed.indexOf('explorer-move.js') > listed.indexOf('asset-ui.js') && listed.indexOf('explorer-move.js') > listed.indexOf('explorer-ui.js'), 'explorer-move.js loads after explorer-ui.js and asset-ui.js');

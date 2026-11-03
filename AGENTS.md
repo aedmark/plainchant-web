@@ -101,6 +101,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/finding.js` | Plain-text search and replace offset helpers for the find bar (UMD, no DOM) |
 | `src/app/find-project.js` | Project scope of the find bar: results list, per-file selection, and Replace All in Project |
 | `src/app/find.js` | Find/Replace bar, match highlight layer, and `Ctrl/Cmd+F` / `Ctrl/Cmd+H` shortcuts |
+| `src/hints.js` | Accessibility and markup hints for HTML (alt, headings, labels, duplicate ids, unclosed tags; UMD, no DOM) |
 | `src/links.js` | Static link and missing-file checker for HTML and CSS (UMD, no DOM) |
 | `src/app/problems-ui.js` | Problems Inspector tab: results list, badge, re-check, and click-to-jump |
 | `src/parts.js` | Shared page parts: marker-region finder, status scanner, and synchronizer (UMD, no DOM) |

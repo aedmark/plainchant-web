@@ -3,8 +3,11 @@ const problemsList = document.getElementById('problemsList');
 const problemsSummary = document.getElementById('problemsSummary');
 const problemsCountBadge = document.getElementById('problemsCountBadge');
 const linkChecker = Links.createChecker();
+const hintChecker = Hints.createChecker();
+const problemsFilterButtons = Array.from(document.querySelectorAll('.problems-filter-btn'));
 let problemsTimer = null;
 let problemsResult = { problems: [], errors: 0, warnings: 0 };
+let problemsFilter = settings.problemsFilter;
 
 function knownProjectPaths() {
     const tree = Array.isArray(projectFiles.tree) ? projectFiles.tree.filter((i) => i.kind === 'file').map((i) => i.path) : [];
@@ -17,7 +20,12 @@ function runProblemsCheck() {
     ensureEntries();
     const entries = Object.assign({}, projectFiles.entries);
     if (activeFile in entries) entries[activeFile] = editor.value;
-    problemsResult = linkChecker.check(entries, knownProjectPaths());
+    const links = linkChecker.check(entries, knownProjectPaths());
+    const hints = hintChecker.check(entries);
+    const order = Object.keys(entries);
+    const problems = links.problems.map((p) => Object.assign({ category: 'links' }, p)).concat(hints.problems)
+        .sort((a, b) => (order.indexOf(a.file) - order.indexOf(b.file)) || (a.start - b.start));
+    problemsResult = { problems: problems };
     renderProblems();
 }
 
@@ -36,19 +44,26 @@ function jumpToProblem(problem) {
 }
 
 function renderProblems() {
-    const { problems, errors, warnings } = problemsResult;
+    const problems = problemsResult.problems.filter((p) => problemsFilter === 'all' || p.category === problemsFilter);
+    const errors = problems.filter((p) => p.severity === 'error').length;
+    const warnings = problems.length - errors;
+    problemsFilterButtons.forEach((btn) => {
+        const count = problemsResult.problems.filter((p) => btn.dataset.filter === 'all' || p.category === btn.dataset.filter).length;
+        btn.setAttribute('aria-pressed', String(btn.dataset.filter === problemsFilter));
+        btn.textContent = btn.dataset.filter.charAt(0).toUpperCase() + btn.dataset.filter.slice(1) + (count ? ' ' + count : '');
+    });
     problemsCountBadge.hidden = problems.length === 0;
     problemsCountBadge.textContent = String(problems.length);
     problemsCountBadge.classList.toggle('has-error', errors > 0);
     if (inspProblemsPane.hidden) return;
     problemsSummary.textContent = problems.length
         ? errors + (errors === 1 ? ' error' : ' errors') + ', ' + warnings + (warnings === 1 ? ' warning' : ' warnings')
-        : 'No broken links or missing files found.';
+        : (problemsFilter === 'all' ? 'No problems found.' : 'Nothing found in this category.');
     problemsList.textContent = '';
     problems.forEach((p) => {
         const row = document.createElement('button');
         row.type = 'button';
-        row.className = 'console-row problem-row problem-' + p.severity;
+        row.className = 'console-row problem-row problem-' + p.severity + ' problem-cat-' + p.category;
         const level = document.createElement('span');
         level.className = 'console-level';
         level.textContent = p.severity === 'error' ? 'error' : 'warn';
@@ -66,3 +81,9 @@ function renderProblems() {
 }
 
 document.getElementById('problemsRecheckBtn').addEventListener('click', runProblemsCheck);
+
+problemsFilterButtons.forEach((btn) => btn.addEventListener('click', () => {
+    problemsFilter = btn.dataset.filter;
+    setSetting('problemsFilter', problemsFilter);
+    renderProblems();
+}));

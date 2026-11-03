@@ -7,13 +7,15 @@ const SETTING_DEFAULTS = {
     panes: 'both',
     inspector: true,
     inspectorDock: 'bottom',
-    inspectorWidth: 320
+    inspectorWidth: 320,
+    problemsFilter: 'all'
 };
 const SETTING_CHOICES = {
     panes: ['both', 'write', 'preview'],
     theme: ['dark', 'light', 'retro', 'system'],
     size: ['small', 'normal', 'large', 'larger'],
-    inspectorDock: ['bottom', 'top', 'left', 'right', 'float']
+    inspectorDock: ['bottom', 'top', 'left', 'right', 'float'],
+    problemsFilter: ['all', 'links', 'accessibility', 'markup']
 };
 const TEXT_SCALE = { small: 0.875, normal: 1, large: 1.15, larger: 1.3 };
 const settingsModal = document.getElementById('settings-modal');
