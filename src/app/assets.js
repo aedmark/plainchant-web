@@ -32,6 +32,7 @@ function adoptProjectAssets(provided) {
         if (id !== currentScriptId || !Object.keys(files).length) return;
         setProjectAssets(files);
         drawStageNow();
+        if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
     }).catch(() => {});
 }
 

@@ -275,6 +275,25 @@
       "description": "How multi-file projects, undo history, local folders, and static assets are managed safely.",
       "entries": [
         {
+          "id": "problems-link-checker",
+          "title": "Problems tab (broken-link checker)",
+          "summary": "Finds broken links and missing files across the whole project and jumps to each one.",
+          "tags": ["links", "problems", "D-018"],
+          "what": "The **Problems** Inspector tab lists dead page links, missing images, media, stylesheets, and scripts, CSS `url()` and `@import` targets, links that leave the project, case-only matches, extensionless links, and `#anchor` targets with no matching element. A badge shows the count (red when any is an error), and clicking a row opens the file and selects the exact attribute or URL.",
+          "how": [
+            "`Links.createChecker()` in `src/links.js` extracts references from every `.html` file through `HtmlAst` (so commented-out markup is ignored) and every `.css` file, caching the result per file text.",
+            "Each reference is resolved with `Project.resolveRelativePath` against the project's files plus binary files from the folder tree; a missing target is an error, while case-only matches, extensionless links, and missing fragments are warnings.",
+            "`src/app/problems-ui.js` re-checks 500 ms after edits and whenever the tab opens, and jumps with `openFileInEditor()` plus a selection of the reported range."
+          ],
+          "why": "Recorded in D-018: renames, deletions, and hand edits break links in pages other than the one being edited, and static checking catches them without running anything, at the cost of not seeing URLs built in JavaScript.",
+          "evidence": [
+            {"label": "Checker", "target": "src/links.js"},
+            {"label": "Problems tab", "target": "src/app/problems-ui.js"},
+            {"label": "Checker tests", "target": "test/project.test.js"}
+          ],
+          "related": ["explorer-file-operations", "stage-link-navigation"]
+        },
+        {
           "id": "explorer-file-operations",
           "title": "Explorer file operations and unsaved dots",
           "summary": "Rename, duplicate, and delete project files with link updates, undo, and per-file unsaved markers.",

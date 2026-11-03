@@ -36,6 +36,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Explorer file operations and unsaved dots**: Hover a file in the Explorer (or right-click it) to **Rename**, **Duplicate**, or **Delete** it; each can be undone with `Ctrl/Cmd+Z`. Renaming or moving a file updates the links to it in your pages and stylesheets, and the last page cannot be deleted. Tabs and Explorer rows show a `•` for files changed since the last load, **Save**, or **Export** (`P6-02`, `D-017`).
 
+- **Problems tab (broken-link checker)**: A new Inspector tab lists broken links and missing files across every page and stylesheet: dead page links, images, stylesheets, scripts, CSS `url()`, links that leave the project, case-only matches, and missing `#anchor` targets. A badge shows the count, and clicking a row jumps to the exact spot (`P7-04`, `D-018`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

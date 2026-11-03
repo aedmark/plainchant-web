@@ -8,6 +8,7 @@ globalThis.CodeShade = require('../src/code-shade.js');
 globalThis.DomOutline = require('../src/dom-outline.js');
 globalThis.Project = require('../src/project.js');
 globalThis.Parts = require('../src/parts.js');
+globalThis.Links = require('../src/links.js');
 globalThis.Editing = require('../src/editing.js');
 globalThis.Suggest = require('../src/suggest.js');
 globalThis.Library = require('../src/library.js');

@@ -175,3 +175,11 @@ test('structure: the Explorer file menu, dirty markers, and explorer-ui.js are w
     assert.includes(readRoot('src/app/typing.js'), 'tree: Array.isArray(projectFiles.tree)');
     assert.includes(css, '.file-tab.dirty .tab-label::after');
 });
+
+test('structure: the Problems tab, links.js, and problems-ui.js are wired in (P7-04)', () => {
+    ['data-insp="problems"', 'id="problemsCountBadge"', 'id="inspProblemsPane"', 'id="problemsList"', 'id="problemsRecheckBtn"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/links.js') > order.indexOf('src/project.js') && order.indexOf('src/links.js') < order.indexOf('src/app/core.js'), 'links.js loads after project.js and before the app scripts');
+    assert.ok(listed.indexOf('problems-ui.js') > listed.indexOf('inspector-ui.js'), 'problems-ui.js loads after inspector-ui.js');
+    assert.includes(readRoot('src/app/core.js'), 'scheduleProblemsCheck');
+});

@@ -72,6 +72,8 @@ function switchInspectorTab(tab) {
     inspConsolePane.hidden = tab !== 'console';
     inspPartsPane.hidden = tab !== 'parts';
     if (tab === 'parts') refreshPartsUi();
+    inspProblemsPane.hidden = tab !== 'problems';
+    if (tab === 'problems') runProblemsCheck();
     if (tab === 'console') markConsoleRead();
 }
 

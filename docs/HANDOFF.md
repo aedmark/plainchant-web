@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-6 complete; `P7-09`, `P7-10`, `P7-16` done early; Phase 7 backlog next (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`44/44` unit & structural tests)
+  - `npm test` — passed (`46/46` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `16` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `17` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -37,9 +37,11 @@ Last updated: 2026-11-02
 
 - **Explorer file operations & unsaved dots (`P6-02`, `D-017`)**: Rename/Duplicate/Delete with link updates and undo; `•` markers (`src/app/explorer-ui.js`).
 
+- **Problems tab (`P7-04`, `D-018`)**: static link/missing-file checker with badge and click-to-jump (`src/links.js`, `src/app/problems-ui.js`).
+
 ### In flight
 
-- `P6-02` is complete but uncommitted. Nothing half-built.
+- `P7-04` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -54,7 +56,7 @@ Last updated: 2026-11-02
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order after Phase 6 is `P7-04` link checker, `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order is `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states (`P7-04` is done).
 
 ### Open questions
 
@@ -65,6 +67,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2g: 2026-11-02: P7-04 broken-link checker and Problems tab
+
+- **Did**: [`src/links.js`](../src/links.js) (extract, resolve, severities, offsets, per-file cache); [`src/app/problems-ui.js`](../src/app/problems-ui.js) and the **Problems** tab with badge and click-to-jump; hooks in `render()`, `switchInspectorTab`, and the async asset load.
+- **Decided**: `D-018` (errors vs warnings, what is skipped).
+- **Verified**: `npm test` (`46/46`); browser check of badge, summary, jump, live re-check, rename keeping the count steady, and no clipped controls on any dock. Full check results are in this session's final report.
+- **Next**: `P7-05` project-wide find/replace.
 
 ### Session 2f: 2026-11-02: syntax colour fix and P6-02 Explorer file operations
 

@@ -95,6 +95,8 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/app/explorer-ui.js` | Explorer Rename / Duplicate / Delete, file context menu, and unsaved-file dots |
 | `src/finding.js` | Plain-text search and replace offset helpers for the find bar (UMD, no DOM) |
 | `src/app/find.js` | Find/Replace bar, match highlight layer, and `Ctrl/Cmd+F` / `Ctrl/Cmd+H` shortcuts |
+| `src/links.js` | Static link and missing-file checker for HTML and CSS (UMD, no DOM) |
+| `src/app/problems-ui.js` | Problems Inspector tab: results list, badge, re-check, and click-to-jump |
 | `src/parts.js` | Shared page parts: marker-region finder, status scanner, and synchronizer (UMD, no DOM) |
 | `src/app/parts-ui.js` | Parts Inspector tab, Make Part, Insert Part, and part-edit propagation |
 | `src/app/assets.js` | Binary project assets (Blobs, `blob:` preview URLs, IndexedDB persistence) for the browser build |

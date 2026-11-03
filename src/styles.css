@@ -1235,6 +1235,12 @@ body.shaded #editor {
 .parts-help { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--text-void-muted); }
 .parts-list { font-family: var(--font-code); font-size: 0.74rem; overflow-y: auto; max-height: 150px; }
 .parts-list .console-row { align-items: center; }
+.problem-row { cursor: pointer; text-align: left; width: 100%; background: none; border-top: 0; border-left: 0; border-right: 0; color: inherit; font: inherit; }
+.problem-row:hover, .problem-row:focus-visible { background: var(--bg-raised); outline: none; }
+.problem-row .console-level { flex-basis: 3.4rem; }
+.problem-warning .console-level { color: #f59e0b; }
+.problem-error .console-level { color: var(--danger-soft-text); }
+.problem-row .console-src { text-decoration: none; }
 
 .find-bar {
     display: flex;

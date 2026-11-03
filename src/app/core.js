@@ -368,6 +368,7 @@ function render(typed) {
     updateBreadcrumbs();
     refreshInspector();
     if (typeof refreshPartsUi === 'function') refreshPartsUi();
+    if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
 }
 
 if (toggleExplorerBtn && fileExplorer) {

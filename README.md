@@ -28,6 +28,8 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
   - A line-number gutter follows wrapped lines, and the find bar highlights every match in the current file with case matching, next/previous, **Replace**, and **Replace All** (undoable).
 - **Explorer File Operations & Unsaved Dots:**
   - Rename, duplicate, or delete files from the Explorer (hover buttons or right-click); renames update links to the file, and everything is undoable. A `•` marks files changed since the last Save or Export.
+- **Problems Tab (Broken-Link Checker):**
+  - Checks every page and stylesheet for dead links, missing images, stylesheets, and scripts, and missing `#anchor` targets; click a problem to jump to it.
 - **Safe Local Folder Workflow & Structure-Preserving Export:**
   - Opening a local folder via **Folder** creates an isolated project environment in your Studio library (serving local images, fonts, and linked stylesheets via a built-in localhost asset server in Tauri).
   - Edits are auto-saved to your Studio workspace and **never** overwrite your local disk until you explicitly use **Export**, which writes all project files back to disk while retaining your exact folder and file hierarchy.

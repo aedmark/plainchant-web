@@ -379,3 +379,62 @@ test('filesync: dirtyPaths lists files that differ from the saved baseline, incl
     assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a!', 'style.css': 'b', 'new.js': '' }, saved), ['index.html', 'new.js']);
     assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a' }, null), ['index.html']);
 });
+
+test('links: finds missing pages, images, stylesheets, scripts, CSS urls, and risky links with exact positions', () => {
+    const entries = {
+        'index.html': [
+            '<link rel="stylesheet" href="style.css">',
+            '<link rel="stylesheet" href="missing.css">',
+            '<script src="app.js"></script><script src="gone.js"></script>',
+            '<a href="about.html#team">ok</a> <a href="about.html#nope">frag</a> <a href="nowhere.html">dead</a>',
+            '<a href="About.html">case</a> <a href="contact">clean</a> <a href="sub/">dir</a> <a href="../up.html">out</a>',
+            '<a href="#hero">hero</a> <a href="#ghost">ghost</a> <a href="#top">top</a> <a href="#">bare</a> <a href="?page=2">q</a>',
+            '<a href="https://example.com/x.html">ext</a> <a href="mailto:a@b.test">m</a> <a href="{{ url }}">tpl</a>',
+            '<img src="img/a.png"><img src="img/b.png" srcset="img/a.png 1x, img/c.png 2x"><video poster="img/p.png"></video>',
+            '<div id="hero" style="background:url(img/bg.png)"></div>',
+            '<style>.x { background: url("img/s.png"); } /* url(img/commented.png) */</style>',
+            '<!-- <a href="commented.html">x</a> -->'
+        ].join('\n'),
+        'about.html': '<h2 id="team">Team</h2><a name="old">o</a><a href="index.html#hero">back</a>',
+        'contact.html': '<p>contact</p>',
+        'sub/index.html': '<p>sub</p>',
+        'style.css': '@import "base.css"; @import url(theme.css); body { background: url(../img/a.png) } .f { src: url("font.woff2") }',
+        'app.js': 'var s = "img/never-checked.png";'
+    };
+    const res = Links.createChecker().check(entries, ['img/a.png', 'img/p.png', 'img/bg.png', 'theme.css']);
+    const msgs = res.problems.map((p) => p.file + ' ' + p.severity + ' ' + p.ref + ' | ' + p.message);
+    const has = (needle) => assert.ok(msgs.some((m) => m.includes(needle)), 'expected a problem containing ' + JSON.stringify(needle) + '\n' + msgs.join('\n'));
+    const hasNot = (needle) => assert.ok(!msgs.some((m) => m.includes(needle)), 'unexpected problem ' + JSON.stringify(needle));
+    has('index.html error missing.css | Stylesheet not found: missing.css');
+    has('index.html error gone.js | Script not found: gone.js');
+    has('index.html error nowhere.html | Linked page not found: nowhere.html');
+    has('about.html#nope | No element with id "nope" in about.html');
+    has('index.html warning About.html | Linked page "About.html" matches about.html only if case is ignored');
+    has('index.html warning contact | Link "contact" has no extension');
+    has('index.html error ../up.html | Linked page "../up.html" points outside the project');
+    has('index.html warning #ghost | No element with id "ghost" on this page');
+    has('index.html error img/b.png | Image not found: img/b.png');
+    has('img/c.png | Image not found: img/c.png');
+    has('index.html error img/s.png | File not found: img/s.png');
+    has('style.css error base.css | Stylesheet not found: base.css');
+    has('style.css error font.woff2 | File not found: font.woff2');
+    has('style.css error ../img/a.png | File "../img/a.png" points outside the project');
+    [' #hero | ', ' #top | ', ' # | ', ' ?page=2 | ', ' https://example.com/x.html | ', ' mailto:a@b.test | ', ' {{ url }} | ', ' commented.html | ', ' img/never-checked.png | ', ' about.html#team | ', ' sub/ | ', ' theme.css | ', ' img/a.png | ', ' img/p.png | ', ' img/bg.png | ', ' style.css | ', ' app.js | '].forEach((needle) => hasNot(needle));
+    assert.equal(res.errors + res.warnings, res.problems.length);
+
+    const first = res.problems.find((p) => p.ref === 'missing.css');
+    assert.equal(first.line, 2);
+    assert.equal(entries['index.html'].slice(first.start, first.end), 'href="missing.css"', 'the range covers the attribute');
+    const css = res.problems.find((p) => p.file === 'style.css' && p.ref === 'font.woff2');
+    assert.equal(entries['style.css'].slice(css.start, css.end), 'font.woff2', 'CSS urls are located exactly');
+    const inline = res.problems.find((p) => p.ref === 'img/s.png');
+    assert.equal(entries['index.html'].slice(inline.start, inline.end), 'img/s.png');
+    assert.equal(entries['index.html'].slice(0, inline.start).split('\n').length, inline.line);
+
+    const checker = Links.createChecker();
+    const again = checker.check(entries, ['img/a.png', 'img/p.png', 'img/bg.png', 'theme.css']);
+    assert.deepEqual(checker.check(entries, ['img/a.png', 'img/p.png', 'img/bg.png', 'theme.css']).problems, again.problems, 'cached extraction gives the same result');
+    const fixed = Object.assign({}, entries, { 'nowhere.html': '<p>now exists</p>' });
+    assert.ok(!checker.check(fixed, ['img/a.png']).problems.some((p) => p.ref === 'nowhere.html'), 'adding the target clears the problem');
+    assert.equal(Links.createChecker().check({ 'index.html': '<p>nothing to check</p>' }, []).problems.length, 0);
+});

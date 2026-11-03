@@ -176,6 +176,7 @@
                 <button type="button" class="insp-tab" data-insp="props" aria-selected="true">Properties (HTML)</button>
                 <button type="button" class="insp-tab" data-insp="css" aria-selected="false">CSS Designer</button>
                 <button type="button" class="insp-tab" data-insp="parts" aria-selected="false">Parts <span id="partsCountBadge" class="console-badge" hidden>0</span></button>
+                <button type="button" class="insp-tab" data-insp="problems" aria-selected="false">Problems <span id="problemsCountBadge" class="console-badge" hidden>0</span></button>
                 <button type="button" class="insp-tab" data-insp="console" aria-selected="false">Console <span id="consoleCountBadge" class="console-badge" hidden>0</span></button>
             </div>
             <div class="inspector-selection-badge">
@@ -300,6 +301,13 @@
         <div id="inspPartsPane" class="inspector-body" hidden>
             <p class="parts-help">Shared parts are marked regions (<code>&lt;!-- pc:part src="parts/header.html" --&gt;</code>) kept in step with one part file. Editing the part file updates every page.</p>
             <div id="partsList" class="parts-list"></div>
+        </div>
+        <div id="inspProblemsPane" class="inspector-body" hidden>
+            <div class="console-bar">
+                <span id="problemsSummary" class="parts-help" aria-live="polite"></span>
+                <button type="button" class="mini" id="problemsRecheckBtn" title="Check every page and stylesheet for broken links and missing files">Re-check</button>
+            </div>
+            <div id="problemsList" class="parts-list"></div>
         </div>
         <div id="inspConsolePane" class="inspector-body console-pane" hidden>
             <div class="console-bar">
@@ -540,6 +548,7 @@
 <script src="src/dom-outline.js"></script>
 <script src="src/project.js"></script>
 <script src="src/parts.js"></script>
+<script src="src/links.js"></script>
 <script src="src/editing.js"></script>
 <script src="src/suggest.js"></script>
 <script src="src/library.js"></script>
@@ -566,6 +575,7 @@
 <script src="src/app/inspector-ui.js"></script>
 <script src="src/app/console-ui.js"></script>
 <script src="src/app/parts-ui.js"></script>
+<script src="src/app/problems-ui.js"></script>
 <script src="src/app/outline-ui.js"></script>
 <script src="src/app/explorer-ui.js"></script>
 <script src="src/app/export.js"></script>
