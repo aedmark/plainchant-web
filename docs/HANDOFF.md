@@ -5,10 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phase 4 complete (`P4-01`, `P4-02`); Phase 5 proposed (`P5-01`..`P5-04`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phase 4 complete (`P4-01`..`P4-03`); Phases 5 & 6 specced and ready (`P5-01`, `P5-02`, `P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
   - `npm test` — passed (`23/23` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `10` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -35,14 +36,14 @@ Last updated: 2026-11-02
 
 ### Next up
 
-1. **`P5-01`**: Visual CSS Grid & Flexbox interactive gap/alignment handles on the Design Stage.
-2. **`P5-02`**: Visual Asset Manager & Image Picker modal browsing local project images with thumbnail previews.
-3. **`P5-03`**: Integrated Stage Console drawer capturing `console.log`, `console.warn`, and uncaught exceptions from Live JS mode.
-4. **`P5-04`**: Responsive Media Query Switcher in the CSS Designer.
+1. **`P5-01`**: In-App JS Console Drawer (`Console` tab in `#inspector`, `src/app/console-ui.js`, `Project.assemblePreview` console bridge).
+2. **`P5-02`**: Multi-Page Link Navigation on the Stage (`Project.resolveRelativePath`, click in Live JS mode or `Ctrl/Cmd+Click` / badge button in Design mode).
+3. **`P6-01`**: Line Numbers Gutter (`#editorGutter`) & Find/Replace bar (`#findBar`, `Ctrl/Cmd+F`, `Ctrl/Cmd+H`, `src/app/find.js`) in the Code editor.
+4. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
 
 ### Open questions
 
-- **Q-001** (blocks `P5-01`): Which Phase 5 enhancement should be prioritized next (`P5-01`, `P5-02`, `P5-03`, or `P5-04`)? (See [`docs/DECISIONS.md`](DECISIONS.md).)
+- **Q-001** (blocks `P5-01`): Confirm execution order between Phase 5 (`P5-01`, `P5-02`) and Phase 6 (`P6-01`, `P6-02`). (See [`docs/DECISIONS.md`](DECISIONS.md).)
 
 ---
 
@@ -57,7 +58,7 @@ Last updated: 2026-11-02
   - Implemented Rich CSS Designer and dockable/floating Inspector (`P2-01`, `P2-02`, `D-007`) with computed style placeholders, box-model Stage overlays, **Go to CSS ↗** rule jumping, and Stage-to-Code highlighting.
   - Implemented Direct Stage Manipulation (`P2-03`, `P2-04`, `P2-06`): pointer-based drag-and-drop element reordering (`D-008`), on-stage action badges (`↑`, `↓`, `⧉`, `✕`), single-click direct WYSIWYG text editing (`D-009`), reorganized top menu bar, **Insert ▾** dropdown, and right-click context menu.
   - Added project-wide multi-file Undo/Redo (`P2-05`, `D-010`) and isolated studio project workspace semantics with structure-preserving local folder export (`P3-01`..`P3-03`, `D-005`, `D-006`).
-  - Adopted `the-manifold` agent documentation scheme (`P4-01`, `P4-02`: `CLAUDE.md`, `AGENTS.md`, `ROADMAP.md`, `docs/*`, `tools/check_docs.py`).
+  - Adopted `the-manifold` agent documentation scheme (`P4-01`, `P4-02`: `CLAUDE.md`, `AGENTS.md`, `ROADMAP.md`, `docs/*`, `tools/check_docs.py`), `3x-documentation-scheme` What/How/Why manual (`P4-03`: `docs/plainchant-web.manual.json`, `docs/manual.html`, `tools/manual.py`, `tools/test_manual.py`), and specced Phases 5 and 6 (`P5-01`, `P5-02`, `P6-01`, `P6-02`).
 - **Decided**: `D-001` through `D-010`; logged `Q-001`.
-- **Verified**: `npm test` (`23/23` passed), `python3 tools/check_docs.py` (`0 error(s), 0 warning(s)`), `cargo build --manifest-path src-tauri/Cargo.toml`.
-- **Next**: Prioritize and start Phase 5 (`P5-01`..`P5-04`, pending `Q-001`).
+- **Verified**: `npm test` (`23/23` passed), `python3 tools/check_docs.py` (`0 error(s), 0 warning(s)`), `python3 -m unittest tools/test_manual.py` (`6/6` passed), `cargo build --manifest-path src-tauri/Cargo.toml`.
+- **Next**: Implement Phase 5 (`P5-01` In-App JS Console Drawer, `P5-02` Multi-Page Link Navigation) and Phase 6 (`P6-01` Line Numbers & Find/Replace, `P6-02` Explorer File Operations & Dirty Indicators).

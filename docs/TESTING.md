@@ -8,6 +8,7 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
 |---|---|---|
 | All JS unit + structural tests | `npm test` (runs `node test/run.js`) | < 1s |
 | Documentation integrity | `python3 tools/check_docs.py` | < 1s |
+| 3x Manual validation & unit tests | `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` | < 1s |
 | Native Tauri host compilation | `cargo build --manifest-path src-tauri/Cargo.toml` | ~1–10s (incremental) |
 
 ## Test layout
@@ -22,7 +23,8 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
     - No duplicate top-level identifier declarations across `src/app/*.js`.
     - No inline `<script>` or `<style>` blocks in [`app.html`](../app.html).
     - [`sw.js`](../sw.js) `APP_FILES` matches all assets linked by [`app.html`](../app.html).
-- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P5-04`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-010`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
+- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-03`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-010`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
+- [`tools/manual.py`](../tools/manual.py) & [`tools/test_manual.py`](../tools/test_manual.py) — Validates and builds the 3x What / How / Why manual ([`docs/plainchant-web.manual.json`](plainchant-web.manual.json) -> [`docs/manual.html`](manual.html)).
 
 ## Writing tests
 

@@ -43,12 +43,52 @@ Goal: Enforce architectural invariants, offline readiness, and canonical agent d
 
 - [x] P4-01 Structural and offline verification suite (`test/structure.test.js`, 9 checks) enforcing script load order, single global namespace, 500-line file cap, no inline scripts/styles, and Service Worker cache parity (D-001, D-002) (2026-11-02).
 - [x] P4-02 Adopt `the-manifold` canonical agent documentation scheme (`AGENTS.md`, `CLAUDE.md`, `ROADMAP.md`, `docs/*`, `tools/check_docs.py`). Verified by `python3 tools/check_docs.py` (2026-11-02).
+- [x] P4-03 Adopt `3x-documentation-scheme` What / How / Why manual (`docs/plainchant-web.manual.json`, `docs/manual.html`, `docs/manual.schema.json`, `tools/manual.py`, `tools/test_manual.py`, `tools/manual.LICENSE`). Verified by `python3 tools/manual.py check docs/plainchant-web.manual.json` and `python3 -m unittest tools/test_manual.py`, 6 tests (2026-11-02).
 
-## Phase 5: Future Enhancements (Not Yet Committed)
+## Phase 5: Interactive Console & Live Link Navigation on the Stage
 
-Not committed. Decide only after maintainer prioritization.
+Goal: Give developers live runtime observability and seamless multi-page navigation directly inside the Stage and Inspector.
 
-- [ ] P5-01 Visual CSS Grid & Flexbox interactive gap/alignment handles on the Design Stage (proposed 2026-11-02).
-- [ ] P5-02 Visual Asset Manager & Image Picker modal browsing local project images with thumbnail previews (proposed 2026-11-02).
-- [ ] P5-03 Integrated Stage Console drawer capturing `console.log`, `console.warn`, and uncaught exceptions from Live JS mode (proposed 2026-11-02).
-- [ ] P5-04 Responsive Media Query Switcher in the CSS Designer to scope style edits to `@media (max-width: 768px)` or `@media (max-width: 375px)` (proposed 2026-11-02).
+- [ ] P5-01 **In-App JS Console Drawer** (requested by maintainer, 2026-11-02).
+  - **Scope**: Add a third Inspector tab (`Console` with unread/error count badge `#consoleCountBadge`) next to `Properties (HTML)` and `CSS Designer` in `app.html`.
+  - **Stage Bridge (`src/project.js`, `src/app/stage.js`)**: Wrap `console.log`, `console.info`, `console.warn`, and `console.error` plus `window.onerror` and `window.onunhandledrejection` inside the Stage iframe (`Project.assemblePreview`), forwarding structured `{ type: 'pc-console', level, args, line, source }` messages via `postMessage`.
+  - **Inspector UI (`src/app/console-ui.js`, `src/styles.css`)**: Render filterable log rows (`All`, `Errors`, `Warnings`, `Logs`) with severity badges, timestamps, a `Clear` button, and click-to-jump source line navigation. Extract into `src/app/console-ui.js` (registered in `app.html` and `sw.js`) so `src/app/inspector-ui.js` (currently 449 lines) stays well under the 500-line limit (D-001).
+  - **Verification**: Unit test in `test/project.test.js` asserting console proxy injection; structural check in `test/structure.test.js`.
+- [ ] P5-02 **Multi-Page Link Navigation on the Stage** (requested by maintainer, 2026-11-02).
+  - **Scope**: Clicking a relative project HTML link (such as `resume.html` or `gallery.html`) on the Stage switches the Studio's active HTML document to that file in `projectFiles.entries`.
+  - **Interaction Rules (D-009)**:
+    - In **Live JS mode**: Any normal click on a relative `<a href>` targeting a project `.html` file intercepts iframe navigation and switches the Studio to that file.
+    - In **Design mode**: Single-click on an `<a>` continues to select and inline-edit its text (D-009), while `Ctrl/Cmd+Click` on the Stage—or clicking a **Follow Link ↗** button in the floating stage badge / Properties panel—switches to the linked `.html` file.
+  - **Resolution (`src/project.js`, `src/app/stage.js`, `src/app/core.js`)**: Add `Project.resolveRelativePath(fromFile, rawHref)` to normalize relative paths (`./resume.html`, `sub/page.html#section`, `../index.html`), ignore external schemes (`http:`, `https:`, `mailto:`, `tel:`, `javascript:`), and switch the active editor/Stage tab via `openFileInEditor(targetPath)`.
+  - **Verification**: Unit tests for `Project.resolveRelativePath` in `test/project.test.js`.
+
+## Phase 6: Editor Ergonomics & File Management
+
+Goal: Upgrade the Code editor with line-number gutters and in-file Find/Replace, and add full file lifecycle management and per-file dirty tracking in the File Explorer.
+
+- [ ] P6-01 **Line Numbers Gutter & Find/Replace (`Ctrl/Cmd+F`, `Ctrl/Cmd+H`) in the Code Editor** (requested by maintainer, 2026-11-02).
+  - **Line Numbers Gutter (`app.html`, `src/styles.css`, `src/app/shade.js`)**:
+    - Add `<div id="editorGutter" class="editor-gutter" aria-hidden="true"></div>` inside `#code-scroll` alongside `.editor-wrap`.
+    - Synchronize gutter line numbers and wrapped-line heights with `drawShade()` and `highlightCodeRange()`, highlighting both the active caret line and any Stage-selected code range.
+  - **Find & Replace Bar (`app.html`, `src/styles.css`, `src/app/find.js`)**:
+    - Add a compact `#findBar` toolbar at the top of `#code-pane` with search input, case-sensitivity toggle (`Aa`), match counter (`1 of N`), Next/Previous buttons (`Enter` / `Shift+Enter`), Replace input, **Replace**, and **Replace All**.
+    - Highlight all active search matches inside `.editor-shade` (`<mark class="sh-find-match">`) and execute Replace / Replace All through `applyEdit()` so replacements are undoable with `Ctrl/Cmd+Z` (D-010).
+    - Implement in a dedicated `src/app/find.js` module (registered in `app.html` and `sw.js`) to keep `src/app/shade.js` and `src/app/typing.js` well below 500 lines (D-001).
+  - **Verification**: Unit tests for search/replace offset helpers in `test/` and structural check in `test/structure.test.js`.
+- [ ] P6-02 **File Operations in Explorer & Dirty Indicators (`•`) on Tabs** (requested by maintainer, 2026-11-02).
+  - **Per-File Dirty Indicators (`src/app/core.js`, `src/app/persistence.js`, `src/filesync.js`)**:
+    - Track baseline `savedFileEntries` per file on project load, Studio save (`saveScript`), and folder export.
+    - Render an unsaved indicator (`•`) on modified file tabs in `#fileTabs` and modified rows in `#fileExplorer` whenever `projectFiles.entries[path] !== savedFileEntries[path]`.
+  - **Explorer File Operations (`src/app/explorer-ui.js`, `src/app/core.js`, `src/styles.css`)**:
+    - Support **Rename File**, **Duplicate File**, and **Delete File** directly from `#fileExplorer` (via hover quick-action buttons and right-click context menu).
+    - Record a project-wide Undo snapshot (`pushUndoSnapshot` in `src/app/typing.js`) before every file rename, duplicate, or delete so file tree operations can be undone/redone (`D-010`), and prevent deleting the last remaining `.html` file.
+    - Place Explorer UI handlers in `src/app/explorer-ui.js` (registered in `app.html` and `sw.js`) so `src/app/core.js` (currently 390 lines) stays under the 500-line ceiling (D-001).
+  - **Verification**: Unit tests in `test/project.test.js` for file rename/duplicate/delete state helpers and structural check in `test/structure.test.js`.
+
+## Phase 7: Future Backlog (Not Yet Committed)
+
+Not committed. Decide only after Phases 5 and 6 are complete.
+
+- [ ] P7-01 Visual CSS Grid & Flexbox interactive gap/alignment handles on the Design Stage (proposed 2026-11-02).
+- [ ] P7-02 Visual Asset Manager & Image Picker modal browsing local project images with thumbnail previews (proposed 2026-11-02).
+- [ ] P7-03 Responsive Media Query Switcher in the CSS Designer to scope style edits to `@media (max-width: 768px)` or `@media (max-width: 375px)` (proposed 2026-11-02).

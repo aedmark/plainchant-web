@@ -70,4 +70,4 @@ its status changes ("superseded by D-MMM").
 
 ## Open questions
 
-- **Q-001** Which Phase 5 enhancement should be prioritized next: visual CSS Grid/Flexbox Stage handles (P5-01), the Visual Asset Manager modal (P5-02), the Stage JS Console drawer (P5-03), or the Media Query Switcher (P5-04)? (asked 2026-11-02, by agent; blocks P5-01; recommendation: P5-02 or P5-04 for multi-file project workflows)
+- **Q-001** Should Phase 5 (`P5-01` Console Drawer, `P5-02` Multi-Page Link Navigation) be implemented before Phase 6 (`P6-01` Line Numbers & Find/Replace, `P6-02` Explorer File Operations & Dirty Indicators), or in parallel? (asked 2026-11-02, by agent; blocks P5-01; recommendation: execute Phase 5 (`P5-01`, `P5-02`) first, then Phase 6 (`P6-01`, `P6-02`))

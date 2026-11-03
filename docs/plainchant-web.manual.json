@@ -1,0 +1,239 @@
+{
+  "$schema": "./manual.schema.json",
+  "project": {
+    "name": "Plainchant Web",
+    "short_name": "Plainchant Web",
+    "version": "1.0.0",
+    "repository": "https://github.com/aedmark/plainchant-web"
+  },
+  "manual": {
+    "title": "{{project.name}} Manual",
+    "subtitle": "What the HTML5/CSS/JS WYSIWYG studio does, how it works, and why it is built this way",
+    "description": "An explorable 3x architectural and product manual for {{project.name}}. Quick setup lives in [README.md](../README.md); active session state lives in [HANDOFF.md](HANDOFF.md); durable decisions live in [DECISIONS.md](DECISIONS.md).",
+    "badges": [
+      "Release {{project.version}}",
+      "Zero-build Vanilla JS",
+      "Tauri v2 Desktop + Browser",
+      "Source-Preserving AST"
+    ],
+    "footer": "{{project.name}} {{project.version}} · Built with the 3x Documentation Scheme · Facts cite repository evidence."
+  },
+  "theme": {
+    "accent": "#38bdf8",
+    "accent_secondary": "#f59e0b",
+    "icon": "◈"
+  },
+  "sections": [
+    {
+      "id": "foundations",
+      "title": "Foundations & Architecture",
+      "description": "The zero-build runtime model, global script contract, and source-of-truth philosophy.",
+      "entries": [
+        {
+          "id": "zero-build-runtime",
+          "title": "Zero-build vanilla JS & UMD architecture",
+          "summary": "Pure domain modules in src/*.js pair with classic browser scripts in src/app/*.js without a bundler.",
+          "tags": ["architecture", "invariant", "D-001"],
+          "what": "Runs directly in any modern browser (`app.html`) or inside the Tauri v2 desktop shell with zero frontend build tools and zero npm runtime dependencies.",
+          "how": [
+            "12 pure UMD modules in `src/*.js` expose stateless parsers, bundlers, and storage helpers that run identically in the browser and in Node.js unit tests (`test/run.js`).",
+            "19 classic `<script>` files in `src/app/*.js` share a single global scope in `app.html` (`core.js` first, `main.js` last).",
+            "`test/structure.test.js` verifies script load order, no duplicate top-level declarations, a 500-line ceiling per `src/app/*.js` file, and Service Worker `APP_FILES` parity."
+          ],
+          "why": "Recorded in D-001: avoiding Vite/Webpack/React eliminates build-step fragility, keeps the entire studio inspectable as plain files, and allows instant unit testing in Node.js without DOM shims.",
+          "evidence": [
+            {"label": "Studio entrypoint", "target": "app.html"},
+            {"label": "Structural invariants test", "target": "test/structure.test.js"},
+            {"label": "Architectural decision D-001", "target": "docs/DECISIONS.md"}
+          ],
+          "related": ["non-destructive-ast", "transparent-syntax-shader"]
+        },
+        {
+          "id": "non-destructive-ast",
+          "title": "Non-destructive HTML5 and CSS byte-offset splicing",
+          "summary": "Visual edits splice exact character spans in user source files instead of serializing live DOM innerHTML.",
+          "tags": ["parser", "ast", "D-003"],
+          "what": "Parses HTML5 (`HtmlAst`) and CSS (`CssAst`) into offset-indexed syntax trees and performs surgical edits (`setAttr`, `setText`, `insertElement`, `moveElement`, `duplicateElement`, `setProperty`) while keeping user formatting, indentation, and comments intact.",
+          "how": [
+            "`HtmlAst.parse()` records exact `start`, `end`, `openStart`, `openEnd`, `closeStart`, and `attrSpans` character offsets plus line numbers for every element.",
+            "`HtmlAst.stamp()` injects ephemeral `data-pc-id` and `data-line` attributes only into the preview HTML sent to `#stageFrame`, never into `projectFiles.entries`.",
+            "`CssAst.parse()` indexes rules and declarations with exact byte ranges so Inspector edits and `findRuleBySelector()` modify only the targeted declaration."
+          ],
+          "why": "Recorded in D-003: serializing `stageFrame.contentDocument.documentElement.outerHTML` would destroy author whitespace, reorder attributes, and leak runtime bridge markers into user files.",
+          "evidence": [
+            {"label": "HTML5 AST & splicer", "target": "src/html-ast.js"},
+            {"label": "CSS AST & splicer", "target": "src/css-ast.js"},
+            {"label": "HTML AST unit tests", "target": "test/html-ast.test.js"},
+            {"label": "CSS AST unit tests", "target": "test/css-ast.test.js"}
+          ],
+          "related": ["zero-build-runtime", "stage-drag-and-actions", "inline-stage-text-editing"]
+        },
+        {
+          "id": "transparent-syntax-shader",
+          "title": "Transparent-textarea syntax shader & block highlighter",
+          "summary": "A synchronized background layer paints HTML/CSS/JS token colors and Stage selection highlights behind #editor.",
+          "tags": ["editor", "ergonomics", "D-002"],
+          "what": "Provides live syntax coloring for HTML, CSS, and JavaScript, Emmet-lite tag abbreviation expansion on `Tab`, smart `Enter` auto-indentation, and line-range highlighting (`highlightCodeRange`) when an element is clicked on the Stage.",
+          "how": [
+            "`#editor` is a transparent-text `<textarea>` positioned over `.editor-shade` (`src/app/shade.js`).",
+            "`CodeShade.shade()` (`src/code-shade.js`) tokenizes each line and wraps Stage-selected line ranges in `.sh-selected-line`.",
+            "`checkShade()` verifies line-wrap alignment between the textarea and the background layer, falling back to plain text if browser zoom or font metrics ever diverge."
+          ],
+          "why": "Recorded in D-002: delivers responsive code editing and visual block highlighting in a few hundred lines of vanilla JS without bundling megabytes of Monaco or CodeMirror.",
+          "evidence": [
+            {"label": "Tokenizer & shader", "target": "src/code-shade.js"},
+            {"label": "Editor shade renderer", "target": "src/app/shade.js"},
+            {"label": "Typing & Emmet helpers", "target": "src/editing.js"}
+          ],
+          "related": ["zero-build-runtime", "inline-stage-text-editing"]
+        }
+      ]
+    },
+    {
+      "id": "wysiwyg-stage",
+      "title": "The WYSIWYG Design Stage & Inspector",
+      "description": "Direct manipulation on the Stage iframe, live text editing, and the dockable/floating CSS Designer.",
+      "entries": [
+        {
+          "id": "inline-stage-text-editing",
+          "title": "Focus-preserving Stage selection & single-click text editing",
+          "summary": "Clicking an element on the Design Stage highlights its code block while keeping keyboard focus in the Stage for direct text editing.",
+          "tags": ["stage", "wysiwyg", "D-009"],
+          "what": "Allows users to click any text element (`h1`-`h6`, `p`, `span`, `a`, `button`, `li`, `td`, etc.) on the Design Stage and immediately type or edit text in place while watching the corresponding HTML code block highlight and update live in the Code pane.",
+          "how": [
+            "Clicking on the Stage sends `{ type: 'pc-select', id }` to the parent window, which calls `selectElementById(id, { scrollEditor: true, focusEditor: false })` so `#editor` scrolls and highlights `.sh-selected-line` without stealing keyboard focus.",
+            "In `src/app/stage.js`, clicking a text-editable element immediately activates `contenteditable=\"true\"` and positions the caret at the pointer coordinates via `caretRangeFromPoint`.",
+            "Keystrokes inside the Stage emit `pc-inline-input`, which splices the updated text via `HtmlAst.setText()` with `skipStageRender: true` so the iframe DOM is not blown away mid-typing."
+          ],
+          "why": "Recorded in D-009: focusing `#editor` on Stage click caused subsequent keystrokes to overwrite the selected HTML block in Code mode rather than editing the text naturally on the Design Stage.",
+          "evidence": [
+            {"label": "Stage iframe bridge", "target": "src/app/stage.js"},
+            {"label": "Selection & code scroll sync", "target": "src/app/layout.js"},
+            {"label": "Decision D-009", "target": "docs/DECISIONS.md"}
+          ],
+          "related": ["non-destructive-ast", "stage-drag-and-actions"]
+        },
+        {
+          "id": "stage-drag-and-actions",
+          "title": "Pointer-based Stage drag-and-drop & badge quick actions",
+          "summary": "Deterministic pointer tracking reorders elements before, after, or inside targets with live amber drop guides.",
+          "tags": ["stage", "drag-and-drop", "D-008"],
+          "what": "Reorders elements on the Design Stage by dragging any element (or dragging the `⠿` handle on the floating stage badge while text editing), and provides one-click badge buttons for Move Up (`↑`), Move Down (`↓`), Duplicate (`⧉`), and Delete (`✕`).",
+          "how": [
+            "Tracks `mousedown`, `mousemove`, and `mouseup` inside the Stage bridge (`src/app/stage.js`) with a 5px movement threshold.",
+            "Computes whether the pointer is in the top 28% (`before`), bottom 28% (`after`), or middle (`inside` for containers, otherwise nearest edge) of the hovered target, drawing `[data-pc-drop-target]` guide lines.",
+            "On `mouseup`, posts `pc-move-to` to the parent window, which executes a single-pass byte-offset splice in `HtmlAst.moveElement()`."
+          ],
+          "why": "Recorded in D-008: native HTML5 `draggable=\"true\"` / `dragover` / `drop` events inside an `iframe[srcdoc]` abort drops on Linux WebKitGTK when releasing over margins or dragging links/buttons, and two-pass insert+remove shifts `data-pc-id` numbering.",
+          "evidence": [
+            {"label": "Stage pointer drag handler", "target": "src/app/stage.js"},
+            {"label": "Single-pass AST move", "target": "src/html-ast.js"},
+            {"label": "Move & duplicate unit tests", "target": "test/html-ast.test.js"}
+          ],
+          "related": ["non-destructive-ast", "menus-and-context-insert"]
+        },
+        {
+          "id": "inspector-and-css-designer",
+          "title": "Dockable / floating Inspector & Rich CSS Designer",
+          "summary": "Inspects HTML attributes, live getComputedStyle values, visual box-model overlays, and jumps to CSS rules.",
+          "tags": ["inspector", "css", "D-007"],
+          "what": "Provides an HTML Properties editor and a 5-section Rich CSS Designer (Layout, Spacing & Box Model, Size, Typography, Background & Border) that can be docked at the bottom, collapsed to its header bar, popped out as a draggable floating window, or hidden (`Ctrl/Cmd+Shift+I`).",
+          "how": [
+            "When an element is selected on the Stage, the bridge reads `window.getComputedStyle(el)` and `getBoundingClientRect()` and posts them to `src/app/inspector-ui.js`.",
+            "Inputs display live computed values as placeholders while editing either inline `style` (`HtmlAst.setAttr`) or linked stylesheet rules (`CssAst.setProperty`).",
+            "Hovering or editing Box Model inputs draws amber margin and emerald padding overlays on the Stage; clicking **Go to CSS ↗** locates the rule via `CssAst.findRuleBySelector()` and highlights it in the Code editor."
+          ],
+          "why": "Recorded in D-007: real-world stylesheets often define rules across multiple selectors or external defaults; surfacing `getComputedStyle` alongside declared CSS rules and allowing floating/collapsible panel states keeps the Stage spacious and informative.",
+          "evidence": [
+            {"label": "Inspector & CSS Designer UI", "target": "src/app/inspector-ui.js"},
+            {"label": "Inspector docking & floating modal", "target": "src/app/panes.js"},
+            {"label": "CSS selector locator", "target": "src/css-ast.js"}
+          ],
+          "related": ["non-destructive-ast", "menus-and-context-insert"]
+        },
+        {
+          "id": "menus-and-context-insert",
+          "title": "Top menu bar, Insert dropdown, and right-click context menu",
+          "summary": "Unified element insertion and DOM manipulation from the top menu bar or right-click context menu.",
+          "tags": ["ui", "menus", "workflow"],
+          "what": "Places the primary Studio command bar (`Projects`, `Open Folder`, `Insert ▾`, `Undo`, `Redo`, `History`, `Export`, `Inspector`, `Settings`, `Help`) above the file tab strip and provides an **Insert Element** submenu inside the right-click context menu on both the Design Stage and HTML editor.",
+          "how": [
+            "`#insertMenuBtn` opens `#insertDropdown` to insert semantic HTML5 snippets (`header`, `nav`, `section`, `div`, `p`, `h1`, `h2`, `button`, `a`, `img`, `ul`, `form`, `input`, `table`) inside the selected Stage element or at the Code caret.",
+            "Right-clicking any element on the Stage (`pc-contextmenu`) or inside `#editor` opens `#contextMenu` (`src/app/inspector-ui.js`) with Select Parent, Move Up/Down, Duplicate, Edit/Jump to CSS, Delete, and the **Insert Element ▸** flyout."
+          ],
+          "why": "Keeps the workspace uncluttered by replacing the permanent secondary element chip bar with a compact dropdown and context-sensitive right-click menu.",
+          "evidence": [
+            {"label": "Studio toolbar & menu markup", "target": "app.html"},
+            {"label": "Context menu & insert handlers", "target": "src/app/inspector-ui.js"},
+            {"label": "HTML5 snippets", "target": "src/editing.js"}
+          ],
+          "related": ["stage-drag-and-actions", "multi-file-undo-redo"]
+        }
+      ]
+    },
+    {
+      "id": "workspace-and-persistence",
+      "title": "Multi-File Workspace, Undo/Redo & Tauri Desktop I/O",
+      "description": "How multi-file projects, undo history, local folders, and static assets are managed safely.",
+      "entries": [
+        {
+          "id": "multi-file-undo-redo",
+          "title": "Project-wide multi-file Undo and Redo stack",
+          "summary": "Snapshots all project files, active tabs, and Stage selection across Code, Stage, and Inspector edits.",
+          "tags": ["undo", "state", "D-010"],
+          "what": "Supports `Ctrl/Cmd+Z` (Undo) and `Ctrl/Cmd+Shift+Z` / `Ctrl+Y` (Redo) plus top-bar `#undoBtn` / `#redoBtn` across all files in the project.",
+          "how": [
+            "`src/app/typing.js` maintains `undoStack` and `redoStack` (up to 150 snapshots), storing a deep clone of `projectFiles.entries`, `activeFile`, `activeHtmlFile`, `selectedPcId`, and editor selection offsets.",
+            "Rapid typing in `#editor` coalesces into 600ms bursts (`TYPING_COALESCE_MS`), while every Stage drag/move, inline text edit burst, and Inspector change records a discrete undo checkpoint."
+          ],
+          "why": "Recorded in D-010: native browser `<textarea>` undo is wiped whenever `editor.value` is replaced on a file-tab switch and cannot undo cross-file edits made from the Stage or CSS Designer.",
+          "evidence": [
+            {"label": "Undo/Redo stack implementation", "target": "src/app/typing.js"},
+            {"label": "Transform checkpoint hooks", "target": "src/app/core.js"},
+            {"label": "Decision D-010", "target": "docs/DECISIONS.md"}
+          ],
+          "related": ["isolated-folder-workspace", "indexeddb-bundle-storage"]
+        },
+        {
+          "id": "isolated-folder-workspace",
+          "title": "Isolated Studio project environment & localhost asset server",
+          "summary": "Opening a local folder creates a safe Studio workspace with live binary asset rendering and explicit structure-preserving Export.",
+          "tags": ["tauri", "filesystem", "security", "D-006"],
+          "what": "Loads an existing local website folder (including nested subdirectories, multiple `.html`/`.css`/`.js` files, and binary images/fonts) into an isolated Studio project environment without touching local disk until the user explicitly clicks **Export**.",
+          "how": [
+            "In Tauri (`src-tauri/src/main.rs`), `open_project_folder` recursively reads text files into `projectFiles.entries`, records the directory tree, and starts a loopback HTTP static asset server (`127.0.0.1:<port>`) rejecting any `..` path traversal.",
+            "`Project.assemblePreview()` injects `<base href=\"http://127.0.0.1:<port>/<dir>/\">` so relative images (`images/photo.jpg`), fonts, and stylesheets render faithfully in `#stageFrame`.",
+            "In `src/app/tauri-files.js`, opening a folder creates a new Studio library record (`currentScriptId = newId()`). Auto-save writes only to IndexedDB; clicking **Export → Save Project to Local Folder** writes all files back to disk while retaining the folder and file structure."
+          ],
+          "why": "Recorded in D-006: auto-overwriting a user's existing project folder on every 1.5s studio auto-save risks unintended destructive changes before the user is ready to commit their work to disk.",
+          "evidence": [
+            {"label": "Tauri folder IPC & asset server", "target": "src-tauri/src/main.rs"},
+            {"label": "Studio folder environment loader", "target": "src/app/tauri-files.js"},
+            {"label": "Export modal & disk writer", "target": "src/app/export.js"},
+            {"label": "Preview assembler", "target": "src/project.js"}
+          ],
+          "related": ["indexeddb-bundle-storage", "multi-file-undo-redo"]
+        },
+        {
+          "id": "indexeddb-bundle-storage",
+          "title": "Multi-file IndexedDB persistence & snapshot history",
+          "summary": "Packs all project files into sentinel-delimited bundles stored in IndexedDB with emergency localStorage fallback.",
+          "tags": ["storage", "indexeddb", "D-004"],
+          "what": "Automatically saves every project edit to IndexedDB (`plainchant_web_db`), supports multiple projects with 30-day soft-delete trash recovery in `#library-modal`, and captures point-in-time project snapshots in `#versions-modal`.",
+          "how": [
+            "`Project.pack()` and `Project.unpack()` (`src/project.js`) serialize `projectFiles.entries` and directory metadata into a single string using `/* === PLAINCHANT:FILE:<path> === */` sentinel markers.",
+            "`Store` (`src/store.js`) and `src/app/persistence.js` write the packed record to IndexedDB and mirror unsaved changes to `localStorage['plainchant_web_emergency']` on `beforeunload`."
+          ],
+          "why": "Recorded in D-004: sentinel packing lets `Store`, `Library`, and `Versions` snapshot, diff, and restore entire multi-file websites as atomic records.",
+          "evidence": [
+            {"label": "Multi-file packer/unpacker", "target": "src/project.js"},
+            {"label": "IndexedDB wrapper", "target": "src/store.js"},
+            {"label": "Persistence orchestration", "target": "src/app/persistence.js"},
+            {"label": "Project bundler unit tests", "target": "test/project.test.js"}
+          ],
+          "related": ["isolated-folder-workspace", "multi-file-undo-redo"]
+        }
+      ]
+    }
+  ]
+}

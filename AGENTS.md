@@ -106,8 +106,11 @@ Things an agent must not change without explicit permission. Every rule includes
 | `docs/SECURITY.md` | Assets, trust boundaries, secret handling, and reporting |
 | `docs/CONTRIBUTING.md` | Human and agent contribution workflow |
 | `docs/CHANGELOG.md` | User-visible release notes |
+| `docs/plainchant-web.manual.json`, `docs/manual.html` | 3x What / How / Why manual source and generated standalone HTML manual |
+| `docs/manual.schema.json` | JSON Schema for the 3x manual source |
 | `docs/archive/` | Historical material no longer current |
 | `tools/check_docs.py` | Documentation consistency checks |
+| `tools/manual.py`, `tools/test_manual.py`, `tools/manual.LICENSE` | 3x manual generator, unit tests, and upstream license |
 
 ## Engineering conventions
 
@@ -130,6 +133,7 @@ Things an agent must not change without explicit permission. Every rule includes
 - Setup: No npm install needed for tests; Rust toolchain required only for Tauri desktop builds.
 - Run in browser: `python3 -m http.server 8080` (then open `http://localhost:8080/app.html`).
 - Run Tauri desktop app: `npm run tauri:dev`.
-- Fast checks: `npm test` and `python3 tools/check_docs.py`.
-- Full checks: `npm test && python3 tools/check_docs.py && cargo build --manifest-path src-tauri/Cargo.toml`.
+- Fast checks: `npm test`, `python3 tools/check_docs.py`, and `python3 tools/manual.py check docs/plainchant-web.manual.json`.
+- Rebuild 3x manual: `python3 tools/manual.py build docs/plainchant-web.manual.json --output docs/manual.html`.
+- Full checks: `npm test && python3 tools/check_docs.py && python3 -m unittest tools/test_manual.py && cargo build --manifest-path src-tauri/Cargo.toml`.
 - Detailed test guidance: [docs/TESTING.md](docs/TESTING.md).
