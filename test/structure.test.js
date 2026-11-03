@@ -109,3 +109,37 @@ test('structure: the line-number gutter and find bar are wired in (P6-01)', () =
     assert.ok(order.indexOf('src/finding.js') !== -1 && order.indexOf('src/finding.js') < order.indexOf('src/app/core.js'), 'finding.js loads before the app scripts');
     assert.ok(listed.indexOf('find.js') > listed.indexOf('shade.js'), 'find.js loads after shade.js');
 });
+
+test('structure: the Live JS bridge keeps anchors, empty links, and forms from navigating the Stage to the app page', () => {
+    const source = fs.readFileSync(path.join(appDir, 'stage-live.js'), 'utf8');
+    const build = new vm.Script(source + '\nbuildLiveBridgeScript();');
+    const bridge = build.runInNewContext({});
+    const handlers = {};
+    const posted = [];
+    const scrolled = [];
+    const el = (id) => ({ scrollIntoView: () => scrolled.push(id) });
+    const doc = {
+        documentElement: el('<top>'),
+        getElementById: (id) => (id === 'about' ? el('about') : null),
+        getElementsByName: () => [],
+        addEventListener: (type, fn) => { handlers[type] = fn; }
+    };
+    new vm.Script(bridge).runInNewContext({ document: doc, window: { parent: { postMessage: (m) => posted.push(m) } }, decodeURIComponent: decodeURIComponent });
+    const click = (href) => {
+        const event = { defaultPrevented: false, button: 0, prevented: false, preventDefault() { this.prevented = true; }, target: { closest: () => ({ getAttribute: () => href }) } };
+        handlers.click(event);
+        return event.prevented;
+    };
+    assert.ok(click('#about'), '#anchor is cancelled so the frame never loads the base URL');
+    assert.ok(click('#'));
+    assert.ok(click(''));
+    assert.ok(click('?page=2'));
+    assert.deepEqual(scrolled, ['about', '<top>']);
+    assert.equal(posted.length, 0, 'anchors and empty links do not ask the Studio to open a page');
+    assert.ok(click('resume.html'));
+    assert.deepEqual(posted, [{ type: 'pc-navigate', href: 'resume.html' }]);
+    assert.ok(!click('https://example.com'), 'external links are left alone');
+    const submit = { defaultPrevented: false, prevented: false, preventDefault() { this.prevented = true; } };
+    handlers.submit(submit);
+    assert.ok(submit.prevented, 'forms do not navigate the Stage');
+});

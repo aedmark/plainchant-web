@@ -1,14 +1,24 @@
 function buildLiveBridgeScript() {
     return [
         '(function() {',
+        '  function scrollToHash(hash) {',
+        '    var id = hash.slice(1);',
+        '    try { id = decodeURIComponent(id); } catch (err) {}',
+        '    var target = id ? (document.getElementById(id) || document.getElementsByName(id)[0]) : document.documentElement;',
+        '    if (target && target.scrollIntoView) target.scrollIntoView();',
+        '  }',
         '  document.addEventListener("click", function(e) {',
         '    if (e.defaultPrevented || e.button !== 0) return;',
         '    var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;',
         '    if (!a) return;',
         '    var href = (a.getAttribute("href") || "").trim();',
-        '    if (!href || href.charAt(0) === "#" || /^([a-z][a-z0-9+.-]*:|\\/\\/)/i.test(href)) return;',
+        '    if (/^([a-z][a-z0-9+.-]*:|\\/\\/)/i.test(href)) return;',
         '    e.preventDefault();',
-        '    window.parent.postMessage({ type: "pc-navigate", href: href }, "*");',
+        '    if (href.charAt(0) === "#") scrollToHash(href);',
+        '    else if (href && href.charAt(0) !== "?") window.parent.postMessage({ type: "pc-navigate", href: href }, "*");',
+        '  });',
+        '  document.addEventListener("submit", function(e) {',
+        '    if (!e.defaultPrevented) e.preventDefault();',
         '  });',
         '})();'
     ].join('\n');

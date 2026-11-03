@@ -38,4 +38,5 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ### Fixed
 
+- Clicking a `#anchor` link (or an empty link, or submitting a form) in Live JS mode no longer loads a second copy of the editor inside the Stage. The Stage frame resolves such links against the editor page, so the Live bridge now scrolls to the anchor itself and cancels the navigation.
 - Fixed Stage drag-and-drop element reordering on Linux WebKitGTK by replacing native HTML5 drag events with deterministic pointer-based hit testing (`D-008`) and single-pass byte-offset splicing in `HtmlAst.moveElement`.

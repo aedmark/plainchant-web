@@ -7,7 +7,7 @@
 Last updated: 2026-11-02
 - **Phase**: Phases 1-5 complete; `P6-01`, `P7-09`, `P7-10` done; `P6-02` next (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`35/35` unit & structural tests)
+  - `npm test` — passed (`36/36` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `15` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
