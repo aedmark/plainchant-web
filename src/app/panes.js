@@ -49,6 +49,7 @@ function setStageMode(mode) {
     stageMode = mode;
     modeButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
     scheduleStageRender(false);
+    if (typeof refreshCssStateUi === 'function') refreshCssStateUi(selectedNodeForCss());
     showNotice(mode === 'live' ? 'Live JS Mode active: scripts are running.' : 'Design Mode active: click elements to inspect or double-click to edit.');
 }
 

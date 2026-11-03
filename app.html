@@ -244,6 +244,16 @@
                 <button type="button" class="mini" id="cssAddRuleBtn">Use Selector</button>
                 <span id="cssBoxSummary" class="css-box-summary" aria-live="polite"></span>
             </div>
+            <div id="cssStateBar" class="css-state-bar" role="group" aria-label="Pseudo-class state to edit and preview">
+                <span class="insp-inline-label">State:</span>
+                <button type="button" class="mini css-state-btn" data-state="" aria-pressed="true" title="Edit the normal (resting) rule">Normal</button>
+                <button type="button" class="mini css-state-btn" data-state="hover" aria-pressed="false" title="Edit and preview :hover">:hover</button>
+                <button type="button" class="mini css-state-btn" data-state="focus" aria-pressed="false" title="Edit and preview :focus">:focus</button>
+                <button type="button" class="mini css-state-btn" data-state="active" aria-pressed="false" title="Edit and preview :active">:active</button>
+                <button type="button" class="mini css-state-btn" data-state="focus-visible" aria-pressed="false" title="Edit and preview :focus-visible">:focus-visible</button>
+                <button type="button" class="mini css-state-btn" data-state="focus-within" aria-pressed="false" title="Edit and preview :focus-within">:focus-within</button>
+                <span id="cssStateHint" class="css-state-hint" aria-live="polite"></span>
+            </div>
             <div class="insp-grid css-grid">
                 <label class="insp-field">
                     <span>Display</span>
@@ -583,6 +593,7 @@
 <script src="src/app/stage-live.js"></script>
 <script src="src/app/insert-drag.js"></script>
 <script src="src/app/inspector-ui.js"></script>
+<script src="src/app/css-states.js"></script>
 <script src="src/app/console-ui.js"></script>
 <script src="src/app/parts-ui.js"></script>
 <script src="src/app/problems-ui.js"></script>

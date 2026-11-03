@@ -42,6 +42,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Drag to insert**: Press and drag any item in the **Insert ▾** menu onto the Design Stage. A guide shows whether it will go before, after, or inside the element under the pointer; release to insert it (one undo step, new element selected). `Escape` cancels, and clicking an item still inserts as before (`P7-06`, `D-020`).
 
+- **Pseudo-state editing**: A **State** bar in the CSS Designer (Normal, `:hover`, `:focus`, `:active`, `:focus-visible`, `:focus-within`) edits the matching state rule for the selected element and previews that state on the Design Stage, including rules on a parent such as `.card:hover .title` (`P7-07`, `D-021`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

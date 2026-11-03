@@ -141,13 +141,15 @@
           "how": [
             "When an element is selected on the Stage, the bridge reads `window.getComputedStyle(el)` and `getBoundingClientRect()` and posts them to `src/app/inspector-ui.js`.",
             "Inputs display live computed values as placeholders while editing either inline `style` (`HtmlAst.setAttr`) or linked stylesheet rules (`CssAst.setProperty`).",
+            "A **State** bar (Normal, `:hover`, `:focus`, `:active`, `:focus-visible`, `:focus-within`) switches the designer to the matching `<selector>:<state>` rule and previews it on the selected Stage element: the preview copy of each stylesheet gets `[data-pc-force~=\"state\"]` twins of its pseudo-class selectors (`CssAst.forceStates()`) and the bridge sets `data-pc-force` (D-021).",
             "Hovering or editing Box Model inputs draws amber margin and emerald padding overlays on the Stage; clicking **Go to CSS ↗** locates the rule via `CssAst.findRuleBySelector()` and highlights it in the Code editor."
           ],
-          "why": "Recorded in D-007 and D-016: real-world stylesheets often define rules across multiple selectors or external defaults; surfacing `getComputedStyle` alongside declared CSS rules and allowing floating/collapsible panel states keeps the Stage spacious and informative.",
+          "why": "Recorded in D-007, D-016, and D-021: real-world stylesheets often define rules across multiple selectors or external defaults; surfacing `getComputedStyle` alongside declared CSS rules and allowing floating/collapsible panel states keeps the Stage spacious and informative.",
           "evidence": [
             {"label": "Inspector & CSS Designer UI", "target": "src/app/inspector-ui.js"},
             {"label": "Inspector docking & floating modal", "target": "src/app/panes.js"},
             {"label": "Dock menu & side resizer", "target": "src/app/dock-ui.js"},
+            {"label": "Pseudo-state bar", "target": "src/app/css-states.js"},
             {"label": "CSS selector locator", "target": "src/css-ast.js"}
           ],
           "related": ["non-destructive-ast", "menus-and-context-insert"]

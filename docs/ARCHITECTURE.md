@@ -7,7 +7,7 @@ Why things are this way lives in [DECISIONS.md](DECISIONS.md); this file says *w
 
 ## The shape, in one paragraph
 
-The browser or Tauri v2 desktop window loads `app.html`, which loads 15 pure UMD modules (`src/*.js`) followed by 29 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
+The browser or Tauri v2 desktop window loads `app.html`, which loads 15 pure UMD modules (`src/*.js`) followed by 30 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
 
 ## Code map
 
@@ -23,6 +23,7 @@ The browser or Tauri v2 desktop window loads `app.html`, which loads 15 pure UMD
 | Code typing & Undo/Redo | `src/app/typing.js`, `src/editing.js`, `src/suggest.js` | `applyEdit()`, `performUndo()`, `performRedo()`, `insertSnippet()` | `Editing`, `Suggest`, `core.js` (D-010) |
 | Stage bridge & WYSIWYG | `src/app/stage.js` | `drawStageNow()`, `buildBridgeScript()` | `#stageFrame` via `srcdoc` and `window.postMessage` (D-008, D-009) |
 | Properties & CSS Designer | `src/app/inspector-ui.js`, `src/app/panes.js`, `src/app/dock-ui.js` | `refreshInspector()`, `jumpToActiveCssRule()`, `openContextMenuAt()`, `setInspectorDock()` | `HtmlAst`, `CssAst`, `core.js`, `layout.js` (D-007, D-016) |
+| CSS pseudo-states | `src/app/css-states.js`, `CssAst.withState()` / `baseSelector()` / `stateOf()` / `forceStates()`, `Project.assemblePreview` `forceStates` option | `cssEditSelector()`, `setCssState()`, `sendForceState()`, bridge `applyForce()` | `inspector-ui.js` (CSS Designer), Stage bridge `pc-force-state` message and `data-pc-force` attribute (D-021) |
 | Insert drag-to-Stage | `src/app/insert-drag.js`, `HtmlAst.insertElementAt()`, `DomOutline.dropPlacement()` | `describeInsertDrop()`, `dropInsertedSnippet()` | Stage document via `stageFrame.contentDocument`, `data-pc-drop-target` in the bridge CSS, `applyHtmlTransform()` (D-020) |
 | Stage link navigation | `src/app/stage-live.js`, `Project.resolveRelativePath` in `src/project.js` | `buildLiveBridgeScript()`, `followProjectLink()`, `projectLinkTarget()` | `#stageFrame` via `postMessage`, `openFileInEditor()` in `core.js`, `inspector-ui.js` (D-012) |
 | JS Console | `src/app/console-ui.js`, `Project.consoleBridge` in `src/project.js` | `addConsoleEntry()`, `clearConsole()`, `jumpToSourceLine()` | `#stageFrame` via `postMessage`, `core.js`, `inspector-ui.js` (D-011) |
@@ -42,7 +43,7 @@ Code / Stage / Inspector input -> HtmlAst / CssAst byte-range splice -> projectF
 
 | Interface | Producer | Consumer | Contract / compatibility |
 | --- | --- | --- | --- |
-| Stage `postMessage` (`pc-select`, `pc-inline-input`, `pc-move-to`, `pc-contextmenu`, `pc-undo`, `pc-redo`) | `#stageFrame` bridge script (`src/app/stage.js`) | `window.addEventListener('message')` in `src/app/stage.js` | JSON object with `type`, `id` (`data-pc-id`), and action payload |
+| Stage `postMessage` (`pc-force-state` from the page to the bridge: `state`; `pc-select`, `pc-inline-input`, `pc-move-to`, `pc-contextmenu`, `pc-undo`, `pc-redo`) | `#stageFrame` bridge script (`src/app/stage.js`) | `window.addEventListener('message')` in `src/app/stage.js` | JSON object with `type`, `id` (`data-pc-id`), and action payload |
 | Tauri IPC (`open_project_folder`, `save_project_folder`) | `src/app/tauri-files.js` | `src-tauri/src/main.rs` | `ProjectFolderPayload { path, base_url, files, tree }` |
 | Multi-file bundle string | `Project.pack()` (`src/project.js`) | `Project.unpack()`, `Store.saveScript()` | `/* === PLAINCHANT:FILE:<relPath> === */` markers (D-004) |
 

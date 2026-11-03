@@ -5,9 +5,9 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`51/51` unit & structural tests)
+  - `npm test` — passed (`54/54` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `17` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -43,9 +43,11 @@ Last updated: 2026-11-02
 
 - **Drag-to-insert (`P7-06`, `D-020`)**: drag Insert menu items onto the Design Stage with a before/after/inside guide (`src/app/insert-drag.js`).
 
+- **CSS pseudo-states (`P7-07`, `D-021`)**: State bar in the CSS Designer, forced-state preview via `[data-pc-force~="state"]` selector twins (`src/app/css-states.js`, `CssAst.forceStates`).
+
 ### In flight
 
-- `P7-06` is complete but uncommitted. Nothing half-built.
+- `P7-07` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -61,7 +63,7 @@ Last updated: 2026-11-02
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen next is `P7-07` CSS Designer pseudo-states (`P7-04`, `P7-05`, `P7-06` are done).
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-02`, `P7-03`, `P7-08`, `P7-11`..`P7-15`, `P7-01`) is unprioritized, so ask which is next.
 
 ### Open questions
 
@@ -72,6 +74,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2j: 2026-11-02: P7-07 CSS Designer pseudo-states
+
+- **Did**: `CssAst.stateOf` / `baseSelector` / `withState` / `splitTopLevel` / `forceStates`; `forceStates` option in `Project.assemblePreview`; bridge `applyForce` and `pc-force-state` in [`src/app/stage.js`](../src/app/stage.js); [`src/app/css-states.js`](../src/app/css-states.js) and the State bar; base-selector target list in [`src/app/inspector-ui.js`](../src/app/inspector-ui.js) (now ~478 lines, near the cap).
+- **Decided**: `D-021`.
+- **Verified**: `npm test` (`54/54`); browser check of the picker, forced preview on the element and its ancestors, edit and undo, new-rule creation, custom state selectors, inline styles, Live mode, and a clean source. Full check results are in this session's final report.
+- **Next**: the maintainer's four Phase 7 priorities are done; ask which backlog item is next.
 
 ### Session 2i: 2026-11-02: P7-06 drag-to-insert onto the Stage
 

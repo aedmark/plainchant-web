@@ -199,3 +199,12 @@ test('structure: dragging from the Insert menu onto the Stage is wired in (P7-06
     assert.includes(readRoot('src/app/stage.js'), '[data-pc-drop-target="inside"]');
     assert.includes(css, '.insert-ghost');
 });
+
+test('structure: the CSS Designer state bar, force-state bridge, and css-states.js are wired in (P7-07)', () => {
+    ['id="cssStateBar"', 'id="cssStateHint"'].forEach((needle) => assert.includes(html, needle));
+    ['hover', 'focus', 'active', 'focus-visible', 'focus-within'].forEach((state) => assert.includes(html, 'data-state="' + state + '"'));
+    assert.ok(listed.indexOf('css-states.js') > listed.indexOf('inspector-ui.js'), 'css-states.js loads after inspector-ui.js');
+    const stage = readRoot('src/app/stage.js');
+    ['pc-force-state', 'data-pc-force', 'forceStates: isDesign'].forEach((needle) => assert.includes(stage, needle));
+    assert.includes(readRoot('src/app/inspector-ui.js'), 'cssEditSelector');
+});
