@@ -25,7 +25,7 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
     - [`sw.js`](../sw.js) `APP_FILES` matches all assets linked by [`app.html`](../app.html).
     - The Console tab, pane, badge, and `console-ui.js` are wired into [`app.html`](../app.html) (`P5-01`).
     - The link bridge script and **Follow Link ↗** control are wired in (`P5-02`).
-- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-03`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-012`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
+- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-15`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-012`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
 - [`tools/manual.py`](../tools/manual.py) & [`tools/test_manual.py`](../tools/test_manual.py) — Validates and builds the 3x What / How / Why manual ([`docs/plainchant-web.manual.json`](plainchant-web.manual.json) -> [`docs/manual.html`](manual.html)).
 
 ## Writing tests

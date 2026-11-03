@@ -87,8 +87,20 @@ Goal: Upgrade the Code editor with line-number gutters and in-file Find/Replace,
 
 ## Phase 7: Future Backlog (Not Yet Committed)
 
-Not committed. Decide only after Phases 5 and 6 are complete.
+Not committed. Decide only after Phases 5 and 6 are complete. `P7-04`..`P7-07` are the maintainer's chosen next four (priority order, 2026-11-02); the rest are unprioritized.
 
 - [ ] P7-01 Visual CSS Grid & Flexbox interactive gap/alignment handles on the Design Stage (proposed 2026-11-02).
 - [ ] P7-02 Visual Asset Manager & Image Picker modal browsing local project images with thumbnail previews (proposed 2026-11-02).
 - [ ] P7-03 Responsive Media Query Switcher in the CSS Designer to scope style edits to `@media (max-width: 768px)` or `@media (max-width: 375px)` (proposed 2026-11-02).
+- [ ] P7-04 **Broken-link checker and Problems tab** (suggested by agent, maintainer-prioritized #1, 2026-11-02). Project-wide check for dead page links, missing images, stylesheets, and scripts using `Project.resolveRelativePath` (P5-02, D-012), shown in a Problems Inspector tab beside the Console with click-to-jump.
+- [ ] P7-05 **Project-wide Find & Replace** (suggested by agent, maintainer-prioritized #2, 2026-11-02). Search and replace across every text file in `projectFiles.entries`, as one undoable step (D-010). Builds on the single-file find in `P6-01`.
+- [ ] P7-06 **Drag-to-insert from the Insert palette onto the Stage** (suggested by agent, maintainer-prioritized #3, 2026-11-02). Drag a snippet from **Insert ▾** onto the Design Stage using the pointer-based drop targets (D-008), spliced via `HtmlAst.insertElement`.
+- [ ] P7-07 **Pseudo-state editing in the CSS Designer** (requested by maintainer, prioritized #4, 2026-11-02). Edit `:hover`, `:focus`, `:active`, and similar rules for the selected element, and preview each state on the Stage. Needs `CssAst` support for compound selectors and a decision on how to show a forced state.
+- [ ] P7-08 **Folder operations in the Explorer** (suggested by agent, 2026-11-02). New folder, move file, and drag-to-reorder; the file operations themselves are `P6-02`.
+- [ ] P7-09 **Binary assets in the browser build** (suggested by agent, 2026-11-02). Unverified suspicion: project files are stored as text and the localhost asset server exists only in Tauri (D-006), so local images in a browser-only project may not render. Reproduce first, then decide how to store binaries.
+- [ ] P7-10 **Shared page parts (header/footer reuse across pages)** (suggested by agent, 2026-11-02). Dreamweaver-style reuse. Needs a decision record first on how to keep plain `.html` as the single source of truth (D-003).
+- [ ] P7-11 **Accessibility and validation hints** (suggested by agent, 2026-11-02). Missing `alt`, heading order, duplicate IDs, and unclosed tags, reported through the Problems tab from `P7-04`.
+- [ ] P7-12 **Preview in a real browser or on a phone** (suggested by agent, 2026-11-02). Serve the project over the local network; Tauri already runs an asset server (D-005).
+- [ ] P7-13 **Zip export** (suggested by agent, 2026-11-02). Whole-project download for the browser build, which cannot write to a folder as the desktop app can.
+- [ ] P7-14 **Format / beautify the current file** (suggested by agent, 2026-11-02).
+- [ ] P7-15 **Keyboard-shortcut cheat sheet** (suggested by agent, 2026-11-02). Check what `src/app/help.js` already covers before building.

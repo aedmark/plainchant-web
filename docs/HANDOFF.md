@@ -44,6 +44,8 @@ Last updated: 2026-11-02
 1. **`P6-01`**: Line Numbers Gutter (`#editorGutter`) & Find/Replace bar (`#findBar`, `Ctrl/Cmd+F`, `Ctrl/Cmd+H`, `src/app/find.js`) in the Code editor.
 2. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
 
+4. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order after Phase 6 is `P7-04` link checker, `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states.
+
 ### Open questions
 
 - None blocking. `Q-001` (Phase order) was resolved 2026-11-02: Phase 5 first. (See [`docs/DECISIONS.md`](DECISIONS.md).)
