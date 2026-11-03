@@ -187,3 +187,54 @@ test('project: assemblePreview rewrites stylesheet urls relative to the styleshe
     assert.equal(Project.mimeFor('f.woff2'), 'font/woff2');
     assert.equal(Project.mimeFor('x.unknown'), 'application/octet-stream');
 });
+
+test('parts: find, scan, sync, and pull keep marker regions in step with their part files', () => {
+    const header = '<header>\n  <nav>Home</nav>\n</header>';
+    const page = (body) => '<html><body>\n  ' + Parts.wrap('parts/header.html', body, '  ') + '\n  <main>x</main>\n</body></html>';
+    const entries = {
+        'index.html': page(header),
+        'about.html': page('<header>OLD</header>'),
+        'sub/deep.html': '<html><body>' + Parts.wrap('../parts/header.html', header, '') + '</body></html>',
+        'lost.html': '<body><!-- pc:part src="parts/nope.html" -->x<!-- /pc:part --></body>',
+        'parts/header.html': header + '\n'
+    };
+    const info = Parts.scan(entries);
+    const state = (page) => info.regions.find((r) => r.page === page).state;
+    assert.equal(state('index.html'), 'synced');
+    assert.equal(state('about.html'), 'differs');
+    assert.equal(state('sub/deep.html'), 'synced', 'relative src resolves from the page folder');
+    assert.equal(state('lost.html'), 'missing');
+    assert.equal(info.parts['parts/header.html'], 3);
+    assert.ok(Parts.isPart(entries, 'parts/header.html'));
+    assert.ok(!Parts.isPart(entries, 'index.html'));
+
+    const synced = Parts.sync(entries, { part: 'parts/header.html' });
+    assert.deepEqual(synced.changed, ['about.html']);
+    assert.equal(synced.entries['about.html'], entries['index.html'], 'region is replaced and the marker indentation is kept');
+    assert.equal(synced.entries['index.html'], entries['index.html'], 'synced pages are untouched');
+    assert.includes(synced.entries['about.html'], '\n  <main>x</main>');
+    assert.includes(synced.entries['about.html'], '-->\n  <header>', 'the first line keeps the region indentation');
+
+    const edited = Object.assign({}, entries, { 'parts/header.html': '<header>NEW</header>\n' });
+    const all = Parts.sync(edited, { part: 'parts/header.html' });
+    assert.deepEqual(all.changed.sort(), ['about.html', 'index.html', 'sub/deep.html']);
+    assert.includes(all.entries['sub/deep.html'], '<header>NEW</header>');
+    assert.equal(Parts.scan(all.entries).regions.filter((r) => r.state === 'differs').length, 0);
+
+    const pulled = Parts.pull(entries, 'about.html', 0);
+    assert.equal(pulled.entries['parts/header.html'], '<header>OLD</header>\n');
+    assert.includes(pulled.entries['index.html'], '<header>OLD</header>', 'pulling a region updates every other page');
+    assert.equal(Parts.relPath('sub/deep.html', 'parts/header.html'), '../parts/header.html');
+    assert.equal(Parts.relPath('index.html', 'parts/header.html'), 'parts/header.html');
+});
+
+test('parts: nested, unclosed, and stray markers are reported and never rewritten', () => {
+    const nested = '<!-- pc:part src="a.html" --><!-- pc:part src="b.html" -->x<!-- /pc:part -->';
+    const res = Parts.find(nested);
+    assert.equal(res.regions.length, 1);
+    assert.equal(res.regions[0].src, 'b.html');
+    assert.equal(res.invalid.length, 1);
+    assert.equal(Parts.find('<!-- pc:part src="a.html" -->never closed').invalid.length, 1);
+    assert.equal(Parts.find('stray <!-- /pc:part -->').invalid.length, 1);
+    assert.equal(Parts.sync({ 'a.html': '<!-- pc:part src="b.html" -->x', 'b.html': 'y' }, null).changed.length, 0);
+});

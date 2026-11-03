@@ -28,6 +28,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Project images in the browser build**: Opening a folder in a Chromium browser now loads images, fonts, and other binary files (up to 25 MB each, 200 MB per project) so they render on the Stage, survive reload, follow Duplicate, and are written by **Export to a new folder** (`P7-09`, `D-013`).
 
+- **Shared page parts**: Select an element and choose **Make Part…** to move it into a reusable file (for example `parts/header.html`); pages keep a marked copy, and editing the part file updates every page. A **Parts** Inspector tab shows which pages differ and can insert a part into another page. Pages stay plain HTML (`P7-10`, `D-014`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

@@ -160,6 +160,7 @@
             <div class="inspector-tabs" role="tablist" aria-label="Inspector sections">
                 <button type="button" class="insp-tab" data-insp="props" aria-selected="true">Properties (HTML)</button>
                 <button type="button" class="insp-tab" data-insp="css" aria-selected="false">CSS Designer</button>
+                <button type="button" class="insp-tab" data-insp="parts" aria-selected="false">Parts <span id="partsCountBadge" class="console-badge" hidden>0</span></button>
                 <button type="button" class="insp-tab" data-insp="console" aria-selected="false">Console <span id="consoleCountBadge" class="console-badge" hidden>0</span></button>
             </div>
             <div class="inspector-selection-badge">
@@ -167,6 +168,7 @@
                 <div class="insp-actions">
                     <button type="button" class="mini" id="inspMoveUpBtn" title="Move element up (Alt+Up)" disabled>&uarr;</button>
                     <button type="button" class="mini" id="inspMoveDownBtn" title="Move element down (Alt+Down)" disabled>&darr;</button>
+                    <button type="button" class="mini" id="inspPartBtn" title="Move the selected element into a shared part file reused across pages" disabled>Make Part&hellip;</button>
                     <button type="button" class="mini" id="inspDupBtn" title="Duplicate selected element" disabled>Duplicate</button>
                     <button type="button" class="mini" id="inspWrapBtn" title="Wrap selected element in a &lt;div&gt;" disabled>Wrap &lt;div&gt;</button>
                     <button type="button" class="mini danger-mini" id="inspDeleteBtn" title="Delete selected element (Del)" disabled>Delete</button>
@@ -279,6 +281,10 @@
                     </div>
                 </label>
             </div>
+        </div>
+        <div id="inspPartsPane" class="inspector-body" hidden>
+            <p class="parts-help">Shared parts are marked regions (<code>&lt;!-- pc:part src="parts/header.html" --&gt;</code>) kept in step with one part file. Editing the part file updates every page.</p>
+            <div id="partsList" class="parts-list"></div>
         </div>
         <div id="inspConsolePane" class="inspector-body console-pane" hidden>
             <div class="console-bar">
@@ -501,6 +507,7 @@
 <script src="src/code-shade.js"></script>
 <script src="src/dom-outline.js"></script>
 <script src="src/project.js"></script>
+<script src="src/parts.js"></script>
 <script src="src/editing.js"></script>
 <script src="src/suggest.js"></script>
 <script src="src/library.js"></script>
@@ -523,6 +530,7 @@
 <script src="src/app/stage-live.js"></script>
 <script src="src/app/inspector-ui.js"></script>
 <script src="src/app/console-ui.js"></script>
+<script src="src/app/parts-ui.js"></script>
 <script src="src/app/outline-ui.js"></script>
 <script src="src/app/export.js"></script>
 <script src="src/app/import.js"></script>

@@ -347,6 +347,7 @@ function scheduleAutoSave() {
 
 function render(typed) {
     syncBufferFromEditor();
+    if (typeof propagatePartEdits === 'function') propagatePartEdits();
     currentHtmlAst = HtmlAst.parse(projectFiles.html);
     currentCssAst = CssAst.parse(projectFiles.css);
     drawShade();
@@ -356,6 +357,7 @@ function render(typed) {
     }
     updateBreadcrumbs();
     refreshInspector();
+    if (typeof refreshPartsUi === 'function') refreshPartsUi();
 }
 
 if (toggleExplorerBtn && fileExplorer) {

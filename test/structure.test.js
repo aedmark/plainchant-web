@@ -94,3 +94,11 @@ test('structure: the Live JS link bridge and Follow Link controls are wired in (
     const stage = fs.readFileSync(path.join(appDir, 'stage.js'), 'utf8');
     ['pc-navigate', 'pc-follow-link'].forEach((type) => assert.includes(stage, type));
 });
+
+test('structure: the Parts tab, Make Part button, and parts scripts are wired in (P7-10)', () => {
+    ['data-insp="parts"', 'id="partsCountBadge"', 'id="inspPartsPane"', 'id="partsList"', 'id="inspPartBtn"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/parts.js') > order.indexOf('src/project.js'), 'parts.js loads after project.js');
+    assert.ok(order.indexOf('src/parts.js') < order.indexOf('src/app/core.js'), 'parts.js loads before the app scripts');
+    assert.ok(listed.indexOf('parts-ui.js') > listed.indexOf('inspector-ui.js'), 'parts-ui.js loads after inspector-ui.js');
+});

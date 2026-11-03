@@ -1183,3 +1183,7 @@ body.shaded #editor {
 .console-error { background: var(--danger-soft-bg); }
 .console-error .console-level, .console-error .console-msg { color: var(--danger-soft-text); }
 .console-warn .console-level { color: #f59e0b; }
+
+.parts-help { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--text-void-muted); }
+.parts-list { font-family: var(--font-code); font-size: 0.74rem; overflow-y: auto; max-height: 150px; }
+.parts-list .console-row { align-items: center; }

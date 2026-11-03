@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phase 5 complete (`P5-01`, `P5-02`); Phase 6 specced (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phase 5 complete (`P5-01`, `P5-02`); `P7-09`, `P7-10` done early; Phase 6 specced (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`28/28` unit & structural tests)
+  - `npm test` — passed (`33/33` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `12` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `14` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -28,14 +28,19 @@ Last updated: 2026-11-02
 
 - **Link navigation (`P5-02`, `D-012`)**: Live JS click and Design `Ctrl/Cmd+Click` / `Follow ↗` / **Follow Link ↗** open linked project pages (`src/app/stage-live.js`, `Project.resolveRelativePath`).
 
+- **Browser binary assets (`P7-09`, `D-013`)**: images/fonts from an opened folder load as Blobs, persist in the IndexedDB `assets` store (DB v2), and render via `blob:` URLs (`src/app/assets.js`, `Project.rewriteAssetUrls`).
+- **Shared page parts (`P7-10`, `D-014`)**: marker-region parts, **Parts** tab, **Make Part…**, auto-sync on part edit (`src/parts.js`, `src/app/parts-ui.js`).
+
 ### In flight
 
-- `P5-02` is complete but uncommitted (nothing else half-built).
+- `P7-09` is committed locally (`06e84b4`) and `P7-10` is committed after it; neither is pushed. Nothing half-built.
 
 ### Known issues & gotchas
 
 - **WebKitGTK HTML5 Drag-and-Drop**: Native `draggable="true"` / `dragover` / `drop` inside an `iframe[srcdoc]` is unreliable on Linux WebKitGTK (`D-008`). Keep Stage drag-and-drop on deterministic pointer events (`mousedown` / `mousemove` / `mouseup` in [`src/app/stage.js`](../src/app/stage.js)).
 - **500-Line Module Cap**: [`test/structure.test.js`](../test/structure.test.js) enforces a hard 500-line ceiling on every `.js` file under `src/app/` (`D-001`). [`src/app/stage.js`](../src/app/stage.js) (~458 lines) and [`src/app/core.js`](../src/app/core.js) are near the limit; extract helpers before adding large features.
+- **Service worker is cache-first (`sw.js`)**: after changing any app file, a browser that already installed the app can keep serving old scripts; hard-reload when testing. `CACHE_NAME` has never been bumped, so consider a version bump per release.
+- **Browser folder open was not driven end to end**: `showDirectoryPicker` cannot be automated, so `P7-09` was checked by calling `activateImportedFolderProject` with a real PNG. Try it by hand in Chromium with a folder of images.
 - **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
@@ -55,6 +60,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2c: 2026-11-02: P7-09 browser binary assets and P7-10 shared page parts
+
+- **Did**: `P7-09`: `Store` assets store and `Project.rewriteAssetUrls`/`rewriteCssUrls`/`mimeFor`, [`src/app/assets.js`](../src/app/assets.js), folder scan and export changes in [`src/app/tauri-files.js`](../src/app/tauri-files.js). `P7-10`: [`src/parts.js`](../src/parts.js), [`src/app/parts-ui.js`](../src/app/parts-ui.js), Parts tab, **Make Part…**, `propagatePartEdits` hook in `render()`.
+- **Decided**: `D-013` (amends `D-004`; chosen: Blobs in memory + IndexedDB), `D-014` (chosen: marker regions).
+- **Verified**: `npm test` (`33/33`), browser checks (folder open with a real PNG, reload persistence, duplicate, purge cascade; make part, insert, part edit propagates, divergence status, undo/redo). Full check results are in this session's final report.
+- **Next**: push both commits if not yet pushed; `P6-01`.
 
 ### Session 2b: 2026-11-02: P5-02 Multi-Page Link Navigation
 

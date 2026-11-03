@@ -13,10 +13,10 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
 
 ## Test layout
 
-- [`test/run.js`](../test/run.js) — Zero-dependency Node.js test harness that executes all `test/*.test.js` suites (`30` tests total):
+- [`test/run.js`](../test/run.js) — Zero-dependency Node.js test harness that executes all `test/*.test.js` suites (`33` tests total):
   - [`test/html-ast.test.js`](../test/html-ast.test.js) — Unit tests for [`src/html-ast.js`](../src/html-ast.js): `parse`, `stamp`, `setAttr`, `setText`, `insertElement`, `removeElement`, `moveElement` (before/after/inside), and `duplicateElement`.
   - [`test/css-ast.test.js`](../test/css-ast.test.js) — Unit tests for [`src/css-ast.js`](../src/css-ast.js): `parse`, `findRulesForElement`, `findRuleBySelector` (including grouped selectors), `setProperty`, and `addRule`.
-  - [`test/project.test.js`](../test/project.test.js) — Unit tests for [`src/project.js`](../src/project.js): multi-file `pack`/`unpack` round-trips, linked stylesheet discovery, preview assembly, `Project.resolveRelativePath` (relative, `..`, hash/query, encoded, external schemes), `Project.rewriteAssetUrls` / `assemblePreview` blob URL rewriting, `Project.mimeFor`, and the Live JS console bridge (injection order, error-line map, and forwarded console/`onerror`/rejection messages run in a Node `vm` sandbox).
+  - [`test/project.test.js`](../test/project.test.js) — Unit tests for [`src/project.js`](../src/project.js): multi-file `pack`/`unpack` round-trips, linked stylesheet discovery, preview assembly, `Project.resolveRelativePath` (relative, `..`, hash/query, encoded, external schemes), `Project.rewriteAssetUrls` / `assemblePreview` blob URL rewriting, `Project.mimeFor`, shared-part scanning, syncing, and pulling (`Parts`), and the Live JS console bridge (injection order, error-line map, and forwarded console/`onerror`/rejection messages run in a Node `vm` sandbox).
   - [`test/structure.test.js`](../test/structure.test.js) — Enforces architectural invariants (`D-001`, `P4-01`):
     - Every `.js` file in `src/app/` must be listed in [`app.html`](../app.html) in order (`core.js` first, `main.js` last).
     - Every `.js` file in `src/app/` must be **≤ 500 lines**.
@@ -25,7 +25,8 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
     - [`sw.js`](../sw.js) `APP_FILES` matches all assets linked by [`app.html`](../app.html).
     - The Console tab, pane, badge, and `console-ui.js` are wired into [`app.html`](../app.html) (`P5-01`).
     - The link bridge script and **Follow Link ↗** control are wired in (`P5-02`).
-- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-15`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-013`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
+    - The Parts tab, **Make Part…** button, and parts scripts are wired in (`P7-10`).
+- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-15`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-014`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
 - [`tools/manual.py`](../tools/manual.py) & [`tools/test_manual.py`](../tools/test_manual.py) — Validates and builds the 3x What / How / Why manual ([`docs/plainchant-web.manual.json`](plainchant-web.manual.json) -> [`docs/manual.html`](manual.html)).
 
 ## Writing tests

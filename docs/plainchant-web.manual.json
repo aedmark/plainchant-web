@@ -210,6 +210,25 @@
           "related": ["multi-file-undo-redo"]
         },
         {
+          "id": "shared-page-parts",
+          "title": "Shared page parts (marker regions)",
+          "summary": "Reuse a header or footer across pages while every page stays plain HTML.",
+          "tags": ["parts", "reuse", "D-014"],
+          "what": "**Make Part…** moves the selected element into a project file such as `parts/header.html` and leaves a `<!-- pc:part src=\"...\" -->` region in the page. Pages can include the same part, editing the part file updates all of them, and the **Parts** Inspector tab lists parts, flags pages whose copy differs, and inserts a part into the current page.",
+          "how": [
+            "`src/parts.js` finds marker regions in every `.html` entry, resolves `src` with `Project.resolveRelativePath`, and reports each region as synced, differs, or missing; unmatched or nested markers are reported and never rewritten.",
+            "`propagatePartEdits()` runs inside `render()`: when the active file is a part, `Parts.sync()` rewrites only the text between markers in every page that references it, in the same undo step as the edit.",
+            "A page that differs from its part offers **Use part** (overwrite the region) or **Update part** (`Parts.pull()` makes the part match, then syncs every other page)."
+          ],
+          "why": "Recorded in D-014: duplicating the part inside each page keeps every file valid standalone HTML (D-003) with no include directive or build step, at the cost of duplicated markup and syncing that overwrites local edits made inside a region.",
+          "evidence": [
+            {"label": "Region finder and synchronizer", "target": "src/parts.js"},
+            {"label": "Parts tab and Make Part", "target": "src/app/parts-ui.js"},
+            {"label": "Parts unit tests", "target": "test/project.test.js"}
+          ],
+          "related": ["multi-file-undo-redo", "stage-link-navigation"]
+        },
+        {
           "id": "menus-and-context-insert",
           "title": "Top menu bar, Insert dropdown, and right-click context menu",
           "summary": "Unified element insertion and DOM manipulation from the top menu bar or right-click context menu.",

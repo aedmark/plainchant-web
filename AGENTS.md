@@ -92,6 +92,8 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/versions.js` | Project snapshot retention and pruning rules (UMD) |
 | `src/filesync.js` | Disk vs. studio content comparison helpers (UMD) |
 | `src/importing.js` | Text/code file extension filter and UTF-8/UTF-16/Windows-1252 decoder (UMD) |
+| `src/parts.js` | Shared page parts: marker-region finder, status scanner, and synchronizer (UMD, no DOM) |
+| `src/app/parts-ui.js` | Parts Inspector tab, Make Part, Insert Part, and part-edit propagation |
 | `src/app/assets.js` | Binary project assets (Blobs, `blob:` preview URLs, IndexedDB persistence) for the browser build |
 | `src/app/stage-live.js` | Live JS link bridge and project link following (loaded after `stage.js`) |
 | `src/app/console-ui.js` | Console Inspector tab: log rows, filters, unread badge, click-to-jump (loaded after `inspector-ui.js`) |

@@ -70,6 +70,8 @@ function switchInspectorTab(tab) {
     inspPropsPane.hidden = tab !== 'props';
     inspCssPane.hidden = tab !== 'css';
     inspConsolePane.hidden = tab !== 'console';
+    inspPartsPane.hidden = tab !== 'parts';
+    if (tab === 'parts') refreshPartsUi();
     if (tab === 'console') markConsoleRead();
 }
 
@@ -94,6 +96,7 @@ function refreshInspector() {
     if (inspDupBtn) inspDupBtn.disabled = !isMovable;
     inspWrapBtn.disabled = !isMovable;
     inspDeleteBtn.disabled = !isMovable;
+    inspPartBtn.disabled = !isMovable;
 
     [propId, propClass, propText, propHref, propSrc, propAlt].forEach((input) => {
         input.disabled = !hasNode;
