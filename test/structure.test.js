@@ -287,3 +287,10 @@ test('structure: the Format button, format.js, and the Alt+Shift+F shortcut are 
     const ui = readRoot('src/app/format-ui.js');
     ['Format.byPath', 'Editing.diffEdit', "e.code === 'KeyF'"].forEach((needle) => assert.includes(ui, needle));
 });
+
+test('structure: the Help guide renders the shortcut cheat sheet from shortcuts.js (P7-15)', () => {
+    ['id="shortcutList"', 'id="shortcutsHeading"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/shortcuts.js') !== -1 && order.indexOf('src/shortcuts.js') < order.indexOf('src/app/core.js'), 'shortcuts.js loads before the app scripts');
+    assert.includes(readRoot('src/app/help.js'), 'Shortcuts.GROUPS');
+});

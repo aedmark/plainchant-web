@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-03
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`90/90` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`92/92` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `21` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -40,11 +40,10 @@ Last updated: 2026-11-03
 - **Problems tab (`P7-04`, `D-018`)**: static link/missing-file checker with badge and click-to-jump (`src/links.js`, `src/app/problems-ui.js`).
 
 - **Project-wide find/replace (`P7-05`, `D-019`)**: Project scope on the find bar with results list and Replace All in Project (`src/app/find-project.js`, `Finding.findInFiles`).
-
 - **Drag-to-insert (`P7-06`, `D-020`)**: drag Insert menu items onto the Design Stage with a before/after/inside guide (`src/app/insert-drag.js`).
-
 - **CSS pseudo-states (`P7-07`, `D-021`)**: State bar in the CSS Designer, forced-state preview via `[data-pc-force~="state"]` selector twins (`src/app/css-states.js`, `CssAst.forceStates`).
 - **Zip export (`P7-13`, `D-022`)**: Export dialog button, stored zip writer (`src/zip.js`, `src/app/zip-ui.js`).
+- **Shortcut cheat sheet (`P7-15`, `D-031`)**: Help guide section from `src/shortcuts.js`, guarded by `test/shortcuts.test.js`.
 - **Format (`P7-14`, `D-030`)**: **Format** button and `Alt+Shift+F`; HTML and CSS rebuilt, JS re-indented only (`src/format.js`, `src/app/format-ui.js`).
 - **Network preview (`P7-12`, `D-029`)**: **Preview** dialog; desktop **Start sharing** runs a token-gated read-only server on the LAN with live reload, browser build opens a snapshot tab (`src/app/preview-ui.js`, `src/preview.js`, `src-tauri/src/preview.rs`).
 - **Asset manager (`P7-02`, `D-023`)**: Assets modal, picker, uploads and deletes for blob images in the browser build (`src/app/asset-ui.js`, `src/imagelib.js`).
@@ -74,7 +73,7 @@ Last updated: 2026-11-03
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-15`) is unprioritized (`P7-02`, `P7-13` are done), so ask which is next.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)) is complete (`P7-01`..`P7-16`). Ask the maintainer what to plan next.
 
 ### Open questions
 
@@ -85,6 +84,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2t: 2026-11-03: P7-15 keyboard shortcut cheat sheet
+
+- **Did**: [`src/shortcuts.js`](../src/shortcuts.js); shortcut section in the Help guide ([`src/app/help.js`](../src/app/help.js)); [`test/shortcuts.test.js`](../test/shortcuts.test.js).
+- **Decided**: `D-031`.
+- **Verified**: `npm test` (`92/92`); browser check that `F1` shows 5 groups and 25 rows. Full check results are in this session's final report.
+- **Next**: Phase 7 is complete; ask the maintainer what to plan next.
 
 ### Session 2s: 2026-11-03: P7-14 format the current file
 

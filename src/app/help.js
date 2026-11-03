@@ -6,6 +6,31 @@ function openHelp() {
     openModal(helpModal);
 }
 
+function renderShortcuts() {
+    const box = document.getElementById('shortcutList');
+    Shortcuts.GROUPS.forEach((group) => {
+        const section = document.createElement('section');
+        const title = document.createElement('h4');
+        title.textContent = group.title;
+        const rows = document.createElement('dl');
+        group.items.forEach((item) => {
+            const keys = document.createElement('dt');
+            item.keys.forEach((combo, i) => {
+                if (i) keys.append(' or ');
+                const kbd = document.createElement('kbd');
+                kbd.textContent = combo;
+                keys.appendChild(kbd);
+            });
+            const action = document.createElement('dd');
+            action.textContent = item.action;
+            rows.append(keys, action);
+        });
+        section.append(title, rows);
+        box.appendChild(section);
+    });
+}
+
+renderShortcuts();
 helpBtn.addEventListener('click', openHelp);
 helpLoadStarter.addEventListener('click', () => {
     loadStarterProject();

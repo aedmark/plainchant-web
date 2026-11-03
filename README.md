@@ -35,6 +35,8 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
 - **Problems Tab (Links, Accessibility, Markup):**
   - Checks every page and stylesheet for dead links, missing images, stylesheets, and scripts, and missing `#anchor` targets; click a problem to jump to it.
   - Also flags missing `alt` text, skipped heading levels, unnamed links, buttons, and form fields, a missing `lang` or `<title>`, duplicate ids, and unclosed or stray tags; a **Show** filter limits the list.
+- **Keyboard Shortcuts:**
+  - Press `F1` (or `Ctrl/Cmd+/`) for the guide, which ends with a cheat sheet of every shortcut.
 - **Format (`Alt+Shift+F`):**
   - Re-indents and tidies the open HTML, CSS, or JavaScript file in one undo step; JavaScript is only re-indented.
 - **Preview in a Browser or on a Phone:**

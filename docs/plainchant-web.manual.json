@@ -323,6 +323,25 @@
           "related": ["browser-binary-assets", "explorer-file-operations"]
         },
         {
+          "id": "shortcut-cheat-sheet",
+          "title": "Keyboard shortcut cheat sheet",
+          "summary": "Lists every shortcut at the bottom of the Help guide.",
+          "tags": ["help", "keyboard", "D-031"],
+          "what": "Press `F1` (or `Ctrl/Cmd+/`) to open the Help guide; its **Keyboard Shortcuts** section lists saving, undo and redo, the Code, Split, and Design views, the Inspector, Tab expansion, Format, find and replace, the find bar, and the Design Stage keys (Enter, Esc, Delete, Alt+Up and Alt+Down, Ctrl/Cmd+Click).",
+          "how": [
+            "`src/shortcuts.js` holds the list as data: groups of keys and actions, each with the file and code string that handles the key.",
+            "`renderShortcuts()` in `src/app/help.js` builds the section when the page loads.",
+            "`test/shortcuts.test.js` fails when a listed handler disappears, so the sheet cannot keep describing a removed key."
+          ],
+          "why": "Recorded in D-031: shortcuts are handled in many files with no registry, so a list kept as checked data stays honest, at the cost that a newly added shortcut still has to be added to it by hand.",
+          "evidence": [
+            {"label": "Shortcut list", "target": "src/shortcuts.js"},
+            {"label": "Help guide rendering", "target": "src/app/help.js"},
+            {"label": "Drift guard", "target": "test/shortcuts.test.js"}
+          ],
+          "related": ["format-file", "network-preview"]
+        },
+        {
           "id": "format-file",
           "title": "Format the current file",
           "summary": "Re-indents and tidies the open HTML, CSS, or JavaScript file in one undo step.",

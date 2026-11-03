@@ -26,6 +26,7 @@ const APP_FILES = [
     'src/hints.js',
     'src/preview.js',
     'src/format.js',
+    'src/shortcuts.js',
     'src/importing.js',
     'src/app/core.js',
     'src/app/layout.js',

@@ -23,6 +23,7 @@ globalThis.Layout = require('../src/layout.js');
 globalThis.Hints = require('../src/hints.js');
 globalThis.Preview = require('../src/preview.js');
 globalThis.Format = require('../src/format.js');
+globalThis.Shortcuts = require('../src/shortcuts.js');
 
 require('./html-ast.test.js');
 require('./css-ast.test.js');
@@ -30,6 +31,7 @@ require('./layout.test.js');
 require('./hints.test.js');
 require('./preview.test.js');
 require('./format.test.js');
+require('./shortcuts.test.js');
 require('./project.test.js');
 require('./structure.test.js');
 
