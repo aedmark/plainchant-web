@@ -41,6 +41,7 @@ function commitFileChange(next, change) {
     currentSnapshot = captureSnapshot();
     pushUndoState();
     projectFiles.entries = next;
+    if (typeof change.apply === 'function') change.apply();
     if (change.tree !== undefined) projectFiles.tree = change.tree;
     openTabs = change.openTabs;
     if (change.activeHtmlFile !== activeHtmlFile) selectedPcId = null;

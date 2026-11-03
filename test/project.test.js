@@ -304,6 +304,29 @@ test('files: validateFilePath normalizes names and rejects unsafe or clashing on
     assert.ok(!v('index.html').ok);
 });
 
+test('files: renameAsset rewrites references to an image that is not a text entry', () => {
+    const entries = {
+        'index.html': '<img src="images/logo.png"><img src="images/logo.png?v=2"><img src="images/other.png">',
+        'css/site.css': 'a { background: url("../images/logo.png"); }',
+        'pages/team.html': '<img src="../images/logo.png">'
+    };
+    const known = ['images/logo.png', 'images/other.png'];
+    const res = Project.renameAsset(entries, 'images/logo.png', 'img/brand.png', { known: known });
+    assert.equal(res.error, null);
+    assert.equal(res.path, 'img/brand.png');
+    assert.includes(res.entries['index.html'], 'src="img/brand.png"');
+    assert.includes(res.entries['index.html'], 'src="img/brand.png?v=2"');
+    assert.includes(res.entries['index.html'], 'src="images/other.png"');
+    assert.includes(res.entries['css/site.css'], 'url("../img/brand.png")');
+    assert.includes(res.entries['pages/team.html'], 'src="../img/brand.png"');
+    assert.equal(res.refsUpdated, 3);
+    assert.ok(Project.renameAsset(entries, 'images/logo.png', 'images/other.png', { known: known }).error, 'a taken name is refused');
+    assert.ok(Project.renameAsset(entries, 'images/logo.png', 'images/Other.PNG', { known: known }).error, 'a case-only clash is refused');
+    assert.ok(Project.renameAsset(entries, 'images/logo.png', 'images/logo.jpg', { known: known }).error, 'the extension must stay');
+    assert.ok(!Project.renameAsset(entries, 'images/logo.png', 'images/Logo.png', { known: known }).error, 'a case-only rename is allowed');
+    assert.equal(Project.renameAsset(entries, 'images/logo.png', 'images/logo.png', { known: known }).refsUpdated, 0);
+});
+
 test('files: renameFile moves a file in place and rewrites every reference to it', () => {
     const entries = {
         'index.html': '<link rel="stylesheet" href="style.css"><a href="about.html#team">About</a><a href="./about.html?x=1">b</a><a href="/about.html">c</a><a href="https://example.com/about.html">ext</a><a href="#top">top</a>',

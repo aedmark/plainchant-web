@@ -281,15 +281,16 @@
         {
           "id": "asset-manager",
           "title": "Asset manager and image picker",
-          "summary": "Browse, add, insert, pick, and delete the project's images with thumbnails and usage counts.",
-          "tags": ["assets", "images", "D-023"],
-          "what": "The **Assets** button opens a grid of every project image with a thumbnail, folder, size, dimensions, and how many places use it. Each image can be inserted as an `<img>`, set on the selected `<img>`, or copied as a path; **Browse…** next to Source opens the grid as a picker. In the browser build, **Add images…** or dropping image files adds them to `images/`, and blob images can be deleted.",
+          "summary": "Browse, add, insert, pick, rename, and delete the project's images, including CSS backgrounds, with undo.",
+          "tags": ["assets", "images", "D-023", "D-024"],
+          "what": "The **Assets** button opens a grid of every project image with a thumbnail, folder, size, dimensions, and how many places use it. Each image can be inserted as an `<img>`, set on the selected `<img>`, or copied as a path; **Browse…** next to Source opens the grid as a picker. **Add images…** or dropping image files adds them to `images/` (browser and desktop), and images can be renamed (links update) or deleted, all undoable. The CSS Designer's **Bg Image** field has its own **Browse…**.",
           "how": [
             "`ImageLib.list()` merges blob assets, non-text files in the folder tree, and text `.svg` entries; `Links.usage()` counts references from pages and stylesheets.",
             "`src/app/asset-ui.js` renders the modal and applies actions through `applyHtmlTransform()`; added images go through `addProjectAsset()` into `projectAssets` and IndexedDB one asset at a time, and into the folder tree when there is one.",
-            "Folder export now writes any asset that is missing from the target folder or differs in size, and the zip export includes them."
+            "Folder export now writes any asset that is missing from the target folder or differs in size, and the zip export includes them.",
+            "Asset add, rename, and delete push undo steps: snapshots hold the asset map by reference and `restoreProjectAssets()` reconciles memory and IndexedDB. The desktop export sends added images to `save_project_folder` as base64 and never deletes files on disk."
           ],
-          "why": "Recorded in D-023: images are the one project file type the studio could not add or choose visually, and the desktop app is left read-only for images until its native export can write binaries.",
+          "why": "Recorded in D-023 and D-024: images are a project file type the studio could not add or choose visually; asset changes now share the project-wide undo history, and export never deletes user files.",
           "evidence": [
             {"label": "Modal and actions", "target": "src/app/asset-ui.js"},
             {"label": "Image library helpers", "target": "src/imagelib.js"},

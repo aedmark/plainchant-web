@@ -46,6 +46,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Zip export**: The Export dialog has **Download project .zip**, which packs every file (including images from an opened folder and your unsaved editor text) into one archive with the same folder layout and pages at the top level. It is hidden in the desktop app, which exports to a folder (`P7-13`, `D-022`).
 
+- **Asset manager follow-ups**: Adding, renaming, and deleting images can be undone (Ctrl/Cmd+Z). **Rename** moves an image and updates every link to it. The desktop app can now add images (saved to the folder on export) and rename them. The CSS Designer has a **Bg Image** field with **Browse…** for `background-image` (`P7-02`, `D-024`).
 - **Asset manager and image picker**: An **Assets** button opens a thumbnail grid of the project's images with size, dimensions, and how many places use each one, plus **Insert**, **Use on <img>**, **Copy path**, and **Delete**. **Browse…** beside Source picks an image for the selected element. In the browser, **Add images…** or dropping image files anywhere adds them to `images/`, and they are saved with the project, exported to the folder, and included in the zip (`P7-02`, `D-023`).
 
 ### Changed

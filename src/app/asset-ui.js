@@ -53,16 +53,54 @@ function useAssetOnSelected(item) {
     showNotice('Set src to ' + item.path);
 }
 
+function diskNote() {
+    return linkedFolder ? ' Files already on disk are never changed or deleted by export.' : '';
+}
+
 function deleteAssetItem(item, uses) {
-    const message = 'Delete ' + item.path + '?' + (uses ? '\nIt is used in ' + uses + (uses === 1 ? ' place' : ' places') + ', and those links will break.' : '') + '\nThis cannot be undone.';
+    const message = 'Delete ' + item.path + '?' + (uses ? '\nIt is used in ' + uses + (uses === 1 ? ' place' : ' places') + ', and those links will break.' : '') + '\nYou can undo this with Ctrl/Cmd+Z.' + diskNote();
     if (!window.confirm(message)) return;
+    if (item.source === 'text') { deleteProjectFile(item.path); renderAssets(); return; }
+    beginAssetChange();
     removeProjectAsset(item.path);
     if (Array.isArray(projectFiles.tree)) projectFiles.tree = Project.treeAfter(projectFiles.tree, { type: 'delete', path: item.path });
-    renderExplorer();
-    drawStageNow();
-    if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
+    finishAssetChange();
     renderAssets();
-    showNotice('Deleted ' + item.path);
+    showNotice('Deleted ' + item.path + '. Press Ctrl/Cmd+Z to undo.');
+}
+
+async function adoptDiskImage(item) {
+    if (item.source === 'asset') return true;
+    if (item.source !== 'file' || !projectBaseUrl) return false;
+    try {
+        const res = await fetch(projectBaseUrl.replace(/\/?$/, '/') + item.path.split('/').map(encodeURIComponent).join('/'));
+        if (!res.ok) return false;
+        const blob = await res.blob();
+        if (blob.size > ASSET_MAX_FILE_BYTES) return false;
+        addProjectAsset(item.path, blob.type ? blob : new Blob([blob], { type: Project.mimeFor(item.path) }));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+async function renameAssetItem(item) {
+    if (item.source === 'text') { closeModal(assetsModal); renameProjectFile(item.path); return; }
+    const answer = window.prompt('Rename ' + item.path + '\n(Include folders to move it. Links to the image are updated.)', item.path);
+    if (answer == null || Project.normalizeFilePath(answer) === item.path) return;
+    ensureEntries();
+    syncBufferFromEditor();
+    const known = Object.keys(projectAssets).concat(knownTreePaths());
+    const res = Project.renameAsset(projectFiles.entries, item.path, answer, { known: known });
+    if (res.error) { showNotice(res.error, true); return; }
+    if (!(await adoptDiskImage(item))) { showNotice('Could not read ' + item.path + ' to rename it.', true); return; }
+    commitFileChange(res.entries, {
+        tree: Array.isArray(projectFiles.tree) ? Project.treeAfter(projectFiles.tree, { type: 'rename', from: item.path, to: res.path }) : projectFiles.tree,
+        openTabs: openTabs, activeFile: activeFile, activeHtmlFile: activeHtmlFile,
+        apply: () => moveProjectAsset(item.path, res.path)
+    });
+    renderAssets();
+    showNotice('Renamed to ' + res.path + (res.refsUpdated ? ' and updated links in ' + res.refsUpdated + (res.refsUpdated === 1 ? ' file.' : ' files.') : '.') + diskNote());
 }
 
 function assetButton(label, title, fn, cls) {
@@ -88,7 +126,7 @@ function renderAssets() {
         const empty = document.createElement('p');
         empty.className = 'asset-empty';
         empty.textContent = items.length ? 'No images match "' + assetSearch.value.trim() + '".'
-            : (hasTauri() ? 'No images found. Put image files in your project folder and open it again.' : 'No images yet. Use Add images…, or drop image files onto the page.');
+            : 'No images yet. Use Add images…, or drop image files onto the page.';
         assetGrid.appendChild(empty);
     }
     const target = selectedImageTarget();
@@ -124,14 +162,14 @@ function renderAssets() {
             if (target) actions.appendChild(assetButton('Use on <' + target.tag + '>', 'Set the selected <' + target.tag + '> src to this image', () => { closeModal(assetsModal); useAssetOnSelected(item); }));
             actions.appendChild(assetButton('Copy path', 'Copy this image\'s path as seen from the current page', () => copyText(Project.relativePath(activeHtmlFile, item.path), 'image path')));
         }
-        if (item.source === 'asset') actions.appendChild(assetButton('Delete', 'Remove this image from the project', () => deleteAssetItem(item, uses), 'danger-mini'));
+        if (!assetPicker) actions.appendChild(assetButton('Rename', 'Rename or move this image and update links to it', () => renameAssetItem(item)));
+        if (item.source !== 'file') actions.appendChild(assetButton('Delete', 'Remove this image from the project (undoable)', () => deleteAssetItem(item, uses), 'danger-mini'));
         card.append(thumb, meta, actions);
         assetGrid.appendChild(card);
     });
     const bytes = projectAssetBytes();
     assetStatus.textContent = items.length + (items.length === 1 ? ' image' : ' images') + (bytes ? ' · ' + ImageLib.formatBytes(bytes) + ' added or loaded' : '');
-    assetAddBtn.disabled = hasTauri();
-    assetAddBtn.title = hasTauri() ? 'In the desktop app, put image files in your project folder and open it again.' : 'Add images to the project\'s images folder (you can also drop image files anywhere)';
+    assetAddBtn.title = 'Add images to the project\'s images folder (you can also drop image files anywhere)';
 }
 
 function openAssetManager(options) {
@@ -143,10 +181,6 @@ function openAssetManager(options) {
 }
 
 function addImageFiles(files) {
-    if (hasTauri()) {
-        showNotice('Adding images is not available in the desktop app yet. Put the files in your project folder and open it again.', true);
-        return;
-    }
     ensureEntries();
     const taken = Object.keys(projectFiles.entries).concat(Object.keys(projectAssets), (projectFiles.tree || []).map((t) => t.path));
     let total = projectAssetBytes();
@@ -157,15 +191,14 @@ function addImageFiles(files) {
         if (file.size > ASSET_MAX_FILE_BYTES || total + file.size > ASSET_MAX_TOTAL_BYTES) { skipped.push(file.name + ' (too large)'); return; }
         const path = ImageLib.uniquePath(taken, file.name, 'images');
         taken.push(path);
+        if (!added.length) beginAssetChange();
         addProjectAsset(path, file);
         total += file.size;
         if (Array.isArray(projectFiles.tree)) projectFiles.tree = Project.treeAfter(projectFiles.tree, { type: 'add', path: path, is_text: false });
         added.push(path);
     });
     if (added.length) {
-        renderExplorer();
-        drawStageNow();
-        if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
+        finishAssetChange();
         if (assetsModal.classList.contains('active')) renderAssets();
     }
     showNotice((added.length ? 'Added ' + added.join(', ') : 'No images added') + (skipped.length ? '. Skipped: ' + skipped.join(', ') + '.' : '.'), !added.length);
@@ -182,4 +215,14 @@ assetAddBtn.addEventListener('click', () => assetFileInput.click());
 assetFileInput.addEventListener('change', () => {
     if (assetFileInput.files && assetFileInput.files.length) addImageFiles(assetFileInput.files);
     assetFileInput.value = '';
+});
+document.getElementById('cssBgImageBrowseBtn').addEventListener('click', () => {
+    if (!selectedPcId) { showNotice('Select an element first.', true); return; }
+    openAssetManager({
+        pick: (item) => {
+            const value = 'url("' + Project.relativePath(activeCssFile || activeHtmlFile, item.path) + '")';
+            cssInputs['background-image'].value = value;
+            applyCssPropertyChange('background-image', value);
+        }
+    });
 });

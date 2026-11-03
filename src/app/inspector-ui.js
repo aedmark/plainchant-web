@@ -33,7 +33,8 @@ const cssInputs = {
     'text-align': document.getElementById('cssTextAlign'),
     'border-radius': document.getElementById('cssRadius'),
     'color': document.getElementById('cssColor'),
-    'background-color': document.getElementById('cssBg')
+    'background-color': document.getElementById('cssBg'),
+    'background-image': document.getElementById('cssBgImage')
 };
 const cssColorPicker = document.getElementById('cssColorPicker');
 const cssBgPicker = document.getElementById('cssBgPicker');

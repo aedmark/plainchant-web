@@ -29,6 +29,7 @@ function captureSnapshot() {
         activeHtmlFile: activeHtmlFile,
         openTabs: openTabs.slice(),
         tree: Array.isArray(projectFiles.tree) ? projectFiles.tree.map((item) => Object.assign({}, item)) : null,
+        assets: assetsForSnapshot(),
         selectedPcId: selectedPcId,
         selStart: editor.selectionStart || 0,
         selEnd: editor.selectionEnd || 0,
@@ -44,6 +45,10 @@ function snapshotsEqual(a, b) {
     for (let i = 0; i < keysA.length; i++) {
         const k = keysA[i];
         if (a.entries[k] !== b.entries[k]) return false;
+    }
+    if (a.assets && b.assets) {
+        const na = Object.keys(a.assets);
+        if (na.length !== Object.keys(b.assets).length || na.some((p) => a.assets[p] !== b.assets[p])) return false;
     }
     return true;
 }
@@ -103,6 +108,7 @@ function restoreSnapshot(snap) {
     clearTimeout(typingBatchTimer);
     typingBatchOpen = false;
     projectFiles.entries = Object.assign({}, snap.entries);
+    restoreProjectAssets(snap.assets);
     if (snap.tree !== undefined) projectFiles.tree = snap.tree ? snap.tree.map((item) => Object.assign({}, item)) : null;
     if (Array.isArray(snap.openTabs)) openTabs = snap.openTabs.filter((p) => p in projectFiles.entries);
     if (snap.activeHtmlFile && (snap.activeHtmlFile in projectFiles.entries)) {

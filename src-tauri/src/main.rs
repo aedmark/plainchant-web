@@ -156,6 +156,37 @@ fn spawn_asset_server(root_holder: Arc<Mutex<Option<PathBuf>>>) -> u16 {
     port
 }
 
+fn is_safe_relative(rel: &Path) -> bool {
+    !rel.components()
+        .any(|c| matches!(c, Component::ParentDir | Component::RootDir | Component::Prefix(_)))
+}
+
+fn decode_base64(input: &str) -> Option<Vec<u8>> {
+    let mut out = Vec::with_capacity(input.len() / 4 * 3);
+    let mut acc: u32 = 0;
+    let mut bits: u32 = 0;
+    for b in input.bytes() {
+        let v = match b {
+            b'A'..=b'Z' => b - b'A',
+            b'a'..=b'z' => b - b'a' + 26,
+            b'0'..=b'9' => b - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            b'=' => break,
+            b'\r' | b'\n' | b' ' => continue,
+            _ => return None,
+        } as u32;
+        acc = (acc << 6) | v;
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            out.push((acc >> bits) as u8);
+            acc &= (1 << bits) - 1;
+        }
+    }
+    Some(out)
+}
+
 fn scan_directory(
     base: &Path,
     current: &Path,
@@ -253,6 +284,7 @@ fn open_project_folder_at(path: String, state: tauri::State<ServerState>) -> Res
 fn save_project_folder(
     path: Option<String>,
     files: Option<BTreeMap<String, String>>,
+    assets: Option<BTreeMap<String, String>>,
     html: Option<String>,
     css: Option<String>,
     js: Option<String>,
@@ -276,7 +308,7 @@ fn save_project_folder(
     if let Some(map) = files {
         for (rel_path, content) in map {
             let rel = Path::new(&rel_path);
-            if rel.components().any(|c| matches!(c, Component::ParentDir | Component::RootDir | Component::Prefix(_))) {
+            if !is_safe_relative(rel) {
                 continue;
             }
             let target = dir.join(rel);
@@ -296,7 +328,45 @@ fn save_project_folder(
             fs::write(dir.join("script.js"), j).map_err(|e| e.to_string())?;
         }
     }
+    if let Some(map) = assets {
+        for (rel_path, data) in map {
+            let rel = Path::new(&rel_path);
+            if !is_safe_relative(rel) {
+                continue;
+            }
+            let bytes = decode_base64(&data).ok_or_else(|| format!("{}: invalid image data", rel_path))?;
+            let target = dir.join(rel);
+            if fs::metadata(&target).map(|m| m.len() == bytes.len() as u64).unwrap_or(false) {
+                continue;
+            }
+            if let Some(parent) = target.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            fs::write(&target, bytes).map_err(|e| format!("{}: {}", rel_path, e))?;
+        }
+    }
     Ok(Some(dir.to_string_lossy().into_owned()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decodes_base64_with_and_without_padding() {
+        assert_eq!(decode_base64("aGVsbG8=").unwrap(), b"hello");
+        assert_eq!(decode_base64("aGVsbG8").unwrap(), b"hello");
+        assert_eq!(decode_base64("AAECAwT/").unwrap(), vec![0, 1, 2, 3, 4, 255]);
+        assert_eq!(decode_base64("").unwrap(), Vec::<u8>::new());
+        assert!(decode_base64("a*b").is_none());
+    }
+
+    #[test]
+    fn rejects_paths_that_leave_the_project() {
+        assert!(is_safe_relative(Path::new("images/a.png")));
+        assert!(!is_safe_relative(Path::new("../a.png")));
+        assert!(!is_safe_relative(Path::new("/etc/a.png")));
+    }
 }
 
 fn main() {

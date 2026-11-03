@@ -137,6 +137,21 @@ function activateImportedFolderProject(folderMeta, payload, baseUrl, assets) {
     showNotice('Created new project environment from "' + shortName + '". Changes stay in Studio until exported to disk.' + skipped);
 }
 
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+
+async function encodeProjectAssets() {
+    const out = {};
+    for (const path of Object.keys(projectAssets)) out[path] = await blobToBase64(projectAssets[path]);
+    return out;
+}
+
 async function openProjectFolder() {
     if (hasTauri()) {
         try {
@@ -187,7 +202,8 @@ async function exportProjectToFolder(forceNewFolder = false) {
             const targetPath = (!forceNewFolder && linkedFolder && linkedFolder.path) ? linkedFolder.path : null;
             const savedPath = await tauriInvoke('save_project_folder', {
                 path: targetPath,
-                files: projectFiles.entries
+                files: projectFiles.entries,
+                assets: await encodeProjectAssets()
             });
             if (!savedPath) return;
             if (!linkedFolder) {

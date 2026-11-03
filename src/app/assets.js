@@ -3,6 +3,7 @@ const ASSET_MAX_TOTAL_BYTES = 200 * 1024 * 1024;
 
 let projectAssets = {};
 let projectAssetUrls = {};
+let projectAssetsReady = true;
 
 function releaseProjectAssets() {
     Object.keys(projectAssetUrls).forEach((p) => URL.revokeObjectURL(projectAssetUrls[p]));
@@ -23,17 +24,22 @@ function setProjectAssets(files) {
 function adoptProjectAssets(provided) {
     if (provided) {
         setProjectAssets(provided);
+        projectAssetsReady = true;
         return;
     }
     releaseProjectAssets();
-    if (storageMode !== 'idb') return;
+    if (storageMode !== 'idb') { projectAssetsReady = true; return; }
     const id = currentScriptId;
+    projectAssetsReady = false;
     Store.loadAssets(scriptDb, id).then((files) => {
-        if (id !== currentScriptId || !Object.keys(files).length) return;
+        if (id !== currentScriptId) return;
+        projectAssetsReady = true;
+        if (!Object.keys(files).length) return;
         setProjectAssets(files);
+        if (currentSnapshot) currentSnapshot.assets = Object.assign({}, projectAssets);
         drawStageNow();
         if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
-    }).catch(() => {});
+    }).catch(() => { if (id === currentScriptId) projectAssetsReady = true; });
 }
 
 function saveProjectAssets() {
@@ -59,4 +65,34 @@ function removeProjectAsset(path) {
 
 function projectAssetBytes() {
     return Object.keys(projectAssets).reduce((n, p) => n + projectAssets[p].size, 0);
+}
+
+function assetsForSnapshot() {
+    return projectAssetsReady ? Object.assign({}, projectAssets) : null;
+}
+
+function restoreProjectAssets(wanted) {
+    if (!wanted) return;
+    Object.keys(projectAssets).forEach((p) => { if (wanted[p] !== projectAssets[p]) removeProjectAsset(p); });
+    Object.keys(wanted).forEach((p) => { if (!(p in projectAssets)) addProjectAsset(p, wanted[p]); });
+}
+
+function moveProjectAsset(from, to) {
+    const blob = projectAssets[from];
+    removeProjectAsset(from);
+    addProjectAsset(to, blob);
+}
+
+function beginAssetChange() {
+    ensureEntries();
+    currentSnapshot = captureSnapshot();
+    pushUndoState();
+}
+
+function finishAssetChange() {
+    renderExplorer();
+    drawStageNow();
+    if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
+    scheduleAutoSave();
+    syncLatestHistoryState();
 }

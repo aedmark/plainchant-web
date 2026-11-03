@@ -225,4 +225,8 @@ test('structure: the Assets modal, Browse button, image library, and asset-ui.js
     assert.includes(readRoot('src/app/import.js'), 'addImageFiles');
     assert.includes(readRoot('src/app/assets.js'), 'function addProjectAsset');
     assert.includes(readRoot('src/store.js'), 'putAsset: putAsset');
+    assert.includes(html, 'id="cssBgImageBrowseBtn"');
+    assert.includes(html, 'id="cssBgImage"');
+    assert.includes(readRoot('src/app/typing.js'), 'restoreProjectAssets(snap.assets)', 'asset changes are part of undo history');
+    assert.includes(readRoot('src-tauri/src/main.rs'), 'assets: Option<BTreeMap<String, String>>', 'the desktop export writes added images');
 });

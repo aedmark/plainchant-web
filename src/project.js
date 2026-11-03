@@ -312,13 +312,7 @@
         });
     }
 
-    function renameFile(entries, from, to, options) {
-        if (!Object.prototype.hasOwnProperty.call(entries, from)) return { error: from + ' was not found.' };
-        const check = validateFilePath(entries, to, from);
-        if (!check.ok) return { error: check.error };
-        const target = check.path;
-        if (target === from) return { error: null, entries: entries, path: from, refsUpdated: 0 };
-        const known = new Set(Object.keys(entries).concat((options && options.known) || []));
+    function retarget(entries, from, target, known) {
         const next = {};
         let refsUpdated = 0;
         Object.keys(entries).forEach((oldPath) => {
@@ -341,6 +335,29 @@
             next[newPath] = text;
         });
         return { error: null, entries: next, path: target, refsUpdated: refsUpdated };
+    }
+
+    function renameFile(entries, from, to, options) {
+        if (!Object.prototype.hasOwnProperty.call(entries, from)) return { error: from + ' was not found.' };
+        const check = validateFilePath(entries, to, from);
+        if (!check.ok) return { error: check.error };
+        const target = check.path;
+        if (target === from) return { error: null, entries: entries, path: from, refsUpdated: 0 };
+        return retarget(entries, from, target, new Set(Object.keys(entries).concat((options && options.known) || [])));
+    }
+
+    function renameAsset(entries, from, to, options) {
+        const others = (options && options.known) || [];
+        const taken = Object.assign({}, entries);
+        others.forEach((k) => { if (!Object.prototype.hasOwnProperty.call(taken, k)) taken[k] = ''; });
+        taken[from] = '';
+        const check = validateFilePath(taken, to, from);
+        if (!check.ok) return { error: check.error };
+        if (check.path === from) return { error: null, entries: entries, path: from, refsUpdated: 0 };
+        const oldExt = (/\.[^./]+$/.exec(from) || [''])[0].toLowerCase();
+        const newExt = (/\.[^./]+$/.exec(check.path) || [''])[0].toLowerCase();
+        if (oldExt !== newExt) return { error: 'Keep the ' + (oldExt || 'original') + ' extension so the image type stays the same.' };
+        return retarget(entries, from, check.path, new Set(Object.keys(entries).concat(others, [from])));
     }
 
     function uniqueCopyPath(entries, path) {
@@ -826,7 +843,7 @@
         relativePath: relativePath,
         normalizeFilePath: normalizeFilePath,
         validateFilePath: validateFilePath,
-        renameFile: renameFile,
+        renameFile: renameFile, renameAsset: renameAsset,
         duplicateFile: duplicateFile,
         deleteFile: deleteFile,
         treeAfter: treeAfter,
