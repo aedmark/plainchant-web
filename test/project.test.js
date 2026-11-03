@@ -268,3 +268,27 @@ test('finding: search, navigation, and replacement helpers use exact offsets', (
     assert.equal(Finding.findAll('é É', 'é').length, 2, 'case-insensitive search folds accented letters');
     assert.equal(Finding.findAll('é É', 'é', { caseSensitive: true }).length, 1);
 });
+
+test('code-shade: the coloured copy never loses or adds characters (self-closing tags, stray quotes, odd input)', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const root = path.join(__dirname, '..');
+    const check = (text, lang, label) => {
+        const lines = CodeShade.shade(text, lang);
+        assert.equal(lines.map((l) => l.runs.map((r) => r.text).join('')).join('\n'), text, label + ' round-trips');
+        assert.ok(!lines.some((l) => l.kind === 'plain'), label + ' needed the safety fallback, so a tokenizer drops text');
+    };
+    const svg = CodeShade.shade('<circle cx="4" r="1.75"/>', 'html')[0];
+    assert.equal(svg.runs.map((r) => r.text).join(''), '<circle cx="4" r="1.75"/>');
+    assert.deepEqual(svg.runs[svg.runs.length - 1], { text: '/>', mark: 'tag' }, 'the slash stays with the closing bracket');
+    ['<script>', '<script>var a = "', '<a href="', '<p title="a>b">x</p>', '<p title=\'x"y\'>', '<a <b>', '<div class=', '<a href=a/b/c>', '<', '</', "<script>`abc ${", 'a{b:url(', '\t<p>\t', '<![CDATA[', '<img src="a.png" / >', '<br/>', '<br />'].forEach((s) => {
+        ['html', 'css', 'js'].forEach((lang) => check(s, lang, JSON.stringify(s) + ' as ' + lang));
+    });
+    const files = ['app.html', 'index.html', 'src/styles.css', 'src/home.css', 'sw.js', 'src/project.js', 'src/app/stage.js', 'test/project.test.js'];
+    files.forEach((f) => {
+        const text = fs.readFileSync(path.join(root, f), 'utf8');
+        const lang = /\.css$/.test(f) ? 'css' : (/\.js$/.test(f) ? 'js' : 'html');
+        check(text, lang, f);
+        [0.13, 0.37, 0.61, 0.89].forEach((frac) => check(text.slice(0, Math.floor(text.length * frac)), lang, f + ' cut at ' + frac));
+    });
+});

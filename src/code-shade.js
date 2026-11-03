@@ -68,24 +68,22 @@
             i += tagMatch[0].length;
             while (i < len) {
                 const gt = line.indexOf('>', i);
-                const slice = gt === -1 ? line.slice(i) : line.slice(i, gt);
-                const attrRe = /(\s+)|([^\s=<>"'/]+)|(=)|("[^"]*"|'[^']*')/g;
+                const selfClose = gt > i && line[gt - 1] === '/';
+                const slice = gt === -1 ? line.slice(i) : line.slice(i, selfClose ? gt - 1 : gt);
+                const attrRe = /(\s+)|([^\s=<>"']+)|(=)|("[^"]*"|'[^']*')|([\s\S])/g;
                 let m;
                 while ((m = attrRe.exec(slice)) !== null) {
                     if (m[1]) pushRun(runs, m[1], null);
                     else if (m[2]) pushRun(runs, m[2], 'attr');
                     else if (m[3]) pushRun(runs, m[3], 'punct');
                     else if (m[4]) pushRun(runs, m[4], 'string');
+                    else pushRun(runs, m[5], null);
                 }
                 if (gt === -1) {
                     i = len;
                     break;
                 }
-                if (line[gt - 1] === '/') {
-                    pushRun(runs, '>', 'tag');
-                } else {
-                    pushRun(runs, '>', 'tag');
-                }
+                pushRun(runs, (selfClose ? '/' : '') + '>', 'tag');
                 i = gt + 1;
                 break;
             }
@@ -239,9 +237,12 @@
 
         return lines.map((line) => {
             if (!line.trim()) return { kind: 'blank', runs: [{ text: line }] };
-            if (mode === 'css') return tokenizeCssLine(line, state);
-            if (mode === 'js' || mode === 'javascript') return tokenizeJsLine(line, state);
-            return tokenizeHtmlLine(line, state);
+            let shaded;
+            if (mode === 'css') shaded = tokenizeCssLine(line, state);
+            else if (mode === 'js' || mode === 'javascript') shaded = tokenizeJsLine(line, state);
+            else shaded = tokenizeHtmlLine(line, state);
+            // The coloured copy must contain exactly the editor's characters, or its wrapping drifts from the textarea.
+            return shaded.runs.map((r) => r.text).join('') === line ? shaded : { kind: 'plain', runs: [{ text: line }] };
         });
     }
 

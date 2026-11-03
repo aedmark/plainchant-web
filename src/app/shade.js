@@ -180,7 +180,7 @@ function checkShade() {
 }
 
 function setShadeOn(on) {
-    if (on) { drawShade(); return; }
+    if (on) { shadeBroken = false; drawShade(); return; }
     document.body.classList.remove('shaded');
     shadeLayer.textContent = '';
     shadeBase = [];
@@ -195,6 +195,7 @@ function stopShade(why, detail) {
     shadeKeys = [];
     shadeText = null;
     console.warn('Plainchant Web: ' + why + ', so they are off until reload.', detail);
+    showNotice('Syntax colours were switched off because they stopped lining up with the text. Turn Syntax colours off and on in Settings, or reload, to bring them back.', true);
 }
 
 editor.addEventListener('scroll', () => {

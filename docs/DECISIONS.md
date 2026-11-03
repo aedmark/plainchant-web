@@ -16,7 +16,7 @@ its status changes ("superseded by D-MMM").
 **Context:** The Code pane needs syntax color hints and Stage-selected line highlighting for HTML, CSS, and JS without pulling in Monaco or CodeMirror (P1-04, P2-01).
 **Decision:** Use Plainchant's transparent `<textarea id="editor">` backed by a synchronized `<div class="editor-shade">` (`src/code-shade.js` + `src/app/shade.js`), including a wrap-alignment check (`checkShade`) and `.sh-selected-line` range highlighting (`highlightCodeRange`).
 **Alternatives:** Monaco or CodeMirror 6 (rejected: megabytes of bundled JS and incompatible with the zero-dependency rule in D-001).
-**Consequences:** Font metrics and padding between `#editor` and `.editor-shade` must stay synchronized via `copyEditorType`.
+**Consequences:** Font metrics and padding between `#editor` and `.editor-shade` must stay synchronized via `copyEditorType`. The coloured copy must contain exactly the editor's characters: `CodeShade.shade` replaces any line whose runs do not re-join to the source with an uncoloured line (`kind: 'plain'`), and `test/project.test.js` fails if a tokenizer ever needs that fallback on the repository's own files. When `checkShade` still detects a wrap mismatch, colours stay off until reload or until **Syntax colours** is toggled in Settings, and a notice says so (amended 2026-11-02 after self-closing tags were found to drop their `/`).
 
 ## D-003 Non-destructive byte-offset AST splicing for round-trip HTML and CSS editing (2026-11-02, status: accepted)
 **Context:** Visual WYSIWYG editors often serialize `innerHTML` from the live DOM back to source, destroying user formatting, indentation, comments, and attribute order (P1-01, P1-02).
