@@ -405,7 +405,7 @@ function drawStageNow() {
         liveJs: !isDesign,
         bridgeCss: isDesign ? BRIDGE_CSS : '',
         forceStates: isDesign,
-        bridgeScript: buildBridgeScript(isDesign, selectedPcId, activeCssState)
+        bridgeScript: buildBridgeScript(isDesign, selectedPcId, activeCssState) + (isDesign ? buildLayoutBridgeScript() : '')
     });
     stageFrame.srcdoc = doc;
 }

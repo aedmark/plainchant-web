@@ -19,6 +19,7 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
 - **Dockable, Collapsible & Floating Inspector (`Ctrl/Cmd+Shift+I`):**
   - Use the **Dock** menu to place the Inspector at the bottom, top, left, or right of the Stage, or as a floating window; side docks are resizable and your choice is remembered.
   - **Properties (HTML):** Edit `id`, `class`, `href`, `src`, `alt`, inline text, move up/down, duplicate, wrap in `<div>`, or delete.
+  - **Flex and grid handles:** Selecting a `display: flex` or `grid` element draws track guides and draggable gap handles on the Design Stage, plus a Layout group (direction, wrap, justify, align items) in the CSS Designer.
   - **Rich CSS Designer:** Reads live `getComputedStyle` telemetry from the Stage iframe to display computed placeholders and box summaries, syncs color pickers, targets either shared stylesheet rules (with **Go to CSS ↗** to jump directly to the rule in the Code editor) or inline `element.style`, and edits Display, Padding, Margin, Gap, Width, Font Size, Text Align, Border Radius, Text Color, and Background Color. A **State** bar edits and previews `:hover`, `:focus`, `:active`, `:focus-visible`, and `:focus-within` rules on the Design Stage.
 - **Insert Dropdown & Right-Click Context Menu:**
   - Drag an **Insert ▾** item onto the Design Stage to drop it before, after, or inside any element.

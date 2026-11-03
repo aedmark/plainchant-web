@@ -106,6 +106,9 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/app/parts-ui.js` | Parts Inspector tab, Make Part, Insert Part, and part-edit propagation |
 | `src/app/assets.js` | Binary project assets (Blobs, `blob:` preview URLs, IndexedDB persistence) for the browser build |
 | `src/app/css-states.js` | CSS Designer pseudo-state bar: state-aware rule selector and forced-state preview messages |
+| `src/layout.js` | Flex/grid gap-handle geometry and drag rules (UMD, no DOM; its source is embedded in the Stage iframe) |
+| `src/app/stage-layout.js` | In-iframe layout bridge: grid guides, gap handles, drag preview (loaded after `stage-live.js`) |
+| `src/app/layout-ui.js` | Layout group in the CSS Designer and handling of gap-drag messages |
 | `src/app/insert-drag.js` | Pointer-based drag from the Insert menu onto the Design Stage (drop guide, ghost label, insert) |
 | `src/app/stage-live.js` | Live JS link bridge and project link following (loaded after `stage.js`) |
 | `src/app/console-ui.js` | Console Inspector tab: log rows, filters, unread badge, click-to-jump (loaded after `inspector-ui.js`) |

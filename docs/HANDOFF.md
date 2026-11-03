@@ -5,9 +5,9 @@
 ## Current state
 
 Last updated: 2026-11-03
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`60/60` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`2/2`)
+  - `npm test` — passed (`67/67` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`2/2`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `19` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -61,6 +61,7 @@ Last updated: 2026-11-03
 - **Browser folder open was not driven end to end**: `showDirectoryPicker` cannot be automated, so `P7-09` was checked by calling `activateImportedFolderProject` with a real PNG. Try it by hand in Chromium with a folder of images.
 - **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
 - **Insert drag was driven with synthetic pointer events (`D-020`)**: try a real mouse drag, and a drag in the Tauri WebKitGTK shell (pointer capture on `document.body`, `elementFromPoint` into the Stage).
+- **Gap handles driven with synthetic pointer events (`D-025`)**: try a real mouse drag and the Tauri WebKitGTK shell (pointer capture inside the iframe, `MutationObserver` redraws). `stage.js` is still at the line limit; put new Stage code in its own file.
 - **Desktop image add/rename not driven in a real Tauri window (`D-024`)**: the base64 `assets` export, `adoptDiskImage` (fetch from the localhost server) and `window.prompt`/`confirm` are unverified there; the Rust decoder and path guard have unit tests. Deleting disk-only images is deliberately not offered, and export never deletes files.
 - **Dialogs in the desktop shell (`D-017`)**: Rename, New File, and Make Part use `window.prompt`; not verified in Tauri WebKitGTK. If it returns `null` there, replace with an in-app modal.
 - **Syntax colours can still switch off (`D-002`)**: `checkShade` permanently disables colouring on a detected wrap mismatch. The known cause (dropped `/` in `/>`) is fixed and guarded by a round-trip test, but any new tokenizer change must keep run text identical to the source. Settings > Syntax colours off/on re-enables without reload.
@@ -79,6 +80,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2n: 2026-11-03: P7-01 flex and grid gap handles
+
+- **Did**: [`src/layout.js`](../src/layout.js) (geometry, drag rules, embeddable source); [`src/app/stage-layout.js`](../src/app/stage-layout.js) (in-iframe guides and handles); [`src/app/layout-ui.js`](../src/app/layout-ui.js) and the **Layout** group in the CSS Designer; one-line hook in `drawStageNow`.
+- **Decided**: `D-025`.
+- **Verified**: `npm test` (`67/67`); browser check of a flex row and a grid (handles, drag writing the right rule, Layout selects, handles hidden under `space-between`). Full check results are in this session's final report.
+- **Next**: ask which backlog item is next.
 
 ### Session 2m: 2026-11-03: P7-02 follow-ups (asset undo, rename, desktop add, CSS background picker)
 
