@@ -1155,3 +1155,31 @@ body.shaded #editor {
     body[data-view="write"] .pane-canvas { display: none; }
     body[data-view="preview"] .pane-void { display: none; }
 }
+
+.console-badge {
+    display: inline-block;
+    min-width: 1.1em;
+    margin-left: 0.25rem;
+    padding: 0 0.3em;
+    font-size: 0.68rem;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--text-strong);
+    background: var(--btn-bg);
+    border-radius: 999px;
+}
+
+.console-badge.has-error { background: var(--danger); color: #ffffff; }
+.console-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+.console-filters { display: flex; gap: 0.3rem; }
+.console-filter[aria-pressed="true"] { background: var(--text-strong); color: var(--bg-void); }
+.console-list { font-family: var(--font-code); font-size: 0.74rem; overflow-y: auto; max-height: 150px; }
+.console-empty { color: var(--text-void-muted); padding: 0.4rem 0; }
+.console-row { display: flex; gap: 0.5rem; align-items: baseline; padding: 0.15rem 0.3rem; border-bottom: 1px solid var(--border-void); }
+.console-level { flex: 0 0 3.2rem; font-weight: 700; text-transform: uppercase; font-size: 0.66rem; color: var(--text-void-muted); }
+.console-time { flex: 0 0 auto; color: var(--text-void-muted); }
+.console-msg { flex: 1 1 auto; white-space: pre-wrap; word-break: break-word; color: var(--text-void); }
+.console-src { flex: 0 0 auto; background: none; border: none; padding: 0; color: var(--text-soft); font: inherit; text-decoration: underline; cursor: pointer; }
+.console-error { background: var(--danger-soft-bg); }
+.console-error .console-level, .console-error .console-msg { color: var(--danger-soft-text); }
+.console-warn .console-level { color: #f59e0b; }

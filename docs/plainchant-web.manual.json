@@ -152,6 +152,25 @@
           "related": ["non-destructive-ast", "menus-and-context-insert"]
         },
         {
+          "id": "js-console",
+          "title": "In-app JS Console",
+          "summary": "Shows Live JS console output, errors, and rejections in an Inspector tab with click-to-jump source lines.",
+          "tags": ["console", "live-js", "D-011"],
+          "what": "A third Inspector tab (`Console`) lists `console.log/info/warn/error` calls, uncaught errors, and unhandled promise rejections from the Live JS Stage, filterable by All / Errors / Warnings / Logs, with an unread badge and a Clear button. Errors carry a `file:line` link that opens the file and selects the line in the Code editor.",
+          "how": [
+            "In Live JS mode `Project.assemblePreview` injects `Project.consoleBridge` before user scripts; it wraps the console methods, `window.onerror`, and `unhandledrejection` and posts `pc-console` messages to the parent window.",
+            "`assemblePreview` records the document line where each user script starts and passes the map to the bridge, which converts `window.onerror` line numbers to project-file lines.",
+            "`src/app/console-ui.js` stores up to 500 entries, renders rows, and clears them whenever the Stage re-renders because scripts re-run."
+          ],
+          "why": "Recorded in D-011: devtools-free runtime feedback needs a channel from Live JS to the Studio, and removing the old `try/catch` wrapper gives exact error lines and real-page `let`/`const` scoping.",
+          "evidence": [
+            {"label": "Console bridge and line map", "target": "src/project.js"},
+            {"label": "Console tab UI", "target": "src/app/console-ui.js"},
+            {"label": "Bridge unit tests", "target": "test/project.test.js"}
+          ],
+          "related": ["inspector-and-css-designer"]
+        },
+        {
           "id": "menus-and-context-insert",
           "title": "Top menu bar, Insert dropdown, and right-click context menu",
           "summary": "Unified element insertion and DOM manipulation from the top menu bar or right-click context menu.",

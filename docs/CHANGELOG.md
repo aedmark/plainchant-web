@@ -22,6 +22,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 - **Project-Wide Multi-File Undo & Redo**: Top bar `↶` / `↷` buttons and `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, `Ctrl+Y` across code edits, Stage text edits, drag-and-drop moves, Inspector edits, and CSS Designer changes (`D-010`).
 - **Isolated Studio Project Environment**: Opening a local folder loads files into an isolated in-memory studio workspace (`[Folder Mode — Unsaved in Studio]`) without auto-overwriting disk files; **Export** preserves the original folder and subfolder structure when saving back to disk (`D-006`).
 
+- **Console tab**: Third Inspector tab showing `console.log/info/warn/error`, uncaught errors, and unhandled promise rejections from Live JS mode, with `All` / `Errors` / `Warnings` / `Logs` filters, an unread badge (red when an error is present), **Clear**, and click-to-jump `file:line` links for errors (`P5-01`, `D-011`).
+
+### Changed
+
+- Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.
+
 ### Fixed
 
 - Fixed Stage drag-and-drop element reordering on Linux WebKitGTK by replacing native HTML5 drag events with deterministic pointer-based hit testing (`D-008`) and single-pass byte-offset splicing in `HtmlAst.moveElement`.

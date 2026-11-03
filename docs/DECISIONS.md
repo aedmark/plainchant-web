@@ -68,6 +68,12 @@ its status changes ("superseded by D-MMM").
 **Alternatives:** Relying on browser `document.execCommand('undo')` (rejected: fails across multi-file tab switches and cross-file CSS Inspector edits).
 **Consequences:** `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z` / `Ctrl+Y` (and toolbar `#undoBtn` / `#redoBtn`) work uniformly across Code, Stage, and Inspector.
 
+## D-011 Live JS console bridge injected by `Project.assemblePreview` (2026-11-02, status: accepted)
+**Context:** Developers need runtime output from the Stage without opening browser devtools (P5-01). The Design bridge is Design-only and Design mode strips scripts, so Live JS had no channel back to the Studio.
+**Decision:** In Live JS mode `Project.assemblePreview` injects `Project.consoleBridge` as the first script in the preview. It wraps `console.log/info/warn/error`, `window.onerror`, and `unhandledrejection`, serialising arguments to strings and posting `{ type: 'pc-console', level, args, line, source, time }` to the parent. `assemblePreview` records where each user script starts in the final document so error lines map back to project files. The old `try/catch` wrapper and `pc-runtime-error` message are removed; the console replaces them. The console clears on every Stage re-render because scripts re-run.
+**Alternatives:** Keeping the `try/catch` wrapper (rejected: loses line numbers and makes top-level `let`/`const` block-scoped, unlike a real page); parsing `Error.stack` for lines (rejected: format differs between WebKitGTK and Chromium).
+**Consequences:** Console output exists only in Live JS mode; Design mode shows a hint. Line numbers rely on the document-relative `lineno` reported for inline scripts. Verified in Chromium only; WebKitGTK (Tauri on Linux) is unverified.
+
 ## Open questions
 
-- **Q-001** Should Phase 5 (`P5-01` Console Drawer, `P5-02` Multi-Page Link Navigation) be implemented before Phase 6 (`P6-01` Line Numbers & Find/Replace, `P6-02` Explorer File Operations & Dirty Indicators), or in parallel? (asked 2026-11-02, by agent; blocks P5-01; recommendation: execute Phase 5 (`P5-01`, `P5-02`) first, then Phase 6 (`P6-01`, `P6-02`))
+- **Q-001** (resolved 2026-11-02: maintainer started Phase 5 first, matching the recommendation) Should Phase 5 (`P5-01` Console Drawer, `P5-02` Multi-Page Link Navigation) be implemented before Phase 6 (`P6-01` Line Numbers & Find/Replace, `P6-02` Explorer File Operations & Dirty Indicators), or in parallel? (asked 2026-11-02, by agent; blocks P5-01; recommendation: execute Phase 5 (`P5-01`, `P5-02`) first, then Phase 6 (`P6-01`, `P6-02`))

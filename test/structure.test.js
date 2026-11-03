@@ -80,3 +80,10 @@ test('offline: the service worker keeps a copy of exactly the files the app uses
     assert.deepEqual(swListed.slice().sort(), Array.from(new Set(expected)).sort());
     swListed.filter((f) => f !== './').forEach((f) => assert.ok(fs.existsSync(path.join(root, f)), f + ' is listed but missing'));
 });
+
+test('structure: the Console inspector tab, its pane, and its script are wired into app.html (P5-01)', () => {
+    ['data-insp="console"', 'id="consoleCountBadge"', 'id="inspConsolePane"', 'id="consoleList"', 'id="consoleClearBtn"'].forEach((needle) => {
+        assert.includes(html, needle);
+    });
+    assert.ok(listed.indexOf('console-ui.js') > listed.indexOf('inspector-ui.js'), 'console-ui.js loads after inspector-ui.js');
+});

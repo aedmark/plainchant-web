@@ -7,7 +7,7 @@ Why things are this way lives in [DECISIONS.md](DECISIONS.md); this file says *w
 
 ## The shape, in one paragraph
 
-The browser or Tauri v2 desktop window loads `app.html`, which loads 12 pure UMD modules (`src/*.js`) followed by 19 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
+The browser or Tauri v2 desktop window loads `app.html`, which loads 12 pure UMD modules (`src/*.js`) followed by 20 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
 
 ## Code map
 
@@ -21,8 +21,10 @@ The browser or Tauri v2 desktop window loads `app.html`, which loads 12 pure UMD
 | Code typing & Undo/Redo | `src/app/typing.js`, `src/editing.js`, `src/suggest.js` | `applyEdit()`, `performUndo()`, `performRedo()`, `insertSnippet()` | `Editing`, `Suggest`, `core.js` (D-010) |
 | Stage bridge & WYSIWYG | `src/app/stage.js` | `drawStageNow()`, `buildBridgeScript()` | `#stageFrame` via `srcdoc` and `window.postMessage` (D-008, D-009) |
 | Properties & CSS Designer | `src/app/inspector-ui.js`, `src/app/panes.js` | `refreshInspector()`, `jumpToActiveCssRule()`, `openContextMenuAt()` | `HtmlAst`, `CssAst`, `core.js`, `layout.js` (D-007) |
+| JS Console | `src/app/console-ui.js`, `Project.consoleBridge` in `src/project.js` | `addConsoleEntry()`, `clearConsole()`, `jumpToSourceLine()` | `#stageFrame` via `postMessage`, `core.js`, `inspector-ui.js` (D-011) |
 | Storage & Snapshots | `src/store.js`, `src/library.js`, `src/versions.js`, `src/app/persistence.js` | `Store.open()`, `saveScript()`, `restoreLastScript()` | IndexedDB (`plainchant_web_db`) and `localStorage` emergency buffer (D-004) |
-| Tauri desktop & Folder I/O | `src-tauri/src/main.rs`, `src/app/tauri-files.js`, `src/app/export.js` | `openProjectFolder()`, `exportProjectToFolder()`, `spawn_asset_server()` | Tauri IPC (`open_project_folder`, `save_project_folder`) and localhost HTTP asset server (D-005, D-006) |
+| Tauri desktop & Folder I/O | `src-tauri/src/main.rs`, `src/app/tauri-files.js`, `src/app/export.js` | `openProjectFolder()`, `exportProjectToFolder()`, `spawn_asset_server()` | Console `postMessage` (`pc-console`: `level`, `args[]`, `line`, `source`, `time`) | Live JS bridge (`Project.consoleBridge`, injected only in Live JS mode) | `addConsoleEntry()` in `src/app/console-ui.js` via `src/app/stage.js` | `level` is `log`, `info`, `warn`, or `error`; `line`/`source` are set only for `window.onerror` (D-011) |
+| Tauri IPC (`open_project_folder`, `save_project_folder`) and localhost HTTP asset server (D-005, D-006) |
 
 ## Interfaces and data flow
 
@@ -76,7 +78,7 @@ Code / Stage / Inspector input -> HtmlAst / CssAst byte-range splice -> projectF
 | Failure | User-visible behaviour | Detection | Recovery / runbook |
 | --- | --- | --- | --- |
 | Syntax shader line-wrap mismatch | Editor turns off syntax colors and falls back to plain textarea text | `checkShade()` in `src/app/shade.js` logs warning | Reload page or adjust zoom/font size |
-| Live JS runtime error in Stage | Red notice banner at bottom-right (`JS Runtime Error: ...`) | `window.onerror` bridge in `src/project.js` | Switch back to Design Mode or fix `script.js` |
+| Live JS runtime error in Stage | Red `error` row in the Console tab with a clickable `file:line`, plus a red notice banner (`JS Error: ...`) | `window.onerror` in `Project.consoleBridge` (D-011) | Click the `file:line` link, fix the script, or switch to Design Mode |
 | IndexedDB unavailable (private window) | Error state on Save button; emergency `localStorage` fallback | `openStorage()` in `src/app/persistence.js` | Export project to disk via **Export** |
 
 ## Claims vs. code

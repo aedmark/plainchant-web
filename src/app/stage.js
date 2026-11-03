@@ -379,6 +379,7 @@ function drawStageNow() {
     clearTimeout(stageTimer);
     stageTimer = null;
     const isDesign = stageMode === 'design';
+    clearConsole();
     const doc = Project.assemblePreview(projectFiles, {
         ast: currentHtmlAst,
         activeHtml: activeHtmlFile,
@@ -452,7 +453,7 @@ window.addEventListener('message', (e) => {
         performUndo();
     } else if (data.type === 'pc-redo') {
         performRedo();
-    } else if (data.type === 'pc-runtime-error' && data.message) {
-        showNotice('JS Runtime Error: ' + data.message, true);
+    } else if (data.type === 'pc-console') {
+        addConsoleEntry(data);
     }
 });

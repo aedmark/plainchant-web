@@ -30,6 +30,7 @@ const APP_FILES = [
     'src/app/panes.js',
     'src/app/stage.js',
     'src/app/inspector-ui.js',
+    'src/app/console-ui.js',
     'src/app/outline-ui.js',
     'src/app/export.js',
     'src/app/import.js',
