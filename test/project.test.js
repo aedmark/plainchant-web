@@ -475,3 +475,34 @@ test('finding: findInFiles and replaceInFiles search and replace across a whole 
     assert.deepEqual(Finding.replaceInFiles(entries, 'zzz', 'x').files, []);
     assert.equal(Finding.replaceInFiles(entries, 'zzz', 'x').count, 0);
 });
+
+test('zip: builds a valid stored zip with correct CRCs, UTF-8 names, and binary data', () => {
+    assert.equal(Zip.crc32(new TextEncoder().encode('123456789')), 0xCBF43926, 'the standard CRC-32 check value');
+    assert.equal(Zip.crc32(new Uint8Array(0)), 0);
+    const png = Uint8Array.from([0x89, 0x50, 0x4E, 0x47, 0, 255, 128, 10, 13]);
+    const bytes = Zip.build([
+        { path: 'index.html', data: '<h1>Café ✓</h1>\n' },
+        { path: 'css/site.css', data: 'body{}' },
+        { path: 'img/über.png', data: png },
+        { path: 'empty.txt', data: '' }
+    ], new Date(2026, 10, 2, 13, 45, 30));
+    assert.deepEqual(Array.from(bytes.subarray(0, 4)), [0x50, 0x4B, 0x03, 0x04], 'starts with a local file header');
+    const entries = Zip.list(bytes);
+    assert.deepEqual(entries.map((e) => e.path), ['index.html', 'css/site.css', 'img/über.png', 'empty.txt']);
+    assert.equal(new TextDecoder().decode(entries[0].data), '<h1>Café ✓</h1>\n');
+    assert.deepEqual(Array.from(entries[2].data), Array.from(png), 'binary data survives');
+    entries.forEach((e) => assert.equal(Zip.crc32(e.data), e.crc, e.path + ' CRC matches'));
+    assert.equal(entries[3].size, 0);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    assert.equal(view.getUint16(10, true), (13 << 11) | (45 << 5) | 15, 'DOS time');
+    assert.equal(view.getUint16(12, true), ((2026 - 1980) << 9) | (11 << 5) | 2, 'DOS date');
+    assert.equal(view.getUint16(6, true) & 0x0800, 0x0800, 'the UTF-8 name flag is set');
+    assert.deepEqual(Zip.list(Zip.build([])), []);
+
+    ['', '/', 'a/', '../x.txt', 'a/../b.txt', 'a//b.txt', './a.txt'].forEach((p) => {
+        assert.throws(() => Zip.build([{ path: p, data: 'x' }]), p + ' is rejected');
+    });
+    assert.equal(Zip.list(Zip.build([{ path: '/lead.txt', data: 'x' }]))[0].path, 'lead.txt', 'leading slashes are dropped');
+    assert.throws(() => Zip.build([{ path: 'a.txt', data: 'x' }, { path: 'a.txt', data: 'y' }]), 'duplicates are rejected');
+    assert.throws(() => Zip.list(new Uint8Array(40)), 'garbage is not a zip');
+});

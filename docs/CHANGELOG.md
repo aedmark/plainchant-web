@@ -44,6 +44,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Pseudo-state editing**: A **State** bar in the CSS Designer (Normal, `:hover`, `:focus`, `:active`, `:focus-visible`, `:focus-within`) edits the matching state rule for the selected element and previews that state on the Design Stage, including rules on a parent such as `.card:hover .title` (`P7-07`, `D-021`).
 
+- **Zip export**: The Export dialog has **Download project .zip**, which packs every file (including images from an opened folder and your unsaved editor text) into one archive with the same folder layout and pages at the top level. It is hidden in the desktop app, which exports to a folder (`P7-13`, `D-022`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

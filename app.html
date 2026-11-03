@@ -424,6 +424,13 @@
                     <button type="button" class="btn" id="exportJsBtn">script.js</button>
                 </div>
             </section>
+            <section class="export-option" id="zipExportSection">
+                <h3>Whole Project as a .zip</h3>
+                <p id="zipExportNote">Downloads every project file in one archive with the same folder layout, including images and other binary files loaded from an opened folder. Pages sit at the top level, so the archive can be unpacked or uploaded to a web host as it is.</p>
+                <div class="export-buttons">
+                    <button type="button" class="btn" id="exportZipBtn">Download project .zip</button>
+                </div>
+            </section>
             <section class="export-option">
                 <h3>Standalone Single-File HTML Bundle</h3>
                 <p id="bundleExportNote">Inlines the active HTML page with its linked CSS and JavaScript into a single self-contained <code>.html</code> file.</p>
@@ -574,6 +581,7 @@
 <script src="src/versions.js"></script>
 <script src="src/filesync.js"></script>
 <script src="src/finding.js"></script>
+<script src="src/zip.js"></script>
 <script src="src/importing.js"></script>
 <script src="src/app/core.js"></script>
 <script src="src/app/layout.js"></script>
@@ -602,6 +610,7 @@
 <script src="src/app/export.js"></script>
 <script src="src/app/import.js"></script>
 <script src="src/app/tauri-files.js"></script>
+<script src="src/app/zip-ui.js"></script>
 <script src="src/app/help.js"></script>
 <script src="src/app/offline.js"></script>
 <script src="src/app/main.js"></script>

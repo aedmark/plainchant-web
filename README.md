@@ -33,6 +33,8 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
   - Checks every page and stylesheet for dead links, missing images, stylesheets, and scripts, and missing `#anchor` targets; click a problem to jump to it.
 - **Project-Wide Find & Replace (`Ctrl/Cmd+Shift+F`):**
   - The **Project** toggle on the find bar lists matches in every file, lets you skip files, and replaces across the project in one undo step.
+- **Zip Export:**
+  - **Export > Download project .zip** downloads the whole project (including images from an opened folder) as one archive, ready to unpack or upload.
 - **Safe Local Folder Workflow & Structure-Preserving Export:**
   - Opening a local folder via **Folder** creates an isolated project environment in your Studio library (serving local images, fonts, and linked stylesheets via a built-in localhost asset server in Tauri).
   - Edits are auto-saved to your Studio workspace and **never** overwrite your local disk until you explicitly use **Export**, which writes all project files back to disk while retaining your exact folder and file hierarchy.

@@ -208,3 +208,11 @@ test('structure: the CSS Designer state bar, force-state bridge, and css-states.
     ['pc-force-state', 'data-pc-force', 'forceStates: isDesign'].forEach((needle) => assert.includes(stage, needle));
     assert.includes(readRoot('src/app/inspector-ui.js'), 'cssEditSelector');
 });
+
+test('structure: the Export dialog offers a whole-project .zip built by zip.js (P7-13)', () => {
+    ['id="zipExportSection"', 'id="exportZipBtn"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/zip.js') !== -1 && order.indexOf('src/zip.js') < order.indexOf('src/app/core.js'), 'zip.js loads before the app scripts');
+    assert.ok(listed.indexOf('zip-ui.js') > listed.indexOf('tauri-files.js'), 'zip-ui.js loads after tauri-files.js (it uses hasTauri)');
+    assert.includes(readRoot('src/app/zip-ui.js'), 'Zip.build');
+});

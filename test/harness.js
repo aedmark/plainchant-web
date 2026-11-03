@@ -33,6 +33,11 @@
         includes: function (hay, needle, msg) {
             if (String(hay).indexOf(needle) === -1) fail((msg ? msg + ': ' : '') + show(hay) + ' does not contain ' + show(needle));
         },
+        throws: function (fn, msg) {
+            let threw = false;
+            try { fn(); } catch (e) { threw = true; }
+            if (!threw) fail(msg || 'expected the function to throw');
+        },
         excludes: function (hay, needle, msg) {
             if (String(hay).indexOf(needle) !== -1) fail((msg ? msg + ': ' : '') + show(hay) + ' unexpectedly contains ' + show(needle));
         }

@@ -17,6 +17,7 @@ globalThis.Versions = require('../src/versions.js');
 globalThis.FileSync = require('../src/filesync.js');
 globalThis.Importing = require('../src/importing.js');
 globalThis.Finding = require('../src/finding.js');
+globalThis.Zip = require('../src/zip.js');
 
 require('./html-ast.test.js');
 require('./css-ast.test.js');

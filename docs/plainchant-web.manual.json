@@ -279,6 +279,24 @@
       "description": "How multi-file projects, undo history, local folders, and static assets are managed safely.",
       "entries": [
         {
+          "id": "zip-export",
+          "title": "Zip export",
+          "summary": "Downloads the whole project as one .zip from the browser build.",
+          "tags": ["export", "zip", "D-022"],
+          "what": "**Export > Download project .zip** packs every project file (with your unsaved editor text) and any images or other binaries loaded from an opened folder into one archive that keeps the folder layout and puts pages at the top level. It is hidden in the desktop app, which exports to a folder instead.",
+          "how": [
+            "`Zip.build()` in `src/zip.js` writes a stored (uncompressed) ZIP with CRC-32, UTF-8 names, and DOS timestamps, rejecting unsafe or duplicate paths.",
+            "`downloadProjectZip()` in `src/app/zip-ui.js` combines `projectFiles.entries` and `projectAssets`, builds the archive, and downloads it through `downloadFile()` as `<page-title>.zip`."
+          ],
+          "why": "Recorded in D-022: the browser build cannot write a folder, the app allows no runtime dependencies, and a hand-written stored zip stays testable in plain Node, at the cost of not compressing.",
+          "evidence": [
+            {"label": "Zip writer and reader", "target": "src/zip.js"},
+            {"label": "Export button", "target": "src/app/zip-ui.js"},
+            {"label": "Zip tests", "target": "test/project.test.js"}
+          ],
+          "related": ["browser-binary-assets", "explorer-file-operations"]
+        },
+        {
           "id": "problems-link-checker",
           "title": "Problems tab (broken-link checker)",
           "summary": "Finds broken links and missing files across the whole project and jumps to each one.",

@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-09`, `P7-10`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`54/54` unit & structural tests)
+  - `npm test` — passed (`56/56` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `17` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `18` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -45,9 +45,11 @@ Last updated: 2026-11-02
 
 - **CSS pseudo-states (`P7-07`, `D-021`)**: State bar in the CSS Designer, forced-state preview via `[data-pc-force~="state"]` selector twins (`src/app/css-states.js`, `CssAst.forceStates`).
 
+- **Zip export (`P7-13`, `D-022`)**: Export dialog button, stored zip writer (`src/zip.js`, `src/app/zip-ui.js`).
+
 ### In flight
 
-- `P7-07` is complete but uncommitted. Nothing half-built.
+- `P7-13` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -63,7 +65,7 @@ Last updated: 2026-11-02
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-02`, `P7-03`, `P7-08`, `P7-11`..`P7-15`, `P7-01`) is unprioritized, so ask which is next.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-01`..`P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`) is unprioritized (`P7-13` is done), so ask which is next.
 
 ### Open questions
 
@@ -74,6 +76,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2k: 2026-11-02: P7-13 zip export
+
+- **Did**: [`src/zip.js`](../src/zip.js) (stored zip writer and reader); [`src/app/zip-ui.js`](../src/app/zip-ui.js) and the Export dialog section; `assert.throws` added to [`test/harness.js`](../test/harness.js).
+- **Decided**: `D-022` (stored only, pages at the top level, hidden in Tauri, dirty dots not reset).
+- **Verified**: `npm test` (`56/56`); `unzip -t` and Python `zipfile` on a generated archive (binary identical); browser check capturing the download. Full check results are in this session's final report.
+- **Next**: ask which backlog item is next.
 
 ### Session 2j: 2026-11-02: P7-07 CSS Designer pseudo-states
 
