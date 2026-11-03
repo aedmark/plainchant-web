@@ -87,7 +87,11 @@ async function collectBrowserAsset(handle, relPath, assets) {
     }
 }
 
-async function writeBrowserDirEntries(rootHandle, entriesMap, assetMap) {
+async function writeBrowserDirEntries(rootHandle, entriesMap, assetMap, dirList) {
+    for (const dirPath of dirList || []) {
+        let dir = rootHandle;
+        for (const part of String(dirPath).split('/').filter(Boolean)) dir = await dir.getDirectoryHandle(part, { create: true });
+    }
     for (const [relPath, content] of Object.entries(entriesMap || {})) {
         const parts = String(relPath || '').split('/').filter(Boolean);
         if (!parts.length) continue;
@@ -135,6 +139,10 @@ function activateImportedFolderProject(folderMeta, payload, baseUrl, assets) {
     const shortName = String(folderMeta.name || '').split(/[\\/]/).filter(Boolean).pop() || folderMeta.name;
     const skipped = assets && assets.skipped.length ? ' ' + assets.skipped.length + ' large file(s) were not loaded for preview.' : '';
     showNotice('Created new project environment from "' + shortName + '". Changes stay in Studio until exported to disk.' + skipped);
+}
+
+function projectFolderPaths() {
+    return (projectFiles.tree || []).filter((item) => item.kind === 'dir').map((item) => item.path);
 }
 
 function blobToBase64(blob) {
@@ -203,7 +211,8 @@ async function exportProjectToFolder(forceNewFolder = false) {
             const savedPath = await tauriInvoke('save_project_folder', {
                 path: targetPath,
                 files: projectFiles.entries,
-                assets: await encodeProjectAssets()
+                assets: await encodeProjectAssets(),
+                dirs: projectFolderPaths()
             });
             if (!savedPath) return;
             if (!linkedFolder) {
@@ -225,7 +234,7 @@ async function exportProjectToFolder(forceNewFolder = false) {
             if (!dirHandle) {
                 dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             }
-            await writeBrowserDirEntries(dirHandle, projectFiles.entries, projectAssets);
+            await writeBrowserDirEntries(dirHandle, projectFiles.entries, projectAssets, projectFolderPaths());
             if (!linkedFolder) {
                 linkedFolder = { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle };
                 updateFolderBar();

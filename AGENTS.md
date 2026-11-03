@@ -92,6 +92,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/versions.js` | Project snapshot retention and pruning rules (UMD) |
 | `src/filesync.js` | Disk vs. studio content comparison helpers (UMD) |
 | `src/importing.js` | Text/code file extension filter and UTF-8/UTF-16/Windows-1252 decoder (UMD) |
+| `src/app/explorer-move.js` | Explorer **+ Folder**, folder rows, drag-to-move for files and folders, and file-tab reordering |
 | `src/app/explorer-ui.js` | Explorer Rename / Duplicate / Delete, file context menu, and unsaved-file dots |
 | `src/imagelib.js` | Project image listing, unique upload paths, and size formatting (UMD, no DOM) |
 | `src/app/asset-ui.js` | Assets modal: thumbnails, usage, insert/use/pick/delete, and adding images |

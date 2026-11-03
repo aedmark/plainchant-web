@@ -346,7 +346,7 @@
           "title": "Explorer file operations and unsaved dots",
           "summary": "Rename, duplicate, and delete project files with link updates, undo, and per-file unsaved markers.",
           "tags": ["explorer", "files", "D-017"],
-          "what": "Hovering or right-clicking a file in the Explorer offers **Rename**, **Duplicate**, and **Delete**. Renaming or moving a file rewrites links to it (`href`, `src`, `poster`, CSS `url()`, and shared-part markers); the last `.html` file cannot be deleted. Tabs and Explorer rows show a `•` when a file differs from the last load, explicit **Save**, or **Export**.",
+          "what": "Hovering or right-clicking a file in the Explorer offers **Rename**, **Duplicate**, and **Delete**. Renaming or moving a file rewrites links to it (`href`, `src`, `poster`, CSS `url()`, and shared-part markers); the last `.html` file cannot be deleted. **+ Folder** adds folders, and dragging a file or folder onto a folder (or the blank area for the root) moves it the same way; open file tabs can be dragged to reorder. Tabs and Explorer rows show a `•` when a file differs from the last load, explicit **Save**, or **Export**.",
           "how": [
             "`Project.renameFile()`, `duplicateFile()`, `deleteFile()`, and `treeAfter()` are pure helpers; `src/app/explorer-ui.js` applies them as one project-wide undo step that now also restores the tab list and file tree.",
             "`FileSync.dirtyPaths()` compares the current files with `savedFileEntries`, which is reset on project load, explicit Save (not the 1.5 second auto-save), and Export.",
@@ -356,6 +356,7 @@
           "evidence": [
             {"label": "File operation helpers", "target": "src/project.js"},
             {"label": "Explorer UI and dirty marks", "target": "src/app/explorer-ui.js"},
+            {"label": "Folders, drag-to-move, tab order", "target": "src/app/explorer-move.js"},
             {"label": "Dirty comparison", "target": "src/filesync.js"},
             {"label": "File operation tests", "target": "test/project.test.js"}
           ],

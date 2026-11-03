@@ -217,6 +217,13 @@ test('structure: the Export dialog offers a whole-project .zip built by zip.js (
     assert.includes(readRoot('src/app/zip-ui.js'), 'Zip.build');
 });
 
+test('structure: the Explorer + Folder button, folder rows, and explorer-move.js are wired in (P7-08)', () => {
+    assert.includes(html, 'id="newFolderBtn"');
+    assert.ok(listed.indexOf('explorer-move.js') > listed.indexOf('asset-ui.js') && listed.indexOf('explorer-move.js') > listed.indexOf('explorer-ui.js'), 'explorer-move.js loads after explorer-ui.js and asset-ui.js');
+    assert.includes(readRoot('src/app/core.js'), 'decorateExplorerDir', 'directory rows are decorated');
+    assert.includes(readRoot('src-tauri/src/main.rs'), 'dirs: Option<Vec<String>>', 'the desktop export creates empty folders');
+});
+
 test('structure: the CSS Designer breakpoint bar and css-media.js are wired in (P7-03)', () => {
     ['id="cssMediaBar"', 'id="cssMediaHint"', 'data-media="(max-width: 768px)"', 'data-media="(max-width: 375px)"'].forEach((needle) => assert.includes(html, needle));
     assert.ok(listed.indexOf('css-media.js') > listed.indexOf('css-states.js'), 'css-media.js loads after css-states.js');

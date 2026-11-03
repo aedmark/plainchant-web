@@ -46,6 +46,7 @@ function snapshotsEqual(a, b) {
         const k = keysA[i];
         if (a.entries[k] !== b.entries[k]) return false;
     }
+    if (JSON.stringify(a.tree || null) !== JSON.stringify(b.tree || null)) return false;
     if (a.assets && b.assets) {
         const na = Object.keys(a.assets);
         if (na.length !== Object.keys(b.assets).length || na.some((p) => a.assets[p] !== b.assets[p])) return false;

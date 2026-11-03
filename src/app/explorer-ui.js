@@ -58,18 +58,23 @@ function commitFileChange(next, change) {
 }
 
 function renameProjectFile(path) {
-    ensureEntries();
-    syncBufferFromEditor();
     const answer = window.prompt('Rename ' + path + '\n(Include folders to move it. Links to the file are updated.)', path);
     if (answer == null || Project.normalizeFilePath(answer) === path) return;
+    moveProjectFileTo(path, answer);
+}
+
+function moveProjectFileTo(path, answer) {
+    ensureEntries();
+    syncBufferFromEditor();
     const res = Project.renameFile(projectFiles.entries, path, answer, { known: knownTreePaths() });
-    if (res.error) { showNotice(res.error, true); return; }
+    if (res.error) { showNotice(res.error, true); return false; }
     const swap = (p) => (p === path ? res.path : p);
     commitFileChange(res.entries, {
         tree: Project.treeAfter(projectFiles.tree, { type: 'rename', from: path, to: res.path }),
         openTabs: openTabs.map(swap), activeFile: swap(activeFile), activeHtmlFile: swap(activeHtmlFile)
     });
     showNotice('Renamed to ' + res.path + (res.refsUpdated ? ' and updated links in ' + res.refsUpdated + (res.refsUpdated === 1 ? ' file.' : ' files.') : '.'));
+    return true;
 }
 
 function duplicateProjectFile(path) {

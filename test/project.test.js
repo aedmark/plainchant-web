@@ -576,3 +576,65 @@ test('links: usage lists where each project file is referenced', () => {
     assert.equal(used['../img/a.png'], undefined, 'paths above the project are dropped');
     assert.deepEqual(Links.usage({}), {});
 });
+
+test('folders: treeAfter makes and moves directories, and deriveTree builds a tree from files', () => {
+    const tree = Project.deriveTree({ 'index.html': '', 'pages/a.html': '', 'pages/deep/b.html': '' }, null, ['img/x.png']);
+    assert.deepEqual(tree.map((t) => t.kind + ':' + t.path), ['file:img/x.png', 'dir:img', 'file:index.html', 'dir:pages', 'file:pages/a.html', 'dir:pages/deep', 'file:pages/deep/b.html'].sort((a, b) => (a.split(':')[1] < b.split(':')[1] ? -1 : 1)));
+    assert.equal(tree.find((t) => t.path === 'img/x.png').is_text, false);
+    const same = Project.deriveTree({}, tree);
+    assert.deepEqual(same, tree, 'an existing tree is copied, not rebuilt');
+    assert.ok(same !== tree);
+
+    const made = Project.treeAfter(tree, { type: 'mkdir', path: 'assets/fonts' });
+    assert.ok(made.some((t) => t.path === 'assets' && t.kind === 'dir') && made.some((t) => t.path === 'assets/fonts' && t.kind === 'dir'));
+    assert.equal(Project.treeAfter(made, { type: 'mkdir', path: 'assets/fonts' }).length, made.length, 'making an existing folder changes nothing');
+
+    const moved = Project.treeAfter(tree, { type: 'moveDir', from: 'pages', to: 'site/pages' });
+    const paths = moved.map((t) => t.path);
+    assert.ok(paths.includes('site') && paths.includes('site/pages') && paths.includes('site/pages/a.html') && paths.includes('site/pages/deep/b.html'));
+    assert.ok(!paths.some((p) => p === 'pages' || p.indexOf('pages/') === 0));
+    assert.equal(moved.find((t) => t.path === 'site/pages/a.html').kind, 'file');
+});
+
+test('folders: moveFolder moves every file under a folder and rewrites links both ways', () => {
+    const entries = {
+        'index.html': '<link rel="stylesheet" href="style.css"><a href="pages/a.html">A</a><img src="pages/pic.png">',
+        'style.css': 'body { background: url("pages/pic.png"); }',
+        'pages/a.html': '<link rel="stylesheet" href="../style.css"><a href="b.html">B</a><a href="../index.html">home</a><img src="pic.png">',
+        'pages/b.html': '<a href="a.html">A</a>'
+    };
+    const known = ['pages/pic.png'];
+    const res = Project.moveFolder(entries, 'pages', 'site/pages', { known: known });
+    assert.equal(res.error, null);
+    assert.equal(res.path, 'site/pages');
+    assert.deepEqual(res.moves.map((m) => m.to).sort(), ['site/pages/a.html', 'site/pages/b.html', 'site/pages/pic.png']);
+    assert.deepEqual(Object.keys(res.entries), ['index.html', 'style.css', 'site/pages/a.html', 'site/pages/b.html']);
+    assert.includes(res.entries['index.html'], 'href="site/pages/a.html"');
+    assert.includes(res.entries['index.html'], 'src="site/pages/pic.png"');
+    assert.includes(res.entries['style.css'], 'url("site/pages/pic.png")');
+    assert.includes(res.entries['site/pages/a.html'], 'href="../../style.css"');
+    assert.includes(res.entries['site/pages/a.html'], 'href="b.html"', 'links between files that moved together stay as they were');
+    assert.includes(res.entries['site/pages/a.html'], 'href="../../index.html"');
+    assert.includes(res.entries['site/pages/a.html'], 'src="pic.png"');
+    assert.equal(res.entries['site/pages/b.html'], entries['pages/b.html']);
+    assert.equal(res.refsUpdated, 3);
+
+    const back = Project.moveFolder(res.entries, 'site/pages', 'pages', { known: ['site/pages/pic.png'] });
+    assert.deepEqual(back.entries, entries, 'moving it back restores every file exactly');
+});
+
+test('folders: moveFolder refuses unsafe or clashing moves', () => {
+    const entries = { 'index.html': '', 'a/x.html': '', 'a/b/y.html': '', 'b/x.html': '', 'notes.txt': '' };
+    const mv = (from, to, known) => Project.moveFolder(entries, from, to, { known: known || [] });
+    assert.ok(mv('a', 'a/b/c').error, 'not into itself');
+    assert.ok(mv('a', 'b').error, 'a clash with an existing file is refused');
+    assert.ok(mv('a', 'B').error, 'case-insensitively too');
+    assert.ok(mv('a', 'notes.txt/a').error, 'a file cannot hold a folder');
+    assert.ok(mv('a', '../a').error);
+    assert.ok(mv('a', '').error);
+    assert.equal(mv('a', 'a').moves.length, 0);
+    assert.equal(mv('a', 'c').error, null);
+    assert.ok(Project.validateFolderPath(['index.html'], ['img'], 'IMG').error, 'folder names are compared without regard to case');
+    assert.ok(Project.validateFolderPath(['index.html'], [], 'index.html/x').error);
+    assert.equal(Project.validateFolderPath(['index.html'], ['img'], '/assets//fonts/').path, 'assets/fonts');
+});

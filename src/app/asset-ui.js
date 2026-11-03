@@ -84,21 +84,27 @@ async function adoptDiskImage(item) {
     }
 }
 
-async function renameAssetItem(item) {
-    if (item.source === 'text') { closeModal(assetsModal); renameProjectFile(item.path); return; }
-    const answer = window.prompt('Rename ' + item.path + '\n(Include folders to move it. Links to the image are updated.)', item.path);
-    if (answer == null || Project.normalizeFilePath(answer) === item.path) return;
+async function moveAssetTo(item, to) {
     ensureEntries();
     syncBufferFromEditor();
     const known = Object.keys(projectAssets).concat(knownTreePaths());
-    const res = Project.renameAsset(projectFiles.entries, item.path, answer, { known: known });
-    if (res.error) { showNotice(res.error, true); return; }
-    if (!(await adoptDiskImage(item))) { showNotice('Could not read ' + item.path + ' to rename it.', true); return; }
+    const res = Project.renameAsset(projectFiles.entries, item.path, to, { known: known });
+    if (res.error) { showNotice(res.error, true); return null; }
+    if (!(await adoptDiskImage(item))) { showNotice('Could not read ' + item.path + ' to move it.', true); return null; }
     commitFileChange(res.entries, {
         tree: Array.isArray(projectFiles.tree) ? Project.treeAfter(projectFiles.tree, { type: 'rename', from: item.path, to: res.path }) : projectFiles.tree,
         openTabs: openTabs, activeFile: activeFile, activeHtmlFile: activeHtmlFile,
         apply: () => moveProjectAsset(item.path, res.path)
     });
+    return res;
+}
+
+async function renameAssetItem(item) {
+    if (item.source === 'text') { closeModal(assetsModal); renameProjectFile(item.path); return; }
+    const answer = window.prompt('Rename ' + item.path + '\n(Include folders to move it. Links to the image are updated.)', item.path);
+    if (answer == null || Project.normalizeFilePath(answer) === item.path) return;
+    const res = await moveAssetTo(item, answer);
+    if (!res) return;
     renderAssets();
     showNotice('Renamed to ' + res.path + (res.refsUpdated ? ' and updated links in ' + res.refsUpdated + (res.refsUpdated === 1 ? ' file.' : ' files.') : '.') + diskNote());
 }

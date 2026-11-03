@@ -234,8 +234,13 @@ function renderExplorer() {
         if (item.kind === 'dir') {
             const dirRow = document.createElement('div');
             dirRow.className = 'explorer-dir';
+            dirRow.dataset.path = item.path;
             dirRow.style.paddingLeft = (0.5 + depth * 0.75) + 'rem';
-            dirRow.textContent = '▾ ' + name + '/';
+            const dirLabel = document.createElement('span');
+            dirLabel.className = 'explorer-dir-name';
+            dirLabel.textContent = '▾ ' + name + '/';
+            dirRow.appendChild(dirLabel);
+            if (typeof decorateExplorerDir === 'function') decorateExplorerDir(dirRow);
             explorerTree.appendChild(dirRow);
             return;
         }

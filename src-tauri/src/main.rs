@@ -285,6 +285,7 @@ fn save_project_folder(
     path: Option<String>,
     files: Option<BTreeMap<String, String>>,
     assets: Option<BTreeMap<String, String>>,
+    dirs: Option<Vec<String>>,
     html: Option<String>,
     css: Option<String>,
     js: Option<String>,
@@ -326,6 +327,12 @@ fn save_project_folder(
         }
         if let Some(j) = js {
             fs::write(dir.join("script.js"), j).map_err(|e| e.to_string())?;
+        }
+    }
+    for rel_path in dirs.unwrap_or_default() {
+        let rel = Path::new(&rel_path);
+        if is_safe_relative(rel) {
+            fs::create_dir_all(dir.join(rel)).map_err(|e| format!("{}: {}", rel_path, e))?;
         }
     }
     if let Some(map) = assets {

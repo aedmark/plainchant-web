@@ -52,6 +52,7 @@ const APP_FILES = [
     'src/app/outline-ui.js',
     'src/app/explorer-ui.js',
     'src/app/asset-ui.js',
+    'src/app/explorer-move.js',
     'src/app/export.js',
     'src/app/import.js',
     'src/app/tauri-files.js',

@@ -396,6 +396,27 @@
         if (!Array.isArray(tree)) return tree;
         let next = tree.map((item) => Object.assign({}, item));
         if (op.type === 'delete') return next.filter((item) => item.path !== op.path);
+        const sorted = (list) => list.sort((a, b) => (a.path < b.path ? -1 : (a.path > b.path ? 1 : 0)));
+        const ensureDirs = (path) => {
+            const parts = path.split('/');
+            for (let i = 1; i <= parts.length; i++) {
+                const dir = parts.slice(0, i).join('/');
+                if (!next.some((item) => item.path === dir)) next.push({ path: dir, kind: 'dir', is_text: false });
+            }
+        };
+        if (op.type === 'mkdir') {
+            ensureDirs(op.path);
+            return sorted(next);
+        }
+        if (op.type === 'moveDir') {
+            next = next.map((item) => {
+                if (item.path === op.from) return Object.assign(item, { path: op.to });
+                if (item.path.indexOf(op.from + '/') === 0) return Object.assign(item, { path: op.to + item.path.slice(op.from.length) });
+                return item;
+            });
+            ensureDirs(op.to);
+            return sorted(next);
+        }
         if (op.type === 'add') {
             if (next.some((item) => item.path === op.path)) return next;
             const parts = op.path.split('/');
@@ -422,6 +443,70 @@
             add(op.to, next.find((item) => item.path === op.from));
         }
         return next.sort((a, b) => (a.path < b.path ? -1 : (a.path > b.path ? 1 : 0)));
+    }
+
+    function deriveTree(entries, tree, extraFiles) {
+        if (Array.isArray(tree) && tree.length) return tree.map((item) => Object.assign({}, item));
+        let next = [];
+        Object.keys(entries || {}).forEach((path) => { next = treeAfter(next, { type: 'add', path: path }); });
+        (extraFiles || []).forEach((path) => { next = treeAfter(next, { type: 'add', path: path, is_text: false }); });
+        return next;
+    }
+
+    function pathsUnder(paths, dir) {
+        return paths.filter((p) => p.indexOf(dir + '/') === 0);
+    }
+
+    function moveFolder(entries, from, to, options) {
+        const src = normalizeFilePath(from);
+        const known = (options && options.known) || [];
+        const all = Array.from(new Set(Object.keys(entries).concat(known)));
+        const inside = pathsUnder(all, src);
+        const outside = all.filter((p) => inside.indexOf(p) === -1);
+        const probe = {};
+        outside.forEach((p) => { probe[p] = ''; });
+        const check = validateFilePath(probe, String(to || '').trim().replace(/\/+$/, ''), '');
+        if (!check.ok) return { error: check.error };
+        const dest = check.path;
+        if (dest === src) return { error: null, entries: entries, path: src, moves: [], refsUpdated: 0 };
+        if (dest.indexOf(src + '/') === 0) return { error: 'A folder cannot be moved into itself.' };
+        const parts = dest.split('/');
+        for (let i = 1; i < parts.length; i++) {
+            const prefix = parts.slice(0, i).join('/');
+            if (outside.some((p) => p.toLowerCase() === prefix.toLowerCase())) return { error: prefix + ' is a file, so it cannot hold a folder.' };
+        }
+        const taken = new Set(outside.map((p) => p.toLowerCase()));
+        for (let i = 0; i < inside.length; i++) {
+            const target = dest + inside[i].slice(src.length);
+            if (taken.has(target.toLowerCase())) return { error: target + ' already exists (file names are compared without regard to case).' };
+        }
+        let current = entries;
+        const knownSet = new Set(all);
+        const moves = [];
+        inside.forEach((old) => {
+            const target = dest + old.slice(src.length);
+            current = retarget(current, old, target, knownSet).entries;
+            knownSet.delete(old);
+            knownSet.add(target);
+            moves.push({ from: old, to: target });
+        });
+        const back = {};
+        moves.forEach((m) => { back[m.to] = m.from; });
+        const refsUpdated = Object.keys(current).filter((k) => entries[back[k] || k] !== current[k]).length;
+        return { error: null, entries: current, path: dest, moves: moves, refsUpdated: refsUpdated };
+    }
+
+    function validateFolderPath(files, dirs, candidate, current) {
+        const probe = {};
+        files.concat(dirs).forEach((p) => { probe[p] = ''; });
+        const check = validateFilePath(probe, String(candidate || '').trim().replace(/\/+$/, ''), current);
+        if (!check.ok) return check;
+        const parts = check.path.split('/');
+        for (let i = 1; i < parts.length; i++) {
+            const prefix = parts.slice(0, i).join('/');
+            if (files.some((p) => p.toLowerCase() === prefix.toLowerCase())) return { ok: false, error: prefix + ' is a file, so it cannot hold a folder.' };
+        }
+        return check;
     }
 
     function normalizeEntries(files) {
@@ -843,7 +928,7 @@
         relativePath: relativePath,
         normalizeFilePath: normalizeFilePath,
         validateFilePath: validateFilePath,
-        renameFile: renameFile, renameAsset: renameAsset,
+        renameFile: renameFile, renameAsset: renameAsset, moveFolder: moveFolder, deriveTree: deriveTree, pathsUnder: pathsUnder, validateFolderPath: validateFolderPath,
         duplicateFile: duplicateFile,
         deleteFile: deleteFile,
         treeAfter: treeAfter,

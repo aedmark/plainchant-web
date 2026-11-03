@@ -336,6 +336,18 @@ body[data-panes="preview"] .pane-void { display: none; }
     user-select: none;
 }
 
+.explorer-dir { display: flex; align-items: center; }
+.explorer-dir-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.explorer-dir:hover .explorer-actions, .explorer-dir:focus-within .explorer-actions { display: inline-flex; }
+.explorer-dir.drop-into { background: var(--bg-raised); outline: 1.5px dashed var(--focus); outline-offset: -1.5px; }
+.explorer-tree.drop-root { outline: 1.5px dashed var(--focus); outline-offset: -2px; }
+.explorer-row, .explorer-dir { touch-action: none; }
+body.explorer-dragging, body.explorer-dragging * { user-select: none; cursor: grabbing !important; }
+.explorer-ghost { position: fixed; z-index: 3000; pointer-events: none; padding: 0.15rem 0.5rem; font-size: 0.73rem; font-weight: 600; border-radius: 4px; background: var(--text-strong); color: var(--bg-void); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+.file-tab.tab-dragging { opacity: 0.5; }
+.file-tab.tab-drop-before { box-shadow: inset 3px 0 0 var(--focus); }
+.file-tab.tab-drop-after { box-shadow: inset -3px 0 0 var(--focus); }
+
 .explorer-item {
     width: 100%;
     display: flex;
