@@ -32,6 +32,7 @@ const APP_FILES = [
     'src/app/shade.js',
     'src/app/find.js',
     'src/app/panes.js',
+    'src/app/dock-ui.js',
     'src/app/stage.js',
     'src/app/stage-live.js',
     'src/app/inspector-ui.js',

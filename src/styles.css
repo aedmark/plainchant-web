@@ -669,7 +669,20 @@ body.shaded #editor {
     display: block;
 }
 
+.canvas-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.canvas-body[data-dock="left"],
+.canvas-body[data-dock="right"] {
+    flex-direction: row;
+}
+
 .inspector-panel {
+    position: relative;
     flex-shrink: 0;
     border-top: 1px solid var(--border-void);
     background-color: var(--bg-raised);
@@ -1259,3 +1272,47 @@ body.shaded #editor {
 
 .sh-find-match { color: transparent; background-color: rgba(245, 158, 11, 0.32); border-radius: 2px; }
 .sh-find-current { background-color: rgba(245, 158, 11, 0.7); outline: 1px solid #f59e0b; }
+
+.inspector-panel.dock-top { order: -1; border-top: 0; border-bottom: 1px solid var(--border-void); }
+
+.inspector-panel.dock-left,
+.inspector-panel.dock-right {
+    width: var(--inspector-w, 320px);
+    min-width: 240px;
+    max-width: 70%;
+    max-height: none;
+    align-self: stretch;
+    border-top: 0;
+}
+
+.inspector-panel.dock-left { order: -1; border-right: 1px solid var(--border-void); }
+.inspector-panel.dock-right { border-left: 1px solid var(--border-void); }
+.inspector-panel.dock-left.collapsed,
+.inspector-panel.dock-right.collapsed { align-self: flex-start; }
+
+.dock-left .inspector-body,
+.dock-right .inspector-body { flex: 1 1 auto; min-height: 0; }
+
+.dock-left .insp-grid,
+.dock-right .insp-grid { grid-template-columns: minmax(0, 1fr); }
+
+.dock-left .insp-field.insp-wide,
+.dock-right .insp-field.insp-wide { grid-column: auto; }
+
+.dock-left .console-list, .dock-right .console-list,
+.dock-left .parts-list, .dock-right .parts-list { max-height: none; }
+
+.inspector-resizer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    cursor: col-resize;
+    z-index: 2;
+    touch-action: none;
+}
+
+.inspector-resizer[hidden] { display: none; }
+.dock-left .inspector-resizer { right: -4px; }
+.dock-right .inspector-resizer { left: -4px; }
+.inspector-resizer:hover, .inspector-resizer:focus-visible { background-color: var(--border-strong); outline: none; }

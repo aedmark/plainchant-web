@@ -155,3 +155,13 @@ test('structure: the floating Inspector wraps its header and clips overflow so c
     });
     assert.includes(rule('.inspector-panel.floating'), 'overflow: hidden');
 });
+
+test('structure: the Inspector can dock bottom, top, left, right, or float, with a menu and a side resizer (P7-16)', () => {
+    ['id="canvasBody"', 'id="inspDockBtn"', 'id="dockMenu"', 'id="inspectorResizer"'].forEach((needle) => assert.includes(html, needle));
+    ['bottom', 'top', 'left', 'right', 'float'].forEach((dock) => assert.includes(html, 'data-dock="' + dock + '"'));
+    assert.ok(listed.indexOf('dock-ui.js') > listed.indexOf('panes.js'), 'dock-ui.js loads after panes.js');
+    const settings = readRoot('src/app/settings.js');
+    assert.includes(settings, "inspectorDock: ['bottom', 'top', 'left', 'right', 'float']");
+    ['.canvas-body[data-dock="left"]', '.inspector-panel.dock-top', '.inspector-panel.dock-left', '.inspector-panel.dock-right'].forEach((sel) => assert.includes(css, sel));
+    assert.ok(/\.dock-left \.insp-grid,\s*\.dock-right \.insp-grid \{ grid-template-columns: minmax\(0, 1fr\); \}/.test(css), 'side docks use one column');
+});

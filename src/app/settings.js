@@ -5,12 +5,15 @@ const SETTING_DEFAULTS = {
     colours: true,
     indent: true,
     panes: 'both',
-    inspector: true
+    inspector: true,
+    inspectorDock: 'bottom',
+    inspectorWidth: 320
 };
 const SETTING_CHOICES = {
     panes: ['both', 'write', 'preview'],
     theme: ['dark', 'light', 'retro', 'system'],
-    size: ['small', 'normal', 'large', 'larger']
+    size: ['small', 'normal', 'large', 'larger'],
+    inspectorDock: ['bottom', 'top', 'left', 'right', 'float']
 };
 const TEXT_SCALE = { small: 0.875, normal: 1, large: 1.15, larger: 1.3 };
 const settingsModal = document.getElementById('settings-modal');

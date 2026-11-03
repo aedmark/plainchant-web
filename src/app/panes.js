@@ -7,13 +7,17 @@ const viewportButtons = Array.from(document.querySelectorAll('.vp-btn'));
 const inspectorToggleBtn = document.getElementById('inspectorToggleBtn');
 const inspectorPanel = document.getElementById('inspectorPanel');
 const inspectorHeader = document.getElementById('inspectorHeader');
-const inspFloatBtn = document.getElementById('inspFloatBtn');
+const inspDockBtn = document.getElementById('inspDockBtn');
+const canvasBody = document.getElementById('canvasBody');
+const inspectorResizer = document.getElementById('inspectorResizer');
 const inspCollapseBtn = document.getElementById('inspCollapseBtn');
 const inspCloseBtn = document.getElementById('inspCloseBtn');
 const PANES_KEYS = { Digit1: 'write', Digit2: 'both', Digit3: 'preview' };
 
 let inspectorCollapsed = false;
 let inspectorFloating = false;
+let inspectorDock = 'bottom';
+const DOCK_LABELS = { bottom: 'Bottom', top: 'Top', left: 'Left', right: 'Right', float: 'Float' };
 let floatDrag = null;
 
 function panesShown() {
@@ -73,8 +77,12 @@ function setInspectorCollapsed(collapsed) {
     }
 }
 
-function setInspectorFloating(floating) {
-    inspectorFloating = Boolean(floating);
+function setInspectorDock(dock, remember) {
+    if (!DOCK_LABELS[dock]) return;
+    inspectorDock = dock;
+    inspectorFloating = dock === 'float';
+    canvasBody.dataset.dock = dock;
+    Object.keys(DOCK_LABELS).forEach((d) => inspectorPanel.classList.toggle('dock-' + d, d === dock));
     inspectorPanel.classList.toggle('floating', inspectorFloating);
     if (!inspectorFloating) {
         inspectorPanel.style.left = '';
@@ -82,10 +90,9 @@ function setInspectorFloating(floating) {
     } else if (inspectorCollapsed) {
         setInspectorCollapsed(false);
     }
-    if (inspFloatBtn) {
-        inspFloatBtn.textContent = inspectorFloating ? '⤓ Dock' : '⤢ Float';
-        inspFloatBtn.title = inspectorFloating ? 'Dock Inspector to bottom of Stage' : 'Pop Inspector into a floating window';
-    }
+    inspectorResizer.hidden = dock !== 'left' && dock !== 'right';
+    inspDockBtn.textContent = DOCK_LABELS[dock] + ' \u25be';
+    if (remember !== false) setSetting('inspectorDock', dock);
 }
 
 panesButtons.forEach((b) => b.addEventListener('click', () => setPanes(b.dataset.panes)));
@@ -99,10 +106,6 @@ if (inspCloseBtn) {
 if (inspCollapseBtn) {
     inspCollapseBtn.addEventListener('click', () => setInspectorCollapsed(!inspectorCollapsed));
 }
-if (inspFloatBtn) {
-    inspFloatBtn.addEventListener('click', () => setInspectorFloating(!inspectorFloating));
-}
-
 if (inspectorHeader) {
     inspectorHeader.addEventListener('pointerdown', (e) => {
         if (!inspectorFloating || e.target.closest('button')) return;
@@ -141,4 +144,5 @@ document.addEventListener('keydown', (e) => {
 });
 mobileMQ.addEventListener('change', showPanes);
 showPanes();
+setInspectorDock(settings.inspectorDock, false);
 toggleInspector(settings.inspector !== false);

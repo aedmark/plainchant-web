@@ -17,6 +17,7 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
     - Drag and drop elements on the Stage (or use the floating badge buttons `↑`, `↓`, `⧉`, `✕` or `Alt+Up` / `Alt+Down`) to reorder, duplicate, or delete elements cleanly.
   - **Live JS Mode:** Toggle **Live JS** in the Stage header to run your project's JavaScript and test interactive behavior.
 - **Dockable, Collapsible & Floating Inspector (`Ctrl/Cmd+Shift+I`):**
+  - Use the **Dock** menu to place the Inspector at the bottom, top, left, or right of the Stage, or as a floating window; side docks are resizable and your choice is remembered.
   - **Properties (HTML):** Edit `id`, `class`, `href`, `src`, `alt`, inline text, move up/down, duplicate, wrap in `<div>`, or delete.
   - **Rich CSS Designer:** Reads live `getComputedStyle` telemetry from the Stage iframe to display computed placeholders and box summaries, syncs color pickers, targets either shared stylesheet rules (with **Go to CSS ↗** to jump directly to the rule in the Code editor) or inline `element.style`, and edits Display, Padding, Margin, Gap, Width, Font Size, Text Align, Border Radius, Text Color, and Background Color.
 - **Insert Dropdown & Right-Click Context Menu:**

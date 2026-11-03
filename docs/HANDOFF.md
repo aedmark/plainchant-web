@@ -7,7 +7,7 @@
 Last updated: 2026-11-02
 - **Phase**: Phases 1-5 complete; `P6-01`, `P7-09`, `P7-10` done; `P6-02` next (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`37/37` unit & structural tests)
+  - `npm test` — passed (`38/38` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `15` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -33,9 +33,11 @@ Last updated: 2026-11-02
 
 - **Line numbers & Find/Replace (`P6-01`, `D-015`)**: `#editorGutter` in `src/app/shade.js`; `#findBar` with `Ctrl/Cmd+F` / `Ctrl/Cmd+H` in `src/app/find.js` and `src/finding.js`.
 
+- **Inspector docking (`P7-16`, `D-016`)**: bottom/top/left/right/float via the Dock menu; side docks resizable and remembered (`src/app/dock-ui.js`, `src/app/panes.js`).
+
 ### In flight
 
-- `P6-01` is complete but uncommitted. Nothing half-built.
+- `P7-16` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -61,6 +63,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2e: 2026-11-02: Stage anchor fix, Inspector header overflow, dockable Inspector
+
+- **Did**: Live bridge now handles `#anchor`/empty links and form submits (`D-012`); Inspector header wraps and the floating panel clips overflow; `P7-16` dockable Inspector: `#canvasBody` wrapper, **Dock** menu and side resizer in [`src/app/dock-ui.js`](../src/app/dock-ui.js), `setInspectorDock()` in [`src/app/panes.js`](../src/app/panes.js), `inspectorDock` / `inspectorWidth` settings.
+- **Decided**: `D-016` (Stage-pane docks, tall single-column sides, menu control, per maintainer).
+- **Verified**: `npm test` (`38/38`); browser check of all five docks on every tab (no clipped controls), menu, resize, clamping, reload persistence. Full check results are in this session's final report.
+- **Next**: `P6-02`.
 
 ### Session 2d: 2026-11-02: P6-01 line numbers and Find/Replace
 

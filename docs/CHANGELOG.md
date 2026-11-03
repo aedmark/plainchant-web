@@ -32,6 +32,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Line numbers and Find/Replace**: The code editor shows a line-number gutter that follows wrapped lines and highlights the caret line and Stage-selected block. `Ctrl/Cmd+F` / `Ctrl/Cmd+H` open a find bar with match highlighting, a case toggle, next/previous (`Enter` / `Shift+Enter`), **Replace**, and **Replace All**, all undoable (`P6-01`, `D-015`).
 
+- **Dockable Inspector**: A **Dock** menu in the Inspector header places it at the bottom, top, left, or right of the Stage, or floating. Side docks are a resizable single-column panel (drag the edge or use the arrow keys); the position and width are remembered (`P7-16`, `D-016`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

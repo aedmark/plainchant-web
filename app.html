@@ -162,13 +162,15 @@
         </div>
     </div>
 
+    <div id="canvasBody" class="canvas-body" data-dock="bottom">
     <div id="render-target" class="stage-viewport">
         <div id="stage-frame-wrap" class="stage-frame-wrap">
             <iframe id="stageFrame" title="Live WYSIWYG Stage" sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
     </div>
 
-    <section id="inspectorPanel" class="inspector-panel" aria-label="Properties, CSS Designer, and Console">
+    <section id="inspectorPanel" class="inspector-panel dock-bottom" aria-label="Properties, CSS Designer, and Console">
+        <div id="inspectorResizer" class="inspector-resizer" role="separator" aria-orientation="vertical" aria-label="Resize Inspector width" tabindex="0" hidden></div>
         <div id="inspectorHeader" class="inspector-header">
             <div class="inspector-tabs" role="tablist" aria-label="Inspector sections">
                 <button type="button" class="insp-tab" data-insp="props" aria-selected="true">Properties (HTML)</button>
@@ -185,7 +187,7 @@
                     <button type="button" class="mini" id="inspDupBtn" title="Duplicate selected element" disabled>Duplicate</button>
                     <button type="button" class="mini" id="inspWrapBtn" title="Wrap selected element in a &lt;div&gt;" disabled>Wrap &lt;div&gt;</button>
                     <button type="button" class="mini danger-mini" id="inspDeleteBtn" title="Delete selected element (Del)" disabled>Delete</button>
-                    <button type="button" class="mini" id="inspFloatBtn" title="Switch between docked panel and floating modal window">&#10530; Float</button>
+                    <button type="button" class="mini" id="inspDockBtn" aria-haspopup="menu" aria-expanded="false" title="Choose where the Inspector sits: bottom, top, left, right, or floating">Bottom &#9662;</button>
                     <button type="button" class="mini" id="inspCollapseBtn" title="Collapse or expand inspector body">&#9662;</button>
                     <button type="button" class="mini" id="inspCloseBtn" title="Hide Inspector (Ctrl/Cmd+Shift+I)">&times;</button>
                 </div>
@@ -312,6 +314,7 @@
             <div id="consoleList" class="console-list" role="log" aria-live="polite"></div>
         </div>
     </section>
+    </div>
 </div>
 
 <div id="library-modal" class="modal-overlay">
@@ -462,7 +465,7 @@
             <ul>
                 <li><strong>Select, Highlight &amp; Edit Text in Place:</strong> In <strong>Design Mode</strong>, click any element on the Stage to highlight its code block in the Code editor and view its live margin/padding box model. Clicking a text element places a live text cursor right where you clicked so you can type and edit copy directly on the Stage while the HTML updates in real time.</li>
                 <li><strong>Direct Stage Reordering:</strong> Drag elements on the Stage (or grab the <code>&#10287;</code> badge handle) to reorder them, or use the floating badge buttons (<code>&uarr;</code>, <code>&darr;</code>, <code>&#10697;</code>, <code>&#10005;</code>) and <kbd>Alt+&uarr;/&darr;</kbd>.</li>
-                <li><strong>Dockable &amp; Floating Inspector:</strong> Edit HTML attributes or use the <strong>CSS Designer</strong> to inspect computed styles, modify rules, or click <strong>Go to CSS &#8599;</strong> to jump straight to the rule in your stylesheet. Toggle, collapse, or float the Inspector (<kbd>Ctrl/Cmd+Shift+I</kbd>).</li>
+                <li><strong>Dockable &amp; Floating Inspector:</strong> Edit HTML attributes or use the <strong>CSS Designer</strong> to inspect computed styles, modify rules, or click <strong>Go to CSS &#8599;</strong> to jump straight to the rule in your stylesheet. Toggle, collapse, or move the Inspector (bottom, top, left, right, or floating, from its <strong>Dock</strong> menu) (<kbd>Ctrl/Cmd+Shift+I</kbd>).</li>
                 <li><strong>Insert Menu &amp; Right-Click Context Menu:</strong> Use the top <strong>Insert &#9662;</strong> menu, right-click on the Stage or HTML editor, or type shorthand like <code>section.hero</code> or <code>ul*3</code> and press <kbd>Tab</kbd>.</li>
                 <li><strong>Multi-File Undo &amp; Redo:</strong> Use <strong>&#8630;</strong> / <strong>&#8631;</strong> or <kbd>Ctrl/Cmd+Z</kbd> and <kbd>Ctrl/Cmd+Shift+Z</kbd> (<kbd>Ctrl+Y</kbd>) across all files and visual actions.</li>
                 <li><strong>Line Numbers &amp; Find/Replace:</strong> The code editor shows line numbers. Press <kbd>Ctrl/Cmd+F</kbd> to find in the current file or <kbd>Ctrl/Cmd+H</kbd> to find and replace; <kbd>Enter</kbd> / <kbd>Shift+Enter</kbd> step through matches and <kbd>Esc</kbd> closes the bar.</li>
@@ -476,6 +479,14 @@
             <button type="button" class="btn primary" data-close>Got it</button>
         </div>
     </div>
+</div>
+
+<div id="dockMenu" class="ctx-menu" role="menu" aria-label="Inspector position" hidden>
+    <button type="button" class="ctx-item" role="menuitemradio" aria-checked="true" data-dock="bottom"><span>Dock at bottom</span></button>
+    <button type="button" class="ctx-item" role="menuitemradio" aria-checked="false" data-dock="top"><span>Dock at top</span></button>
+    <button type="button" class="ctx-item" role="menuitemradio" aria-checked="false" data-dock="left"><span>Dock at left</span></button>
+    <button type="button" class="ctx-item" role="menuitemradio" aria-checked="false" data-dock="right"><span>Dock at right</span></button>
+    <button type="button" class="ctx-item" role="menuitemradio" aria-checked="false" data-dock="float"><span>Floating window</span></button>
 </div>
 
 <div id="contextMenu" class="ctx-menu" role="menu" aria-label="Element and Insert Menu" hidden>
@@ -542,6 +553,7 @@
 <script src="src/app/shade.js"></script>
 <script src="src/app/find.js"></script>
 <script src="src/app/panes.js"></script>
+<script src="src/app/dock-ui.js"></script>
 <script src="src/app/stage.js"></script>
 <script src="src/app/stage-live.js"></script>
 <script src="src/app/inspector-ui.js"></script>
