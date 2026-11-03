@@ -216,3 +216,13 @@ test('structure: the Export dialog offers a whole-project .zip built by zip.js (
     assert.ok(listed.indexOf('zip-ui.js') > listed.indexOf('tauri-files.js'), 'zip-ui.js loads after tauri-files.js (it uses hasTauri)');
     assert.includes(readRoot('src/app/zip-ui.js'), 'Zip.build');
 });
+
+test('structure: the Assets modal, Browse button, image library, and asset-ui.js are wired in (P7-02)', () => {
+    ['id="assets-modal"', 'id="assetsBtn"', 'id="assetGrid"', 'id="assetSearch"', 'id="assetAddBtn"', 'id="assetFileInput"', 'id="propSrcBrowseBtn"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/imagelib.js') !== -1 && order.indexOf('src/imagelib.js') < order.indexOf('src/app/core.js'), 'imagelib.js loads before the app scripts');
+    assert.ok(listed.indexOf('asset-ui.js') > listed.indexOf('assets.js') && listed.indexOf('asset-ui.js') > listed.indexOf('explorer-ui.js'), 'asset-ui.js loads after assets.js and explorer-ui.js');
+    assert.includes(readRoot('src/app/import.js'), 'addImageFiles');
+    assert.includes(readRoot('src/app/assets.js'), 'function addProjectAsset');
+    assert.includes(readRoot('src/store.js'), 'putAsset: putAsset');
+});

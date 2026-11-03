@@ -107,7 +107,11 @@ async function writeBrowserDirEntries(rootHandle, entriesMap, assetMap) {
         for (let i = 0; i < parts.length - 1; i++) {
             dir = await dir.getDirectoryHandle(parts[i], { create: true });
         }
-        const writable = await (await dir.getFileHandle(parts[parts.length - 1], { create: true })).createWritable();
+        const fileName = parts[parts.length - 1];
+        let existing = null;
+        try { existing = await (await dir.getFileHandle(fileName)).getFile(); } catch (e) { existing = null; }
+        if (existing && existing.size === blob.size) continue;
+        const writable = await (await dir.getFileHandle(fileName, { create: true })).createWritable();
         await writable.write(blob);
         await writable.close();
     }
@@ -205,8 +209,7 @@ async function exportProjectToFolder(forceNewFolder = false) {
             if (!dirHandle) {
                 dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             }
-            const targetIsSource = !forceNewFolder && linkedFolder && linkedFolder.handle;
-            await writeBrowserDirEntries(dirHandle, projectFiles.entries, targetIsSource ? null : projectAssets);
+            await writeBrowserDirEntries(dirHandle, projectFiles.entries, projectAssets);
             if (!linkedFolder) {
                 linkedFolder = { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle };
                 updateFolderBar();

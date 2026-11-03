@@ -55,6 +55,7 @@
             <button id="newBtn" type="button" class="btn" title="Start a blank project">New</button>
             <button id="libraryBtn" type="button" class="btn" title="Open your project library">Projects</button>
             <button id="folderBtn" type="button" class="btn" title="Open a local project folder into Studio">Folder</button>
+            <button id="assetsBtn" type="button" class="btn" title="Browse and add the project's images">Assets</button>
             <button id="saveBtn" type="button" class="btn" title="Save project to Studio workspace (Ctrl/Cmd+S)">Save</button>
             <button id="exportBtn" type="button" class="btn" title="Export project to disk or bundle">Export</button>
             <button id="copyBtn" type="button" class="btn" title="Copy current file">Copy</button>
@@ -225,6 +226,7 @@
                 <label class="insp-field" id="propSrcWrap">
                     <span>Source (src)</span>
                     <input type="text" id="propSrc" placeholder="image.png" autocomplete="off" disabled>
+                    <button type="button" class="mini" id="propSrcBrowseBtn" title="Choose from the project's images" disabled>Browse&hellip;</button>
                 </label>
                 <label class="insp-field" id="propAltWrap">
                     <span>Alt / Title</span>
@@ -397,6 +399,22 @@
             <span id="domStatsBadge" class="dom-stats-badge"></span>
         </div>
         <div id="outline-list" class="modal-body outline-list"></div>
+    </div>
+</div>
+
+<div id="assets-modal" class="modal-overlay">
+    <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="assets-title">
+        <div class="modal-header">
+            <h2 id="assets-title">Assets</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="library-tools">
+            <input id="assetSearch" class="library-search" type="search" placeholder="Filter images" aria-label="Filter images" autocomplete="off">
+            <button type="button" class="chip" id="assetAddBtn" title="Add images to the project's images folder (you can also drop image files anywhere)">Add images&hellip;</button>
+            <input type="file" id="assetFileInput" accept="image/*,.svg,.avif" multiple hidden>
+        </div>
+        <div id="assetGrid" class="asset-grid modal-body"></div>
+        <div id="assetStatus" role="status" aria-live="polite"></div>
     </div>
 </div>
 
@@ -582,6 +600,7 @@
 <script src="src/filesync.js"></script>
 <script src="src/finding.js"></script>
 <script src="src/zip.js"></script>
+<script src="src/imagelib.js"></script>
 <script src="src/importing.js"></script>
 <script src="src/app/core.js"></script>
 <script src="src/app/layout.js"></script>
@@ -607,6 +626,7 @@
 <script src="src/app/problems-ui.js"></script>
 <script src="src/app/outline-ui.js"></script>
 <script src="src/app/explorer-ui.js"></script>
+<script src="src/app/asset-ui.js"></script>
 <script src="src/app/export.js"></script>
 <script src="src/app/import.js"></script>
 <script src="src/app/tauri-files.js"></script>

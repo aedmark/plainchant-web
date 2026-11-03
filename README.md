@@ -35,6 +35,8 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
   - The **Project** toggle on the find bar lists matches in every file, lets you skip files, and replaces across the project in one undo step.
 - **Zip Export:**
   - **Export > Download project .zip** downloads the whole project (including images from an opened folder) as one archive, ready to unpack or upload.
+- **Asset Manager & Image Picker:**
+  - **Assets** browses every project image with thumbnails and usage counts; insert an image, set it on the selected `<img>`, or use **Browse…** next to Source. In the browser, add images with **Add images…** or by dropping files.
 - **Safe Local Folder Workflow & Structure-Preserving Export:**
   - Opening a local folder via **Folder** creates an isolated project environment in your Studio library (serving local images, fonts, and linked stylesheets via a built-in localhost asset server in Tauri).
   - Edits are auto-saved to your Studio workspace and **never** overwrite your local disk until you explicitly use **Export**, which writes all project files back to disk while retaining your exact folder and file hierarchy.

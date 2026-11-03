@@ -132,6 +132,18 @@
         return finished(tx);
     }
 
+    function putAsset(db, scriptId, path, blob) {
+        const tx = db.transaction([ASSETS], 'readwrite');
+        tx.objectStore(ASSETS).put({ key: assetKey(scriptId, path), scriptId: scriptId, path: path, blob: blob });
+        return finished(tx);
+    }
+
+    function deleteAsset(db, scriptId, path) {
+        const tx = db.transaction([ASSETS], 'readwrite');
+        tx.objectStore(ASSETS).delete(assetKey(scriptId, path));
+        return finished(tx);
+    }
+
     function loadAssets(db, scriptId) {
         const tx = db.transaction([ASSETS], 'readonly');
         return promised(tx.objectStore(ASSETS).index(BY_SCRIPT).getAll(IDBKeyRange.only(scriptId))).then((list) => {
@@ -234,7 +246,7 @@
         diff: diff, guardSave: guardSave, reconcile: reconcile,
         open: open, loadAll: loadAll, write: write, saveScript: saveScript,
         addVersion: addVersion, loadVersions: loadVersions, removeVersion: removeVersion,
-        putAssets: putAssets, loadAssets: loadAssets, copyAssets: copyAssets,
+        putAssets: putAssets, putAsset: putAsset, deleteAsset: deleteAsset, loadAssets: loadAssets, copyAssets: copyAssets,
         putLink: putLink, loadLinks: loadLinks, removeLink: removeLink
     };
 });

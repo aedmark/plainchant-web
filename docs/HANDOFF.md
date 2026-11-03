@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`56/56` unit & structural tests)
+  - `npm test` — passed (`59/59` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `18` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `19` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -47,9 +47,11 @@ Last updated: 2026-11-02
 
 - **Zip export (`P7-13`, `D-022`)**: Export dialog button, stored zip writer (`src/zip.js`, `src/app/zip-ui.js`).
 
+- **Asset manager (`P7-02`, `D-023`)**: Assets modal, picker, uploads and deletes for blob images in the browser build (`src/app/asset-ui.js`, `src/imagelib.js`).
+
 ### In flight
 
-- `P7-13` is complete but uncommitted. Nothing half-built.
+- `P7-02` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -59,13 +61,14 @@ Last updated: 2026-11-02
 - **Browser folder open was not driven end to end**: `showDirectoryPicker` cannot be automated, so `P7-09` was checked by calling `activateImportedFolderProject` with a real PNG. Try it by hand in Chromium with a folder of images.
 - **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
 - **Insert drag was driven with synthetic pointer events (`D-020`)**: try a real mouse drag, and a drag in the Tauri WebKitGTK shell (pointer capture on `document.body`, `elementFromPoint` into the Stage).
+- **Desktop app cannot add or delete images (`D-023`)**: its `save_project_folder` writes text files only. Adding that means extending the Rust command to accept binary files, then enabling Add and Delete in the Assets modal.
 - **Dialogs in the desktop shell (`D-017`)**: Rename, New File, and Make Part use `window.prompt`; not verified in Tauri WebKitGTK. If it returns `null` there, replace with an in-app modal.
 - **Syntax colours can still switch off (`D-002`)**: `checkShade` permanently disables colouring on a detected wrap mismatch. The known cause (dropped `/` in `/>`) is fixed and guarded by a round-trip test, but any new tokenizer change must keep run text identical to the source. Settings > Syntax colours off/on re-enables without reload.
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-01`..`P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`) is unprioritized (`P7-13` is done), so ask which is next.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`) is unprioritized (`P7-02`, `P7-13` are done), so ask which is next.
 
 ### Open questions
 
@@ -76,6 +79,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2l: 2026-11-02: P7-02 asset manager and image picker
+
+- **Did**: [`src/imagelib.js`](../src/imagelib.js), `Links.usage`, `Project.treeAfter` `add`; `addProjectAsset` / `removeProjectAsset` and incremental IndexedDB writes; [`src/app/asset-ui.js`](../src/app/asset-ui.js) (modal, picker, add, delete); **Assets** and **Browse…** buttons; image drops routed in `import.js`; folder export writes added assets.
+- **Decided**: `D-023`.
+- **Verified**: `npm test` (`59/59`); browser check of add, filter, insert, use-on-selected, picker, usage counts, delete, drop, reload persistence, folder-project tree, zip. Full check results are in this session's final report.
+- **Next**: ask which backlog item is next.
 
 ### Session 2k: 2026-11-02: P7-13 zip export
 

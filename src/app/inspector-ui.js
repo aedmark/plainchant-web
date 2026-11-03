@@ -14,6 +14,7 @@ const propText = document.getElementById('propText');
 const propHref = document.getElementById('propHref');
 const propFollowBtn = document.getElementById('propFollowBtn');
 const propSrc = document.getElementById('propSrc');
+const propSrcBrowseBtn = document.getElementById('propSrcBrowseBtn');
 const propAlt = document.getElementById('propAlt');
 
 const cssTargetSelect = document.getElementById('cssTargetSelect');
@@ -114,11 +115,13 @@ function refreshInspector() {
         propText.value = (!hasElementChildren && !node.selfClosing) ? HtmlAst.innerText(currentHtmlAst, node.id).trim() : '';
         propHref.value = node.attrs.href || '';
         propFollowBtn.disabled = !projectLinkTarget(propHref.value);
+        propSrcBrowseBtn.disabled = false;
         propSrc.value = node.attrs.src || '';
         propAlt.value = node.attrs.alt || node.attrs.title || '';
     } else {
         lastComputedStyle = null;
         propFollowBtn.disabled = true;
+        propSrcBrowseBtn.disabled = true;
     }
 
     populateCssTargets(hasNode ? node : null);

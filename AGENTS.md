@@ -93,6 +93,8 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/filesync.js` | Disk vs. studio content comparison helpers (UMD) |
 | `src/importing.js` | Text/code file extension filter and UTF-8/UTF-16/Windows-1252 decoder (UMD) |
 | `src/app/explorer-ui.js` | Explorer Rename / Duplicate / Delete, file context menu, and unsaved-file dots |
+| `src/imagelib.js` | Project image listing, unique upload paths, and size formatting (UMD, no DOM) |
+| `src/app/asset-ui.js` | Assets modal: thumbnails, usage, insert/use/pick/delete, and adding images |
 | `src/zip.js` | Dependency-free ZIP writer and reader (stored entries, CRC-32, UTF-8 names; UMD, no DOM) |
 | `src/app/zip-ui.js` | Export dialog **Download project .zip** button (hidden in Tauri) |
 | `src/finding.js` | Plain-text search and replace offset helpers for the find bar (UMD, no DOM) |

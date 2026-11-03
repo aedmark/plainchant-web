@@ -158,5 +158,18 @@
         try { return decodeURIComponent(fragment); } catch (e) { return fragment; }
     }
 
-    return { createChecker: createChecker, extract: extract };
+    function usage(entries) {
+        const used = {};
+        Object.keys(entries).forEach((file) => {
+            extract(file, entries[file]).refs.forEach((ref) => {
+                const raw = ref.raw.trim();
+                if (!raw || raw.charAt(0) === '#' || raw.charAt(0) === '?' || /\{\{|\{%|<%|\$\{|<\?/.test(raw) || /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(raw)) return;
+                const target = Project.resolveRelativePath(file, raw);
+                if (target) (used[target] = used[target] || []).push({ file: file, line: ref.line });
+            });
+        });
+        return used;
+    }
+
+    return { createChecker: createChecker, extract: extract, usage: usage };
 });

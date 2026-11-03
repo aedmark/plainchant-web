@@ -41,3 +41,22 @@ function saveProjectAssets() {
     const files = projectAssets;
     track(Store.putAssets(scriptDb, currentScriptId, files).catch((e) => { console.error('Asset save error:', e); }));
 }
+
+function addProjectAsset(path, blob) {
+    const typed = blob.type ? blob : new Blob([blob], { type: Project.mimeFor(path) });
+    if (projectAssetUrls[path]) URL.revokeObjectURL(projectAssetUrls[path]);
+    projectAssets[path] = typed;
+    projectAssetUrls[path] = URL.createObjectURL(typed);
+    if (storageMode === 'idb') track(Store.putAsset(scriptDb, currentScriptId, path, typed).catch((e) => { console.error('Asset save error:', e); }));
+}
+
+function removeProjectAsset(path) {
+    if (projectAssetUrls[path]) URL.revokeObjectURL(projectAssetUrls[path]);
+    delete projectAssets[path];
+    delete projectAssetUrls[path];
+    if (storageMode === 'idb') track(Store.deleteAsset(scriptDb, currentScriptId, path).catch((e) => { console.error('Asset delete error:', e); }));
+}
+
+function projectAssetBytes() {
+    return Object.keys(projectAssets).reduce((n, p) => n + projectAssets[p].size, 0);
+}

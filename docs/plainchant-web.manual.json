@@ -279,6 +279,26 @@
       "description": "How multi-file projects, undo history, local folders, and static assets are managed safely.",
       "entries": [
         {
+          "id": "asset-manager",
+          "title": "Asset manager and image picker",
+          "summary": "Browse, add, insert, pick, and delete the project's images with thumbnails and usage counts.",
+          "tags": ["assets", "images", "D-023"],
+          "what": "The **Assets** button opens a grid of every project image with a thumbnail, folder, size, dimensions, and how many places use it. Each image can be inserted as an `<img>`, set on the selected `<img>`, or copied as a path; **Browse…** next to Source opens the grid as a picker. In the browser build, **Add images…** or dropping image files adds them to `images/`, and blob images can be deleted.",
+          "how": [
+            "`ImageLib.list()` merges blob assets, non-text files in the folder tree, and text `.svg` entries; `Links.usage()` counts references from pages and stylesheets.",
+            "`src/app/asset-ui.js` renders the modal and applies actions through `applyHtmlTransform()`; added images go through `addProjectAsset()` into `projectAssets` and IndexedDB one asset at a time, and into the folder tree when there is one.",
+            "Folder export now writes any asset that is missing from the target folder or differs in size, and the zip export includes them."
+          ],
+          "why": "Recorded in D-023: images are the one project file type the studio could not add or choose visually, and the desktop app is left read-only for images until its native export can write binaries.",
+          "evidence": [
+            {"label": "Modal and actions", "target": "src/app/asset-ui.js"},
+            {"label": "Image library helpers", "target": "src/imagelib.js"},
+            {"label": "Asset storage", "target": "src/app/assets.js"},
+            {"label": "Helper tests", "target": "test/project.test.js"}
+          ],
+          "related": ["browser-binary-assets", "zip-export", "problems-link-checker"]
+        },
+        {
           "id": "zip-export",
           "title": "Zip export",
           "summary": "Downloads the whole project as one .zip from the browser build.",

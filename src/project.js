@@ -379,6 +379,16 @@
         if (!Array.isArray(tree)) return tree;
         let next = tree.map((item) => Object.assign({}, item));
         if (op.type === 'delete') return next.filter((item) => item.path !== op.path);
+        if (op.type === 'add') {
+            if (next.some((item) => item.path === op.path)) return next;
+            const parts = op.path.split('/');
+            for (let i = 1; i < parts.length; i++) {
+                const dir = parts.slice(0, i).join('/');
+                if (!next.some((item) => item.path === dir)) next.push({ path: dir, kind: 'dir', is_text: false });
+            }
+            next.push({ path: op.path, kind: 'file', is_text: op.is_text !== false });
+            return next.sort((a, b) => (a.path < b.path ? -1 : (a.path > b.path ? 1 : 0)));
+        }
         const add = (path, source) => {
             const parts = path.split('/');
             for (let i = 1; i < parts.length; i++) {

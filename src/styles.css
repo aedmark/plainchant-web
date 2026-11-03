@@ -1392,3 +1392,15 @@ body.insert-dragging, body.insert-dragging * { cursor: grabbing !important; user
 .css-state-btn[aria-pressed="true"] { background: var(--text-strong); color: var(--bg-void); }
 .css-state-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .css-state-hint { flex: 1 1 100%; font-size: 0.72rem; color: var(--text-void-muted); overflow-wrap: anywhere; }
+
+.asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.65rem; align-content: start; }
+.asset-empty { grid-column: 1 / -1; margin: 0.5rem 0; color: var(--text-void-muted); font-size: 0.8rem; }
+.asset-card { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.45rem; border: 1px solid var(--border-void); border-radius: 0.4rem; background: var(--bg-raised); min-width: 0; }
+.asset-thumb { height: 96px; display: flex; align-items: center; justify-content: center; border-radius: 0.3rem; overflow: hidden; background: repeating-conic-gradient(#8885 0% 25%, #0000 0% 50%) 50% / 14px 14px; }
+.asset-thumb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.asset-meta { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; font-size: 0.72rem; color: var(--text-void-muted); }
+.asset-meta strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-strong); font-family: var(--font-code); }
+.asset-meta span { overflow-wrap: anywhere; }
+.asset-actions { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.asset-actions .mini { white-space: nowrap; }
+#assetStatus { padding: 0.4rem 1rem; font-size: 0.72rem; color: var(--text-void-muted); }

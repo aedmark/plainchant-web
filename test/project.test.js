@@ -370,6 +370,10 @@ test('files: duplicateFile, deleteFile, and treeAfter keep the file list and tre
     assert.deepEqual(renamed.map((t) => t.path), ['img', 'img/a.png', 'pages', 'pages/home.html'], 'new folders appear in the tree');
     assert.equal(renamed.find((t) => t.path === 'pages').kind, 'dir');
     assert.deepEqual(Project.treeAfter(tree, { type: 'duplicate', from: 'index.html', to: 'index-copy.html' }).map((t) => t.path), ['img', 'img/a.png', 'index-copy.html', 'index.html']);
+    const added = Project.treeAfter(tree, { type: 'add', path: 'photos/new.png', is_text: false });
+    assert.deepEqual(added.map((t) => t.path), ['img', 'img/a.png', 'index.html', 'photos', 'photos/new.png']);
+    assert.equal(added.find((t) => t.path === 'photos/new.png').is_text, false, 'added binaries are marked as not text');
+    assert.equal(Project.treeAfter(tree, { type: 'add', path: 'index.html' }).length, 3, 'adding an existing path changes nothing');
     assert.equal(tree.length, 3, 'the input tree is not modified');
 });
 
@@ -505,4 +509,47 @@ test('zip: builds a valid stored zip with correct CRCs, UTF-8 names, and binary 
     assert.equal(Zip.list(Zip.build([{ path: '/lead.txt', data: 'x' }]))[0].path, 'lead.txt', 'leading slashes are dropped');
     assert.throws(() => Zip.build([{ path: 'a.txt', data: 'x' }, { path: 'a.txt', data: 'y' }]), 'duplicates are rejected');
     assert.throws(() => Zip.list(new Uint8Array(40)), 'garbage is not a zip');
+});
+
+test('imagelib: lists images from every source, makes unique upload paths, and formats sizes', () => {
+    assert.ok(ImageLib.isImage('a/b/Photo.JPG') && ImageLib.isImage('x.svg') && ImageLib.isImage('x.avif'));
+    assert.ok(!ImageLib.isImage('style.css') && !ImageLib.isImage('image') && !ImageLib.isImage(''));
+    const all = ImageLib.list({
+        assets: { 'images/hero.png': {}, 'images/b.jpg': {} },
+        tree: [{ path: 'img', kind: 'dir', is_text: false }, { path: 'img/logo.webp', kind: 'file', is_text: false }, { path: 'images/hero.png', kind: 'file', is_text: false }, { path: 'index.html', kind: 'file', is_text: true }, { path: 'notes.bin', kind: 'file', is_text: false }],
+        entries: { 'index.html': '', 'icons/mark.svg': '<svg/>' }
+    });
+    assert.deepEqual(all.map((i) => i.path + ':' + i.source), ['icons/mark.svg:text', 'images/b.jpg:asset', 'images/hero.png:asset', 'img/logo.webp:file']);
+    assert.equal(all[3].name, 'logo.webp');
+    assert.equal(all[3].folder, 'img');
+    assert.deepEqual(ImageLib.list({}), []);
+
+    const taken = ['images/photo.png', 'images/photo-2.png', 'Images/Other.PNG'];
+    assert.equal(ImageLib.uniquePath(taken, 'photo.png'), 'images/photo-3.png');
+    assert.equal(ImageLib.uniquePath(taken, 'other.png'), 'images/other-2.png', 'names clash without regard to case');
+    assert.equal(ImageLib.uniquePath([], 'My Photo (1).jpg'), 'images/My-Photo-(1).jpg');
+    assert.equal(ImageLib.uniquePath([], 'a/b:c.png'), 'images/abc.png', 'path characters are removed');
+    assert.equal(ImageLib.uniquePath([], 'x.png', ''), 'x.png', 'an empty folder means the project root');
+    assert.equal(ImageLib.uniquePath([], 'x.png', '/gfx/'), 'gfx/x.png');
+    assert.equal(ImageLib.uniquePath([], '', 'images'), 'images/image');
+    assert.equal(ImageLib.formatBytes(512), '512 B');
+    assert.equal(ImageLib.formatBytes(2048), '2.0 KB');
+    assert.equal(ImageLib.formatBytes(150 * 1024), '150 KB');
+    assert.equal(ImageLib.formatBytes(3.5 * 1024 * 1024), '3.5 MB');
+    assert.equal(ImageLib.formatBytes(-1), '');
+});
+
+test('links: usage lists where each project file is referenced', () => {
+    const used = Links.usage({
+        'index.html': '<img src="img/a.png">\n<a href="about.html#x">a</a> <a href="https://x.test/img/a.png">e</a> <a href="#top">t</a>',
+        'about.html': '<img src="../img/a.png" srcset="img/b.png 1x">',
+        'pages/team.html': '<img src="../img/a.png"><div style="background:url(../img/b.png)"></div>',
+        'style.css': '.x { background: url(img/a.png); } /* url(img/c.png) */'
+    });
+    assert.deepEqual(used['img/a.png'].map((u) => u.file + ':' + u.line), ['index.html:1', 'pages/team.html:1', 'style.css:1']);
+    assert.deepEqual(used['img/b.png'].map((u) => u.file), ['about.html', 'pages/team.html']);
+    assert.equal(used['about.html'].length, 1);
+    assert.equal(used['img/c.png'], undefined, 'commented-out references are not counted');
+    assert.equal(used['../img/a.png'], undefined, 'paths above the project are dropped');
+    assert.deepEqual(Links.usage({}), {});
 });

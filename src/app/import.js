@@ -3,9 +3,12 @@ const libImport = document.getElementById('libImport');
 const dropHint = document.getElementById('dropHint');
 
 async function importFiles(fileList) {
-    const files = Array.from(fileList || []).filter((f) => Importing.accept(f.name));
+    const dropped = Array.from(fileList || []);
+    const images = dropped.filter((f) => ImageLib.isImage(f.name));
+    if (images.length && typeof addImageFiles === 'function') addImageFiles(images);
+    const files = dropped.filter((f) => Importing.accept(f.name) && !ImageLib.isImage(f.name));
     if (!files.length) {
-        showNotice('Please choose .html, .css, or .js files.', true);
+        if (!images.length) showNotice('Please choose .html, .css, or .js files.', true);
         return;
     }
     syncBufferFromEditor();
