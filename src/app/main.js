@@ -5,6 +5,7 @@ async function start() {
     await restoreLastScript();
     render(false);
     syncElementState();
+    resetHistory();
     startSafekeeping();
 }
 

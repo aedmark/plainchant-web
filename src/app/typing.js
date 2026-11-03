@@ -4,39 +4,184 @@ let shiftDown = false;
 const elementBar = document.querySelector('.element-bar');
 const breadcrumbBar = document.getElementById('breadcrumbBar');
 const insertBar = document.querySelector('.insert-bar');
+const insertMenuBtn = document.getElementById('insertMenuBtn');
 const suggestBox = elementBar.querySelector('.suggestions');
 const suggestSay = document.getElementById('suggestSay');
+const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
 let suggestion = null;
 let dismissedFor = '';
+
+const MAX_HISTORY = 150;
+let undoStack = [];
+let redoStack = [];
+let currentSnapshot = null;
+let typingBatchOpen = false;
+let typingBatchTimer = null;
+
+function captureSnapshot() {
+    ensureEntries();
+    const entriesCopy = Object.assign({}, projectFiles.entries);
+    if (activeFile) entriesCopy[activeFile] = editor.value;
+    return {
+        entries: entriesCopy,
+        activeFile: activeFile,
+        activeHtmlFile: activeHtmlFile,
+        selectedPcId: selectedPcId,
+        selStart: editor.selectionStart || 0,
+        selEnd: editor.selectionEnd || 0,
+        scrollTop: editor.scrollTop || 0
+    };
+}
+
+function snapshotsEqual(a, b) {
+    if (!a || !b) return false;
+    const keysA = Object.keys(a.entries);
+    const keysB = Object.keys(b.entries);
+    if (keysA.length !== keysB.length) return false;
+    for (let i = 0; i < keysA.length; i++) {
+        const k = keysA[i];
+        if (a.entries[k] !== b.entries[k]) return false;
+    }
+    return true;
+}
+
+function updateHistoryButtons() {
+    if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+    if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+}
+
+function resetHistory() {
+    clearTimeout(typingBatchTimer);
+    typingBatchOpen = false;
+    undoStack = [];
+    redoStack = [];
+    currentSnapshot = captureSnapshot();
+    updateHistoryButtons();
+}
+
+function pushUndoState() {
+    clearTimeout(typingBatchTimer);
+    typingBatchOpen = false;
+    const snap = currentSnapshot || captureSnapshot();
+    if (!undoStack.length || !snapshotsEqual(undoStack[undoStack.length - 1], snap)) {
+        undoStack.push(snap);
+        if (undoStack.length > MAX_HISTORY) undoStack.shift();
+    }
+    redoStack = [];
+    updateHistoryButtons();
+}
+
+function recordHistoryBurst() {
+    if (!typingBatchOpen) {
+        const snap = currentSnapshot || captureSnapshot();
+        if (!undoStack.length || !snapshotsEqual(undoStack[undoStack.length - 1], snap)) {
+            undoStack.push(snap);
+            if (undoStack.length > MAX_HISTORY) undoStack.shift();
+        }
+        redoStack = [];
+        typingBatchOpen = true;
+    }
+    clearTimeout(typingBatchTimer);
+    typingBatchTimer = setTimeout(() => {
+        typingBatchOpen = false;
+        currentSnapshot = captureSnapshot();
+    }, 600);
+}
+
+function syncLatestHistoryState() {
+    if (!typingBatchOpen) {
+        currentSnapshot = captureSnapshot();
+    }
+    updateHistoryButtons();
+}
+
+function restoreSnapshot(snap) {
+    if (!snap) return;
+    clearTimeout(typingBatchTimer);
+    typingBatchOpen = false;
+    projectFiles.entries = Object.assign({}, snap.entries);
+    if (snap.activeHtmlFile && (snap.activeHtmlFile in projectFiles.entries)) {
+        activeHtmlFile = snap.activeHtmlFile;
+    }
+    if (snap.activeFile && (snap.activeFile in projectFiles.entries)) {
+        activeFile = snap.activeFile;
+        if (!openTabs.includes(activeFile)) openTabs.push(activeFile);
+    }
+    activeTab = langForFile(activeFile);
+    syncMirrors();
+    applyingEdit = true;
+    try {
+        editor.value = projectFiles.entries[activeFile] || '';
+        const maxLen = editor.value.length;
+        editor.setSelectionRange(
+            Math.min(snap.selStart || 0, maxLen),
+            Math.min(snap.selEnd || 0, maxLen)
+        );
+        editor.scrollTop = snap.scrollTop || 0;
+        if (typeof shadeLayer !== 'undefined' && shadeLayer) shadeLayer.scrollTop = editor.scrollTop;
+    } finally {
+        applyingEdit = false;
+    }
+    selectedPcId = snap.selectedPcId || null;
+    renderFileTabs();
+    renderExplorer();
+    render(false);
+    scheduleAutoSave();
+    currentSnapshot = captureSnapshot();
+    updateHistoryButtons();
+}
+
+function performUndo() {
+    if (!undoStack.length) return;
+    const live = captureSnapshot();
+    const prev = undoStack.pop();
+    redoStack.push(live);
+    restoreSnapshot(prev);
+    showNotice('Undo');
+}
+
+function performRedo() {
+    if (!redoStack.length) return;
+    const live = captureSnapshot();
+    const next = redoStack.pop();
+    undoStack.push(live);
+    restoreSnapshot(next);
+    showNotice('Redo');
+}
 
 function caretLine() {
     return editor.value.slice(0, editor.selectionStart).split('\n').length - 1;
 }
 
 function applyEdit(edit, options = {}) {
+    if (!options.skipHistory) pushUndoState();
     const before = editor.value;
     const expected = before.slice(0, edit.from) + edit.insert + before.slice(edit.to);
     const previous = document.activeElement;
     applyingEdit = true;
     try {
-        if (options.keepFocus) editor.inputMode = 'none';
-        editor.focus({ preventScroll: true });
-        editor.setSelectionRange(edit.from, edit.to);
-        let done = false;
-        try { done = document.execCommand('insertText', false, edit.insert); } catch (e) { done = false; }
-        if (!done || editor.value !== expected) {
+        if (options.keepFocus && previous !== editor) {
             editor.value = expected;
-            editor.dispatchEvent(new Event('input', { bubbles: true }));
+            editor.setSelectionRange(edit.selStart, edit.selStart);
+            render(false);
+            scheduleAutoSave();
+        } else {
+            editor.focus({ preventScroll: true });
+            editor.setSelectionRange(edit.from, edit.to);
+            let done = false;
+            try { done = document.execCommand('insertText', false, edit.insert); } catch (e) { done = false; }
+            if (!done || editor.value !== expected) {
+                editor.value = expected;
+                editor.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            editor.setSelectionRange(edit.selStart, edit.selEnd);
         }
-        editor.setSelectionRange(edit.selStart, edit.selEnd);
     } finally {
         applyingEdit = false;
-        if (options.keepFocus) {
-            editor.inputMode = '';
-            if (previous && previous !== editor && document.contains(previous)) previous.focus({ preventScroll: true });
-        }
     }
     syncBufferFromEditor();
+    if (!options.skipHistory) syncLatestHistoryState();
 }
 
 function updateBreadcrumbs() {
@@ -130,6 +275,12 @@ function syncElementState() {
             highlightOnStage(selectedPcId);
         }
     }
+    if (!typingBatchOpen && currentSnapshot) {
+        currentSnapshot.selStart = editor.selectionStart || 0;
+        currentSnapshot.selEnd = editor.selectionEnd || 0;
+        currentSnapshot.scrollTop = editor.scrollTop || 0;
+        currentSnapshot.selectedPcId = selectedPcId;
+    }
     updateBreadcrumbs();
     syncSuggestions();
 }
@@ -140,9 +291,37 @@ function scheduleSync() {
     requestAnimationFrame(syncElementState);
 }
 
+function setInsertMenuOpen(open) {
+    if (!insertBar || !insertMenuBtn) return;
+    insertBar.hidden = !open;
+    insertMenuBtn.setAttribute('aria-expanded', String(Boolean(open)));
+}
+
+if (insertMenuBtn) {
+    insertMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setInsertMenuOpen(insertBar.hidden);
+    });
+}
+
 insertBar.addEventListener('click', (e) => {
     const btn = e.target.closest('.ins-btn');
-    if (btn && btn.dataset.insert) insertSnippet(btn.dataset.insert);
+    if (btn && btn.dataset.insert) {
+        setInsertMenuOpen(false);
+        insertSnippet(btn.dataset.insert);
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (insertBar && !insertBar.hidden && !e.target.closest('.insert-dropdown-wrap')) {
+        setInsertMenuOpen(false);
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && insertBar && !insertBar.hidden) {
+        setInsertMenuOpen(false);
+    }
 });
 
 suggestBox.addEventListener('mousedown', (e) => e.preventDefault());
@@ -192,8 +371,45 @@ editor.addEventListener('beforeinput', (e) => {
     syncElementState();
 });
 
-editor.addEventListener('input', () => {
+    editor.addEventListener('input', () => {
+    if (!applyingEdit) {
+        if (!typingBatchOpen) {
+            const snap = currentSnapshot || captureSnapshot();
+            undoStack.push(snap);
+            if (undoStack.length > MAX_HISTORY) undoStack.shift();
+            redoStack = [];
+            typingBatchOpen = true;
+        }
+        clearTimeout(typingBatchTimer);
+        typingBatchTimer = setTimeout(() => {
+            typingBatchOpen = false;
+            currentSnapshot = captureSnapshot();
+        }, 600);
+    }
     render(true);
+    currentSnapshot = captureSnapshot();
+    updateHistoryButtons();
     scheduleSync();
     scheduleAutoSave();
+});
+
+if (undoBtn) undoBtn.addEventListener('click', performUndo);
+if (redoBtn) redoBtn.addEventListener('click', performRedo);
+
+document.addEventListener('keydown', (e) => {
+    if (e.isComposing || e.altKey) return;
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const activeEl = document.activeElement;
+    if (activeEl && activeEl !== editor && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        return;
+    }
+    const key = e.key.toLowerCase();
+    if (key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) performRedo();
+        else performUndo();
+    } else if (key === 'y' && !e.shiftKey) {
+        e.preventDefault();
+        performRedo();
+    }
 });

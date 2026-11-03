@@ -89,6 +89,7 @@ function renderLibrary() {
                 flushSave();
                 currentScriptId = script.id;
                 selectedPcId = null;
+                if (typeof clearLinkedFolder === 'function') clearLinkedFolder();
                 loadProjectIntoEditor(script.content);
                 rememberCurrent();
                 render(false);

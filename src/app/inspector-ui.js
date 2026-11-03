@@ -346,3 +346,104 @@ cssBgPicker.addEventListener('input', () => {
     cssInputs['background-color'].value = cssBgPicker.value;
     applyCssPropertyChange('background-color', cssBgPicker.value);
 });
+
+const contextMenu = document.getElementById('contextMenu');
+const ctxHeaderLabel = document.getElementById('ctxHeaderLabel');
+const ctxInsertTrigger = document.getElementById('ctxInsertTrigger');
+
+function closeContextMenu() {
+    if (!contextMenu || contextMenu.hidden) return;
+    contextMenu.hidden = true;
+    const subWrap = contextMenu.querySelector('.ctx-has-sub');
+    if (subWrap) subWrap.classList.remove('sub-open');
+    if (ctxInsertTrigger) ctxInsertTrigger.setAttribute('aria-expanded', 'false');
+}
+
+function openContextMenuAt(clientX, clientY) {
+    if (!contextMenu) return;
+    if (typeof setInsertMenuOpen === 'function') setInsertMenuOpen(false);
+    const node = selectedPcId ? HtmlAst.findById(currentHtmlAst, selectedPcId) : null;
+    const hasNode = Boolean(node && node.tag !== 'html' && node.tag !== 'head');
+    const isMovable = Boolean(hasNode && node.tag !== 'body');
+
+    if (ctxHeaderLabel) {
+        ctxHeaderLabel.textContent = hasNode ? '<' + DomOutline.formatLabel(node) + '>' : '<body>';
+    }
+
+    contextMenu.querySelectorAll('[data-ctx-cmd]').forEach((btn) => {
+        const cmd = btn.dataset.ctxCmd;
+        if (cmd === 'move-up' || cmd === 'move-down' || cmd === 'duplicate' || cmd === 'wrap' || cmd === 'delete') {
+            btn.disabled = !isMovable;
+        } else if (cmd === 'undo') {
+            btn.disabled = Boolean(undoBtn && undoBtn.disabled);
+        } else if (cmd === 'redo') {
+            btn.disabled = Boolean(redoBtn && redoBtn.disabled);
+        }
+    });
+
+    contextMenu.hidden = false;
+    const menuWidth = contextMenu.offsetWidth || 220;
+    const menuHeight = contextMenu.offsetHeight || 290;
+    const maxX = Math.max(8, window.innerWidth - menuWidth - 8);
+    const maxY = Math.max(8, window.innerHeight - menuHeight - 8);
+    const x = Math.max(8, Math.min(clientX, maxX));
+    const y = Math.max(8, Math.min(clientY, maxY));
+
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top = y + 'px';
+    contextMenu.classList.toggle('flip-left', x + menuWidth + 260 > window.innerWidth);
+}
+
+if (contextMenu) {
+    if (ctxInsertTrigger) {
+        ctxInsertTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wrap = ctxInsertTrigger.closest('.ctx-has-sub');
+            if (!wrap) return;
+            const next = !wrap.classList.contains('sub-open');
+            wrap.classList.toggle('sub-open', next);
+            ctxInsertTrigger.setAttribute('aria-expanded', String(next));
+        });
+    }
+
+    contextMenu.addEventListener('click', (e) => {
+        const ins = e.target.closest('[data-insert]');
+        if (ins && ins.dataset.insert) {
+            closeContextMenu();
+            insertSnippet(ins.dataset.insert);
+            return;
+        }
+        const act = e.target.closest('[data-ctx-cmd]');
+        if (!act || act.disabled) return;
+        const cmd = act.dataset.ctxCmd;
+        closeContextMenu();
+        if (cmd === 'move-up') moveSelectedElement('up');
+        else if (cmd === 'move-down') moveSelectedElement('down');
+        else if (cmd === 'duplicate') duplicateSelectedElement();
+        else if (cmd === 'wrap' && selectedPcId) {
+            applyHtmlTransform(HtmlAst.wrapElement(projectFiles.html, selectedPcId, 'div', { class: 'wrapper' }), selectedPcId);
+        } else if (cmd === 'inspect-css') {
+            switchInspectorTab('css');
+            jumpToActiveCssRule();
+        } else if (cmd === 'undo') performUndo();
+        else if (cmd === 'redo') performRedo();
+        else if (cmd === 'delete') deleteSelectedElement();
+    });
+}
+
+editor.addEventListener('contextmenu', (e) => {
+    if (activeTab !== 'html') return;
+    e.preventDefault();
+    syncElementState();
+    openContextMenuAt(e.clientX, e.clientY);
+});
+
+document.addEventListener('click', (e) => {
+    if (contextMenu && !contextMenu.hidden && !contextMenu.contains(e.target)) {
+        closeContextMenu();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeContextMenu();
+});

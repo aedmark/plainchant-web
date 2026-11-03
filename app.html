@@ -32,20 +32,31 @@
 
 <div class="pane-void" role="main" aria-label="Code Editor">
     <div class="header">
-        <div class="brand-lockup">
-            <button id="toggleExplorerBtn" type="button" class="btn explorer-toggle" aria-pressed="true" title="Toggle Project File Explorer">Files</button>
-            <div id="fileTabs" class="file-tabs" role="tablist" aria-label="Open files">
-                <button type="button" class="file-tab" role="tab" data-file="index.html" data-tab="html" aria-selected="true">index.html</button>
-                <button type="button" class="file-tab" role="tab" data-file="styles.css" data-tab="css" aria-selected="false">styles.css</button>
-                <button type="button" class="file-tab" role="tab" data-file="script.js" data-tab="js" aria-selected="false">script.js</button>
-            </div>
-        </div>
         <div class="button-group">
+            <button id="undoBtn" type="button" class="btn" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo" disabled>&#8630;</button>
+            <button id="redoBtn" type="button" class="btn" title="Redo (Ctrl/Cmd+Shift+Z or Ctrl+Y)" aria-label="Redo" disabled>&#8631;</button>
+            <div class="insert-dropdown-wrap">
+                <button id="insertMenuBtn" type="button" class="btn" aria-haspopup="true" aria-expanded="false" title="Insert HTML5 Element">Insert &#9662;</button>
+                <div id="insertMenu" class="insert-bar insert-dropdown" role="menu" aria-label="Insert HTML5 Element" hidden>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="section" title="Insert &lt;section&gt;"><span>Section</span><code>&lt;section&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="article" title="Insert &lt;article class='card'&gt;"><span>Card</span><code>&lt;article&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="flex" title="Insert Flex Row"><span>Flex Row</span><code>.flex-row</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="grid" title="Insert 3-Column Grid"><span>3-Col Grid</span><code>.grid-3</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="div" title="Insert &lt;div&gt;"><span>Container</span><code>&lt;div&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="heading" title="Insert &lt;h2&gt;"><span>Heading</span><code>&lt;h2&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="paragraph" title="Insert &lt;p&gt;"><span>Paragraph</span><code>&lt;p&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="button" title="Insert &lt;button&gt;"><span>Button</span><code>&lt;button&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="link" title="Insert &lt;a&gt;"><span>Link</span><code>&lt;a&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="image" title="Insert &lt;img&gt;"><span>Image</span><code>&lt;img&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="list" title="Insert &lt;ul&gt;"><span>List</span><code>&lt;ul&gt;</code></button>
+                    <button type="button" class="ins-btn" role="menuitem" data-insert="form" title="Insert &lt;form&gt;"><span>Form</span><code>&lt;form&gt;</code></button>
+                </div>
+            </div>
             <button id="newBtn" type="button" class="btn" title="Start a blank project">New</button>
             <button id="libraryBtn" type="button" class="btn" title="Open your project library">Projects</button>
-            <button id="folderBtn" type="button" class="btn" title="Open or sync a local project folder">Folder</button>
-            <button id="saveBtn" type="button" class="btn" title="Save project (Ctrl/Cmd+S)">Save</button>
-            <button id="exportBtn" type="button" class="btn" title="Export HTML, CSS, and JS">Export</button>
+            <button id="folderBtn" type="button" class="btn" title="Open a local project folder into Studio">Folder</button>
+            <button id="saveBtn" type="button" class="btn" title="Save project to Studio workspace (Ctrl/Cmd+S)">Save</button>
+            <button id="exportBtn" type="button" class="btn" title="Export project to disk or bundle">Export</button>
             <button id="copyBtn" type="button" class="btn" title="Copy current file">Copy</button>
             <button id="settingsBtn" type="button" class="btn help-btn" aria-label="Settings" title="Settings">
                 <span class="txt-short" aria-hidden="true">&#9881;</span><span class="txt-long">Settings</span>
@@ -56,28 +67,21 @@
         </div>
     </div>
 
-    <div id="file-bar" class="file-bar" role="region" aria-label="Linked folder" hidden>
-        <span id="fileBarText" aria-live="polite"></span>
-        <span class="file-bar-actions">
-            <button type="button" class="mini" id="fileSyncNowBtn">Sync disk</button>
-            <button type="button" class="mini" id="fileUnlinkBtn">Unlink</button>
-        </span>
+    <div class="tab-strip">
+        <button id="toggleExplorerBtn" type="button" class="btn explorer-toggle" aria-pressed="true" title="Toggle Project File Explorer">Files</button>
+        <div id="fileTabs" class="file-tabs" role="tablist" aria-label="Open files">
+            <button type="button" class="file-tab" role="tab" data-file="index.html" data-tab="html" aria-selected="true">index.html</button>
+            <button type="button" class="file-tab" role="tab" data-file="styles.css" data-tab="css" aria-selected="false">styles.css</button>
+            <button type="button" class="file-tab" role="tab" data-file="script.js" data-tab="js" aria-selected="false">script.js</button>
+        </div>
     </div>
 
-    <div class="insert-bar" role="toolbar" aria-label="Insert HTML5 Element">
-        <span class="bar-label">Insert:</span>
-        <button type="button" class="ins-btn" data-insert="section" title="Insert &lt;section&gt;">Section</button>
-        <button type="button" class="ins-btn" data-insert="article" title="Insert &lt;article class='card'&gt;">Card</button>
-        <button type="button" class="ins-btn" data-insert="flex" title="Insert Flex Row">Flex</button>
-        <button type="button" class="ins-btn" data-insert="grid" title="Insert 3-Column Grid">Grid</button>
-        <button type="button" class="ins-btn" data-insert="div" title="Insert &lt;div&gt;">Div</button>
-        <button type="button" class="ins-btn" data-insert="heading" title="Insert &lt;h2&gt;">Heading</button>
-        <button type="button" class="ins-btn" data-insert="paragraph" title="Insert &lt;p&gt;">Text</button>
-        <button type="button" class="ins-btn" data-insert="button" title="Insert &lt;button&gt;">Button</button>
-        <button type="button" class="ins-btn" data-insert="link" title="Insert &lt;a&gt;">Link</button>
-        <button type="button" class="ins-btn" data-insert="image" title="Insert &lt;img&gt;">Image</button>
-        <button type="button" class="ins-btn" data-insert="list" title="Insert &lt;ul&gt;">List</button>
-        <button type="button" class="ins-btn" data-insert="form" title="Insert &lt;form&gt;">Form</button>
+    <div id="file-bar" class="file-bar" role="region" aria-label="Imported project workspace" hidden>
+        <span id="fileBarText" aria-live="polite"></span>
+        <span class="file-bar-actions">
+            <button type="button" class="mini" id="fileSyncNowBtn" title="Open Export dialog to write changes back to disk">Export to Disk&hellip;</button>
+            <button type="button" class="mini" id="fileUnlinkBtn" title="Detach source folder reference">Detach</button>
+        </span>
     </div>
 
     <div class="workspace-body">
@@ -335,34 +339,35 @@
 </div>
 
 <div id="export-modal" class="modal-overlay">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="export-title">
+    <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="export-title">
         <div class="modal-header">
-            <h2 id="export-title">Export Project</h2>
+            <h2 id="export-title">Export Project to Disk</h2>
             <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
             <section class="export-option">
-                <h3>Standalone Single-File HTML</h3>
-                <p>Bundles <code>index.html</code>, <code>styles.css</code>, and <code>script.js</code> into a single self-contained <code>.html</code> file that opens anywhere.</p>
+                <h3 id="folderExportHeading">Local Disk Folder (Retains Existing Folder &amp; File Structure)</h3>
+                <p id="folderExportNote">Your edits are safely stored in this studio project environment and are not written to disk until you export here. Exporting writes every project file to its exact relative path, preserving your folder hierarchy and existing assets.</p>
                 <div class="export-buttons">
-                    <button type="button" class="btn primary" id="exportBundleBtn">Download bundled .html</button>
-                    <button type="button" class="btn" id="copyBundleBtn">Copy bundled HTML</button>
+                    <button type="button" class="btn primary" id="exportFolderBtn">Export to Original Folder</button>
+                    <button type="button" class="btn" id="exportNewFolderBtn">Export to Another Folder&hellip;</button>
                 </div>
             </section>
             <section class="export-option">
-                <h3>Separate Source Files</h3>
-                <p>Download the individual source files cleanly as written.</p>
-                <div class="export-buttons">
+                <h3>Individual Project Files</h3>
+                <p id="separateExportNote">Download any individual file from your current project workspace.</p>
+                <div id="exportFilesList" class="export-buttons">
                     <button type="button" class="btn" id="exportHtmlBtn">index.html</button>
                     <button type="button" class="btn" id="exportCssBtn">styles.css</button>
                     <button type="button" class="btn" id="exportJsBtn">script.js</button>
                 </div>
             </section>
             <section class="export-option">
-                <h3>Local Project Folder (Tauri / File System API)</h3>
-                <p id="folderExportNote">Write <code>index.html</code>, <code>styles.css</code>, and <code>script.js</code> directly to a folder on disk.</p>
+                <h3>Standalone Single-File HTML Bundle</h3>
+                <p id="bundleExportNote">Inlines the active HTML page with its linked CSS and JavaScript into a single self-contained <code>.html</code> file.</p>
                 <div class="export-buttons">
-                    <button type="button" class="btn" id="exportFolderBtn">Save to Folder&hellip;</button>
+                    <button type="button" class="btn" id="exportBundleBtn">Download bundled .html</button>
+                    <button type="button" class="btn" id="copyBundleBtn">Copy bundled HTML</button>
                 </div>
             </section>
         </div>
@@ -420,14 +425,14 @@
         </div>
         <div class="modal-body">
             <h3>Dreamweaver-Style Round-Trip Editing</h3>
-            <p>Your <code>index.html</code>, <code>styles.css</code>, and <code>script.js</code> files are always the single source of truth. Every visual action on the Stage splices only the exact character range in your source code.</p>
+            <p>Your HTML, CSS, and JavaScript files are always the single source of truth. Every visual action on the Stage splices only the exact character range in your source code.</p>
             <ul>
-                <li><strong>Select &amp; Inspect:</strong> In <strong>Design Mode</strong>, click any element on the Stage to highlight it, view its ancestor path in the bottom <strong>Tag Selector</strong> bar, and edit its HTML attributes or CSS rules in the <strong>Inspector</strong>.</li>
-                <li><strong>Inline Text Editing:</strong> Double-click any text element on the Stage to edit its copy directly in place. Press <kbd>Enter</kbd> or click away to commit the change as an undoable edit (<kbd>Ctrl/Cmd+Z</kbd>).</li>
-                <li><strong>CSS Designer:</strong> Choose whether your style changes target a shared CSS selector in <code>styles.css</code> (like <code>.card</code>) or the element's inline <code>style</code> attribute.</li>
-                <li><strong>Insert Bar &amp; Shorthand:</strong> Click any button in the <strong>Insert</strong> toolbar to add semantic HTML5 blocks inside or after the selected element, or type shorthand like <code>section.hero</code> or <code>ul*3</code> in the HTML editor and press <kbd>Tab</kbd>.</li>
-                <li><strong>Live JS Mode:</strong> Switch the Stage from <strong>Design</strong> to <strong>Live JS</strong> to execute <code>script.js</code> and interact with your page normally.</li>
-                <li><strong>Hybrid Desktop &amp; Browser:</strong> Open and sync real project directories on disk via Tauri or the browser File System Access API using the <strong>Folder</strong> button.</li>
+                <li><strong>Select, Highlight &amp; Edit Text in Place:</strong> In <strong>Design Mode</strong>, click any element on the Stage to highlight its code block in the Code editor and view its live margin/padding box model. Clicking a text element places a live text cursor right where you clicked so you can type and edit copy directly on the Stage while the HTML updates in real time.</li>
+                <li><strong>Direct Stage Reordering:</strong> Drag elements on the Stage (or grab the <code>&#10287;</code> badge handle) to reorder them, or use the floating badge buttons (<code>&uarr;</code>, <code>&darr;</code>, <code>&#10697;</code>, <code>&#10005;</code>) and <kbd>Alt+&uarr;/&darr;</kbd>.</li>
+                <li><strong>Dockable &amp; Floating Inspector:</strong> Edit HTML attributes or use the <strong>CSS Designer</strong> to inspect computed styles, modify rules, or click <strong>Go to CSS &#8599;</strong> to jump straight to the rule in your stylesheet. Toggle, collapse, or float the Inspector (<kbd>Ctrl/Cmd+Shift+I</kbd>).</li>
+                <li><strong>Insert Menu &amp; Right-Click Context Menu:</strong> Use the top <strong>Insert &#9662;</strong> menu, right-click on the Stage or HTML editor, or type shorthand like <code>section.hero</code> or <code>ul*3</code> and press <kbd>Tab</kbd>.</li>
+                <li><strong>Multi-File Undo &amp; Redo:</strong> Use <strong>&#8630;</strong> / <strong>&#8631;</strong> or <kbd>Ctrl/Cmd+Z</kbd> and <kbd>Ctrl/Cmd+Shift+Z</kbd> (<kbd>Ctrl+Y</kbd>) across all files and visual actions.</li>
+                <li><strong>Safe Folder Projects &amp; Export:</strong> Opening a local folder creates an isolated Studio project environment. Changes are not written to local disk until you click <strong>Export</strong>, which preserves your existing folder and file structure.</li>
             </ul>
             <div class="help-actions">
                 <button type="button" class="btn primary" id="helpLoadStarter">Load Starter Template</button>
@@ -437,6 +442,41 @@
             <button type="button" class="btn primary" data-close>Got it</button>
         </div>
     </div>
+</div>
+
+<div id="contextMenu" class="ctx-menu" role="menu" aria-label="Element and Insert Menu" hidden>
+    <div id="ctxHeaderLabel" class="ctx-header">&lt;body&gt;</div>
+    <div class="ctx-item-wrap ctx-has-sub">
+        <button type="button" id="ctxInsertTrigger" class="ctx-item" role="menuitem" aria-haspopup="true" aria-expanded="false">
+            <span>Insert Element</span>
+            <span class="ctx-arrow">&#9656;</span>
+        </button>
+        <div id="ctxInsertSubmenu" class="ctx-submenu" role="menu" aria-label="Insert HTML5 Element">
+            <button type="button" class="ins-btn" role="menuitem" data-insert="section"><span>Section</span><code>&lt;section&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="article"><span>Card</span><code>&lt;article&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="flex"><span>Flex Row</span><code>.flex-row</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="grid"><span>3-Col Grid</span><code>.grid-3</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="div"><span>Container</span><code>&lt;div&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="heading"><span>Heading</span><code>&lt;h2&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="paragraph"><span>Paragraph</span><code>&lt;p&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="button"><span>Button</span><code>&lt;button&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="link"><span>Link</span><code>&lt;a&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="image"><span>Image</span><code>&lt;img&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="list"><span>List</span><code>&lt;ul&gt;</code></button>
+            <button type="button" class="ins-btn" role="menuitem" data-insert="form"><span>Form</span><code>&lt;form&gt;</code></button>
+        </div>
+    </div>
+    <div class="ctx-sep" role="separator"></div>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="move-up"><span>Move Up</span><kbd>Alt+&uarr;</kbd></button>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="move-down"><span>Move Down</span><kbd>Alt+&darr;</kbd></button>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="duplicate"><span>Duplicate</span><code>&#10697;</code></button>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="wrap"><span>Wrap in &lt;div&gt;</span><code>&lt;div&gt;</code></button>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="inspect-css"><span>Go to CSS Rule</span><code>&#8599;</code></button>
+    <div class="ctx-sep" role="separator"></div>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="undo"><span>Undo</span><kbd>Ctrl+Z</kbd></button>
+    <button type="button" class="ctx-item" role="menuitem" data-ctx-cmd="redo"><span>Redo</span><kbd>Ctrl+Y</kbd></button>
+    <div class="ctx-sep" role="separator"></div>
+    <button type="button" class="ctx-item ctx-danger" role="menuitem" data-ctx-cmd="delete"><span>Delete Element</span><kbd>Del</kbd></button>
 </div>
 
 <div id="dropHint" class="drop-hint" hidden>Drop HTML, CSS, or JS files here to import</div>

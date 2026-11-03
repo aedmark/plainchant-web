@@ -453,26 +453,54 @@
         if (!dest || dest.id === el.id || isAncestor(ast, el.id, dest.id)) {
             return { html: ast.text, newId: el.id, moved: false };
         }
+        if (isAncestor(ast, dest.id, el.id)) {
+            return { html: ast.text, newId: el.id, moved: false };
+        }
+
         const pos = position === 'before' ? 'before' : 'after';
         const snippet = ast.text.slice(el.start, el.end);
-        const marker = 'data-pc-moved="1"';
-        const openEndRel = el.openEnd - el.start;
-        const markAt = snippet[openEndRel - 2] === '/' ? openEndRel - 2 : openEndRel - 1;
-        const markedSnippet = snippet.slice(0, markAt) + ' ' + marker + snippet.slice(markAt);
+        const destIndent = lineIndentAt(ast.text, dest.start);
 
-        let intermediate;
-        if (el.start < dest.start) {
-            const withInserted = insertElement(ast.text, dest.id, pos, markedSnippet);
-            intermediate = removeElement(withInserted, el.id);
-        } else {
-            const withoutSource = removeElement(ast.text, el.id);
-            intermediate = insertElement(withoutSource, dest.id, pos, markedSnippet);
+        let remFrom = el.start;
+        let remTo = el.end;
+        const lineStart = ast.text.lastIndexOf('\n', remFrom - 1);
+        if (lineStart !== -1 && /^[ \t]*$/.test(ast.text.slice(lineStart + 1, remFrom))) {
+            if (ast.text[remTo] === '\n') {
+                remFrom = lineStart + 1;
+                remTo = remTo + 1;
+            } else if (ast.text.slice(remTo, remTo + 2) === '\r\n') {
+                remFrom = lineStart + 1;
+                remTo = remTo + 2;
+            }
         }
-        const tempAst = parse(intermediate);
-        const found = tempAst.elements.find((n) => n.attrs && n.attrs['data-pc-moved'] === '1');
-        if (!found) return { html: ast.text, newId: el.id, moved: false };
-        const cleanHtml = setAttr(intermediate, found.id, 'data-pc-moved', null);
-        return { html: cleanHtml, newId: found.id, moved: true };
+
+        const insAt = pos === 'before' ? dest.start : dest.end;
+        const insText = pos === 'before'
+            ? (snippet + '\n' + destIndent)
+            : ('\n' + destIndent + snippet);
+        const snippetOffsetInIns = pos === 'before' ? 0 : (1 + destIndent.length);
+
+        let nextHtml;
+        let newStart;
+        if (remTo <= insAt) {
+            nextHtml = ast.text.slice(0, remFrom) +
+                ast.text.slice(remTo, insAt) +
+                insText +
+                ast.text.slice(insAt);
+            newStart = insAt - (remTo - remFrom) + snippetOffsetInIns;
+        } else if (insAt <= remFrom) {
+            nextHtml = ast.text.slice(0, insAt) +
+                insText +
+                ast.text.slice(insAt, remFrom) +
+                ast.text.slice(remTo);
+            newStart = insAt + snippetOffsetInIns;
+        } else {
+            return { html: ast.text, newId: el.id, moved: false };
+        }
+
+        const nextAst = parse(nextHtml);
+        const movedNode = nextAst.elements.find((n) => n.start === newStart) || nodeAtOffset(nextAst, newStart);
+        return { html: nextHtml, newId: movedNode ? movedNode.id : el.id, moved: true };
     }
 
     function extractTitle(html) {

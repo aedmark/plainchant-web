@@ -94,7 +94,6 @@ function selectElementById(pcId, options = {}) {
         const selTo = blockLines <= 16 ? node.end : node.openEnd;
 
         highlightCodeRange(selFrom, selTo);
-        editor.setSelectionRange(selFrom, selTo);
 
         const topPx = textTopIn(editor.value, selFrom);
         editor.scrollTop = Math.max(0, topPx - editor.clientHeight / 3);
@@ -104,12 +103,11 @@ function selectElementById(pcId, options = {}) {
         if (options.focusEditor === true) {
             editor.focus({ preventScroll: true });
             editor.setSelectionRange(selFrom, selTo);
-        } else if (options.focusEditor === 'delayed') {
-            stageFocusTimer = setTimeout(() => {
-                stageFocusTimer = null;
-                editor.focus({ preventScroll: true });
-                editor.setSelectionRange(selFrom, selTo);
-            }, 220);
+        } else {
+            if (document.activeElement === editor) {
+                editor.blur();
+            }
+            editor.setSelectionRange(selFrom, selFrom);
         }
     }
 }

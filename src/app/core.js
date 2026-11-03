@@ -110,6 +110,7 @@ function loadProjectIntoEditor(rawOrFiles, options = {}) {
     currentCssAst = CssAst.parse(projectFiles.css);
     renderFileTabs();
     renderExplorer();
+    if (typeof resetHistory === 'function') resetHistory();
 }
 
 function renderFileTabs() {
@@ -182,6 +183,7 @@ function openFileInEditor(filePath) {
         drawShade();
         syncElementState();
     }
+    if (typeof syncLatestHistoryState === 'function') syncLatestHistoryState();
 }
 
 function switchFileTab(tabOrFile) {
@@ -272,39 +274,67 @@ function renderExplorer() {
     });
 }
 
-function applyHtmlTransform(newHtml, keepSelectId) {
+function applyHtmlTransform(newHtml, keepSelectId, options = {}) {
     ensureEntries();
     syncMirrors();
     if (newHtml === projectFiles.html) return;
+    if (options.coalesceHistory && typeof recordHistoryBurst === 'function') {
+        recordHistoryBurst();
+    } else if (typeof pushUndoState === 'function') {
+        pushUndoState();
+    }
     projectFiles.entries[activeHtmlFile] = newHtml;
     projectFiles.html = newHtml;
+
+    if (options.skipStageRender) {
+        if (activeFile === activeHtmlFile) {
+            editor.value = newHtml;
+        }
+        currentHtmlAst = HtmlAst.parse(projectFiles.html);
+        drawShade();
+        if (keepSelectId !== undefined) selectedPcId = keepSelectId;
+        const node = selectedPcId ? HtmlAst.findById(currentHtmlAst, selectedPcId) : null;
+        if (node && activeFile === activeHtmlFile) {
+            const blockLines = editor.value.slice(node.start, node.end).split('\n').length;
+            highlightCodeRange(node.start, blockLines <= 16 ? node.end : node.openEnd);
+        }
+        refreshInspector();
+        updateBreadcrumbs();
+        scheduleAutoSave();
+        if (typeof syncLatestHistoryState === 'function') syncLatestHistoryState();
+        return;
+    }
+
     if (activeFile === activeHtmlFile) {
         const edit = Editing.diffEdit(editor.value, newHtml, editor.selectionStart, editor.selectionEnd);
-        applyEdit(edit, { keepFocus: true });
+        applyEdit(edit, { keepFocus: true, skipHistory: true });
     } else {
         render(false);
         scheduleAutoSave();
     }
-    if (keepSelectId) {
+    if (keepSelectId !== undefined) {
         selectedPcId = keepSelectId;
         refreshInspector();
         updateBreadcrumbs();
     }
+    if (typeof syncLatestHistoryState === 'function') syncLatestHistoryState();
 }
 
 function applyCssTransform(newCss) {
     ensureEntries();
     syncMirrors();
     if (newCss === projectFiles.css) return;
+    if (typeof pushUndoState === 'function') pushUndoState();
     projectFiles.entries[activeCssFile] = newCss;
     projectFiles.css = newCss;
     if (activeFile === activeCssFile) {
         const edit = Editing.diffEdit(editor.value, newCss, editor.selectionStart, editor.selectionEnd);
-        applyEdit(edit, { keepFocus: true });
+        applyEdit(edit, { keepFocus: true, skipHistory: true });
     } else {
         render(false);
         scheduleAutoSave();
     }
+    if (typeof syncLatestHistoryState === 'function') syncLatestHistoryState();
 }
 
 function scheduleAutoSave() {

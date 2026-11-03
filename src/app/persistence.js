@@ -143,6 +143,7 @@ function startNewScript() {
     flushSave();
     currentScriptId = newId();
     selectedPcId = null;
+    if (typeof clearLinkedFolder === 'function') clearLinkedFolder();
     loadProjectIntoEditor(Project.blank());
     rememberCurrent();
     render(false);
@@ -153,6 +154,7 @@ function loadStarterProject() {
     flushSave();
     currentScriptId = newId();
     selectedPcId = null;
+    if (typeof clearLinkedFolder === 'function') clearLinkedFolder();
     loadProjectIntoEditor(Project.starter());
     saveScript(true);
     render(false);
@@ -212,7 +214,11 @@ function saveScript(isAuto = false) {
         }
         announce({ put: [stored] });
         finish(true);
-        syncLinkedFolderAuto();
+        if (!isAuto) {
+            showNotice(linkedFolder
+                ? 'Saved to Studio workspace. Use Export to write changes to local disk.'
+                : 'Saved to Studio workspace.');
+        }
     }, () => {
         finish(false);
     }));

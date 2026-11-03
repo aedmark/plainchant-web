@@ -98,4 +98,18 @@ test('html-ast: duplicateElement and moveElement reorder and clone elements clea
     const dup = HtmlAst.duplicateElement(movedDown.html, movedDown.newId);
     const matches = dup.html.match(/class="b"/g) || [];
     assert.equal(matches.length, 2, 'element duplicated');
+
+    const ast2 = HtmlAst.parse(html);
+    const aNode = ast2.elements.find((e) => e.attrs.class === 'a');
+    const cNode = ast2.elements.find((e) => e.attrs.class === 'c');
+    const dragDown = HtmlAst.moveElement(html, aNode.id, cNode.id, 'after');
+    assert.ok(dragDown.moved, 'dragged a after c');
+    assert.ok(dragDown.html.indexOf('class="c"') < dragDown.html.indexOf('class="a"'), 'a is now after c');
+
+    const ast3 = HtmlAst.parse(dragDown.html);
+    const aAfter = ast3.elements.find((e) => e.attrs.class === 'a');
+    const bAfter = ast3.elements.find((e) => e.attrs.class === 'b');
+    const dragUp = HtmlAst.moveElement(dragDown.html, aAfter.id, bAfter.id, 'before');
+    assert.ok(dragUp.moved, 'dragged a back before b');
+    assert.ok(dragUp.html.indexOf('class="a"') < dragUp.html.indexOf('class="b"'), 'a is before b again');
 });

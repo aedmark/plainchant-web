@@ -251,13 +251,25 @@ fn open_project_folder_at(path: String, state: tauri::State<ServerState>) -> Res
 
 #[tauri::command]
 fn save_project_folder(
-    path: String,
+    path: Option<String>,
     files: Option<BTreeMap<String, String>>,
     html: Option<String>,
     css: Option<String>,
     js: Option<String>,
-) -> Result<(), String> {
-    let dir = PathBuf::from(&path);
+) -> Result<Option<String>, String> {
+    let dir = match path.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        Some(p) => PathBuf::from(p),
+        None => {
+            let picked = rfd::FileDialog::new()
+                .set_title("Select Folder to Export Project Files")
+                .pick_folder();
+            let Some(chosen) = picked else {
+                return Ok(None);
+            };
+            chosen
+        }
+    };
+
     if !dir.exists() {
         fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     }
@@ -284,7 +296,7 @@ fn save_project_folder(
             fs::write(dir.join("script.js"), j).map_err(|e| e.to_string())?;
         }
     }
-    Ok(())
+    Ok(Some(dir.to_string_lossy().into_owned()))
 }
 
 fn main() {
