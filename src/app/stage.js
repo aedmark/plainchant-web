@@ -1,0 +1,361 @@
+const BRIDGE_CSS = [
+    '[data-pc-hover="true"]:not([data-pc-selected="true"]) {',
+    '  outline: 1.5px dashed #0284c7 !important;',
+    '  outline-offset: 2px !important;',
+    '  cursor: pointer;',
+    '}',
+    '[data-pc-selected="true"] {',
+    '  outline: 2px solid #0284c7 !important;',
+    '  outline-offset: 1px !important;',
+    '}',
+    '[data-pc-drop-target="before"] {',
+    '  box-shadow: 0 -3px 0 0 #f59e0b !important;',
+    '}',
+    '[data-pc-drop-target="after"] {',
+    '  box-shadow: 0 3px 0 0 #f59e0b !important;',
+    '}',
+    '[data-pc-editing="true"] {',
+    '  outline: 2px solid #16a34a !important;',
+    '  outline-offset: 3px !important;',
+    '  background-color: rgba(22, 163, 74, 0.04);',
+    '  cursor: text !important;',
+    '}',
+    '#pc-margin-box, #pc-padding-box {',
+    '  position: fixed;',
+    '  z-index: 2147483645;',
+    '  pointer-events: none;',
+    '  box-sizing: border-box;',
+    '  border-style: solid;',
+    '  display: none;',
+    '}',
+    '#pc-margin-box { border-color: rgba(245, 158, 11, 0.24); }',
+    '#pc-padding-box { border-color: rgba(16, 185, 129, 0.24); }',
+    '#pc-stage-badge {',
+    '  position: fixed;',
+    '  z-index: 2147483647;',
+    '  pointer-events: auto;',
+    '  background: #0284c7;',
+    '  color: #ffffff;',
+    '  font: 600 11px/1.3 system-ui, -apple-system, sans-serif;',
+    '  padding: 2px 6px;',
+    '  border-radius: 4px;',
+    '  box-shadow: 0 2px 8px rgba(0,0,0,0.28);',
+    '  display: none;',
+    '  align-items: center;',
+    '  gap: 5px;',
+    '  user-select: none;',
+    '}',
+    '#pc-stage-badge .pc-b-act {',
+    '  background: rgba(255,255,255,0.16);',
+    '  color: #ffffff;',
+    '  border: none;',
+    '  border-radius: 2px;',
+    '  padding: 1px 4px;',
+    '  font: 600 10px/1.1 system-ui, sans-serif;',
+    '  cursor: pointer;',
+    '}',
+    '#pc-stage-badge .pc-b-act:hover { background: rgba(255,255,255,0.32); }'
+].join('\n');
+
+function buildBridgeScript(designMode, initialSelectedId) {
+    if (!designMode) return '';
+    return [
+        '(function() {',
+        '  var selectedId = ' + JSON.stringify(initialSelectedId || null) + ';',
+        '  var editingEl = null;',
+        '  var dragSourceId = null;',
+        '  var marginBox = document.createElement("div");',
+        '  marginBox.id = "pc-margin-box";',
+        '  var paddingBox = document.createElement("div");',
+        '  paddingBox.id = "pc-padding-box";',
+        '  var badge = document.createElement("div");',
+        '  badge.id = "pc-stage-badge";',
+        '  document.body.appendChild(marginBox);',
+        '  document.body.appendChild(paddingBox);',
+        '  document.body.appendChild(badge);',
+        '  function labelOf(el) {',
+        '    if (!el || !el.tagName) return "";',
+        '    var s = el.tagName.toLowerCase();',
+        '    if (el.id) s += "#" + el.id;',
+        '    if (el.className && typeof el.className === "string") {',
+        '      var c = el.className.trim().split(/\\s+/).filter(Boolean).slice(0, 2);',
+        '      if (c.length) s += "." + c.join(".");',
+        '    }',
+        '    return s;',
+        '  }',
+        '  function readComputed(el) {',
+        '    if (!el || el.nodeType !== 1) return null;',
+        '    var cs = window.getComputedStyle(el);',
+        '    var r = el.getBoundingClientRect();',
+        '    return {',
+        '      display: cs.display,',
+        '      padding: cs.padding,',
+        '      margin: cs.margin,',
+        '      gap: cs.gap,',
+        '      width: Math.round(r.width) + "px",',
+        '      height: Math.round(r.height) + "px",',
+        '      maxWidth: cs.maxWidth,',
+        '      fontSize: cs.fontSize,',
+        '      textAlign: cs.textAlign,',
+        '      borderRadius: cs.borderRadius,',
+        '      color: cs.color,',
+        '      backgroundColor: cs.backgroundColor',
+        '    };',
+        '  }',
+        '  function updateBoxOverlay(el) {',
+        '    if (!el || el === document.body || el === document.documentElement) {',
+        '      marginBox.style.display = "none";',
+        '      paddingBox.style.display = "none";',
+        '      return;',
+        '    }',
+        '    var r = el.getBoundingClientRect();',
+        '    var cs = window.getComputedStyle(el);',
+        '    var mt = Math.max(0, parseFloat(cs.marginTop) || 0);',
+        '    var mr = Math.max(0, parseFloat(cs.marginRight) || 0);',
+        '    var mb = Math.max(0, parseFloat(cs.marginBottom) || 0);',
+        '    var ml = Math.max(0, parseFloat(cs.marginLeft) || 0);',
+        '    var pt = Math.max(0, parseFloat(cs.paddingTop) || 0);',
+        '    var pr = Math.max(0, parseFloat(cs.paddingRight) || 0);',
+        '    var pb = Math.max(0, parseFloat(cs.paddingBottom) || 0);',
+        '    var pl = Math.max(0, parseFloat(cs.paddingLeft) || 0);',
+        '    marginBox.style.display = "block";',
+        '    marginBox.style.top = (r.top - mt) + "px";',
+        '    marginBox.style.left = (r.left - ml) + "px";',
+        '    marginBox.style.width = (r.width + ml + mr) + "px";',
+        '    marginBox.style.height = (r.height + mt + mb) + "px";',
+        '    marginBox.style.borderWidth = mt + "px " + mr + "px " + mb + "px " + ml + "px";',
+        '    paddingBox.style.display = "block";',
+        '    paddingBox.style.top = r.top + "px";',
+        '    paddingBox.style.left = r.left + "px";',
+        '    paddingBox.style.width = r.width + "px";',
+        '    paddingBox.style.height = r.height + "px";',
+        '    paddingBox.style.borderWidth = pt + "px " + pr + "px " + pb + "px " + pl + "px";',
+        '  }',
+        '  function positionBadge(el) {',
+        '    if (!el) { badge.style.display = "none"; updateBoxOverlay(null); return; }',
+        '    var r = el.getBoundingClientRect();',
+        '    var dims = Math.round(r.width) + "×" + Math.round(r.height);',
+        '    badge.innerHTML = "";',
+        '    var lbl = document.createElement("span");',
+        '    lbl.textContent = labelOf(el) + " · " + dims;',
+        '    badge.appendChild(lbl);',
+        '    if (el !== document.body && el !== document.documentElement) {',
+        '      var actions = [',
+        '        { cmd: "pc-move-up", txt: "↑", title: "Move up" },',
+        '        { cmd: "pc-move-down", txt: "↓", title: "Move down" },',
+        '        { cmd: "pc-duplicate", txt: "⧉", title: "Duplicate" },',
+        '        { cmd: "pc-delete", txt: "✕", title: "Delete" }',
+        '      ];',
+        '      actions.forEach(function(a) {',
+        '        var btn = document.createElement("button");',
+        '        btn.type = "button";',
+        '        btn.className = "pc-b-act";',
+        '        btn.textContent = a.txt;',
+        '        btn.title = a.title;',
+        '        btn.addEventListener("click", function(ev) {',
+        '          ev.preventDefault();',
+        '          ev.stopPropagation();',
+        '          window.parent.postMessage({ type: a.cmd, id: selectedId }, "*");',
+        '        });',
+        '        badge.appendChild(btn);',
+        '      });',
+        '    }',
+        '    badge.style.display = " inline-flex";',
+        '    badge.style.top = Math.max(2, r.top - 24) + "px";',
+        '    badge.style.left = Math.max(2, r.left) + "px";',
+        '    updateBoxOverlay(el);',
+        '  }',
+        '  function setSelect(id) {',
+        '    selectedId = id;',
+        '    var prev = document.querySelectorAll("[data-pc-selected]");',
+        '    for (var i = 0; i < prev.length; i++) {',
+        '      prev[i].removeAttribute("data-pc-selected");',
+        '      prev[i].removeAttribute("draggable");',
+        '    }',
+        '    if (!id) { positionBadge(null); return; }',
+        '    var target = document.querySelector(\'[data-pc-id="\' + id + \'"]\');',
+        '    if (target) {',
+        '      target.setAttribute("data-pc-selected", "true");',
+        '      if (target !== document.body && target !== document.documentElement) {',
+        '        target.setAttribute("draggable", "true");',
+        '      }',
+        '      positionBadge(target);',
+        '      window.parent.postMessage({ type: "pc-computed", id: id, computed: readComputed(target) }, "*");',
+        '    }',
+        '  }',
+        '  if (selectedId) setTimeout(function() { setSelect(selectedId); }, 10);',
+        '  window.addEventListener("scroll", function() {',
+        '    if (!selectedId) return;',
+        '    var t = document.querySelector(\'[data-pc-id="\' + selectedId + \'"]\');',
+        '    if (t) positionBadge(t);',
+        '  }, true);',
+        '  document.addEventListener("mouseover", function(e) {',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    if (!el || el === document.body) return;',
+        '    el.setAttribute("data-pc-hover", "true");',
+        '  });',
+        '  document.addEventListener("mouseout", function(e) {',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    if (el) el.removeAttribute("data-pc-hover");',
+        '  });',
+        '  document.addEventListener("dragstart", function(e) {',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    if (!el || el === document.body) return;',
+        '    dragSourceId = el.getAttribute("data-pc-id");',
+        '    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";',
+        '  });',
+        '  document.addEventListener("dragover", function(e) {',
+        '    if (!dragSourceId) return;',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    if (!el || el === document.body) return;',
+        '    var tid = el.getAttribute("data-pc-id");',
+        '    if (!tid || tid === dragSourceId) return;',
+        '    e.preventDefault();',
+        '    var prev = document.querySelectorAll("[data-pc-drop-target]");',
+        '    for (var i = 0; i < prev.length; i++) prev[i].removeAttribute("data-pc-drop-target");',
+        '    var r = el.getBoundingClientRect();',
+        '    var pos = (e.clientY < r.top + r.height / 2) ? "before" : "after";',
+        '    el.setAttribute("data-pc-drop-target", pos);',
+        '  });',
+        '  document.addEventListener("drop", function(e) {',
+        '    if (!dragSourceId) return;',
+        '    var prev = document.querySelectorAll("[data-pc-drop-target]");',
+        '    for (var i = 0; i < prev.length; i++) prev[i].removeAttribute("data-pc-drop-target");',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    var sourceId = dragSourceId;',
+        '    dragSourceId = null;',
+        '    if (!el || el === document.body) return;',
+        '    var tid = el.getAttribute("data-pc-id");',
+        '    if (!tid || tid === sourceId) return;',
+        '    e.preventDefault();',
+        '    var r = el.getBoundingClientRect();',
+        '    var pos = (e.clientY < r.top + r.height / 2) ? "before" : "after";',
+        '    window.parent.postMessage({ type: "pc-move-to", sourceId: sourceId, targetId: tid, position: pos }, "*");',
+        '  });',
+        '  document.addEventListener("click", function(e) {',
+        '    if (badge.contains(e.target)) return;',
+        '    if (editingEl && editingEl.contains(e.target)) return;',
+        '    e.preventDefault();',
+        '    e.stopPropagation();',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    if (!el) return;',
+        '    var id = el.getAttribute("data-pc-id");',
+        '    setSelect(id);',
+        '    window.parent.postMessage({ type: "pc-select", id: id, computed: readComputed(el) }, "*");',
+        '  }, true);',
+        '  function finishInlineEdit(keep) {',
+        '    if (!editingEl) return;',
+        '    var el = editingEl;',
+        '    editingEl = null;',
+        '    var id = el.getAttribute("data-pc-id");',
+        '    var text = el.innerText;',
+        '    el.removeAttribute("contenteditable");',
+        '    el.removeAttribute("data-pc-editing");',
+        '    if (keep && id) {',
+        '      window.parent.postMessage({ type: "pc-inline-edit", id: id, text: text }, "*");',
+        '    }',
+        '  }',
+        '  document.addEventListener("dblclick", function(e) {',
+        '    if (badge.contains(e.target)) return;',
+        '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
+        '    if (!el || el === document.body) return;',
+        '    e.preventDefault();',
+        '    e.stopPropagation();',
+        '    window.parent.postMessage({ type: "pc-inline-start", id: el.getAttribute("data-pc-id") }, "*");',
+        '    if (editingEl && editingEl !== el) finishInlineEdit(true);',
+        '    editingEl = el;',
+        '    el.setAttribute("data-pc-editing", "true");',
+        '    el.setAttribute("contenteditable", "true");',
+        '    el.focus();',
+        '  }, true);',
+        '  document.addEventListener("keydown", function(e) {',
+        '    if (editingEl) {',
+        '      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); finishInlineEdit(true); }',
+        '      else if (e.key === "Escape") { e.preventDefault(); finishInlineEdit(false); }',
+        '    } else if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {',
+        '      e.preventDefault();',
+        '      window.parent.postMessage({ type: "pc-delete", id: selectedId }, "*");',
+        '    } else if (e.altKey && e.key === "ArrowUp" && selectedId) {',
+        '      e.preventDefault();',
+        '      window.parent.postMessage({ type: "pc-move-up", id: selectedId }, "*");',
+        '    } else if (e.altKey && e.key === "ArrowDown" && selectedId) {',
+        '      e.preventDefault();',
+        '      window.parent.postMessage({ type: "pc-move-down", id: selectedId }, "*");',
+        '    }',
+        '  });',
+        '  document.addEventListener("blur", function(e) {',
+        '    if (editingEl && e.target === editingEl) finishInlineEdit(true);',
+        '  }, true);',
+        '  window.addEventListener("message", function(e) {',
+        '    var d = e.data || {};',
+        '    if (d.type === "pc-highlight") setSelect(d.id);',
+        '  });',
+        '})();'
+    ].join('\n');
+}
+
+let stageTimer = null;
+
+function drawStageNow() {
+    clearTimeout(stageTimer);
+    stageTimer = null;
+    const isDesign = stageMode === 'design';
+    const doc = Project.assemblePreview(projectFiles, {
+        ast: currentHtmlAst,
+        activeHtml: activeHtmlFile,
+        baseUrl: projectBaseUrl,
+        liveJs: !isDesign,
+        bridgeCss: isDesign ? BRIDGE_CSS : '',
+        bridgeScript: buildBridgeScript(isDesign, selectedPcId)
+    });
+    stageFrame.srcdoc = doc;
+}
+
+function scheduleStageRender(typed) {
+    if (!typed) {
+        drawStageNow();
+        return;
+    }
+    clearTimeout(stageTimer);
+    stageTimer = setTimeout(drawStageNow, 120);
+}
+
+function highlightOnStage(pcId) {
+    if (stageFrame && stageFrame.contentWindow) {
+        try {
+            stageFrame.contentWindow.postMessage({ type: 'pc-highlight', id: pcId }, '*');
+        } catch (e) {
+        }
+    }
+}
+
+window.addEventListener('message', (e) => {
+    const data = e.data || {};
+    if (data.type === 'pc-select' && data.id) {
+        if (data.computed) setStageComputedStyle(data.computed);
+        selectElementById(data.id, { revealCode: true, focusEditor: 'delayed' });
+    } else if (data.type === 'pc-computed' && data.id === selectedPcId && data.computed) {
+        setStageComputedStyle(data.computed);
+    } else if (data.type === 'pc-inline-start') {
+        cancelStageFocusTimer();
+    } else if (data.type === 'pc-inline-edit' && data.id) {
+        const nextHtml = HtmlAst.setText(projectFiles.html, data.id, data.text);
+        applyHtmlTransform(nextHtml, data.id);
+    } else if (data.type === 'pc-move-up' && data.id) {
+        moveSelectedElement('up', data.id);
+    } else if (data.type === 'pc-move-down' && data.id) {
+        moveSelectedElement('down', data.id);
+    } else if (data.type === 'pc-move-to' && data.sourceId && data.targetId) {
+        const res = HtmlAst.moveElement(projectFiles.html, data.sourceId, data.targetId, data.position);
+        if (res.moved) {
+            applyHtmlTransform(res.html, res.newId);
+            showNotice('Reordered element');
+        }
+    } else if (data.type === 'pc-duplicate' && data.id) {
+        duplicateSelectedElement(data.id);
+    } else if (data.type === 'pc-delete' && data.id) {
+        deleteSelectedElement();
+    } else if (data.type === 'pc-runtime-error' && data.message) {
+        showNotice('JS Runtime Error: ' + data.message, true);
+    }
+});

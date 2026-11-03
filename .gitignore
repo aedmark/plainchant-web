@@ -1,0 +1,9 @@
+.idea/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+/docs/agent-template.zip
+
+src-tauri/target/
+src-tauri/dist/

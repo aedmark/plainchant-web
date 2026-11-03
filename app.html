@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <title>Plainchant Web: WYSIWYG HTML5, CSS &amp; JS Studio</title>
+    <meta name="description"
+          content="Dreamweaver-inspired HTML5, CSS, and JavaScript WYSIWYG studio: edit code and visual design in harmony.">
+    <meta name="theme-color" content="#0f1115">
+    <meta name="apple-mobile-web-app-title" content="Plainchant Web">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="src/styles.css">
+</head>
+<body data-view="write" data-panes="both">
+
+<div class="mobile-bar">
+    <div class="seg" role="group" aria-label="View">
+        <button id="tabWrite" type="button" aria-pressed="true">Code</button>
+        <button id="tabPreview" type="button" aria-pressed="false">Stage</button>
+    </div>
+    <button id="menuBtn" type="button" class="btn menu-btn" aria-label="Menu" aria-haspopup="true"
+            aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <circle cx="4" cy="10" r="1.75"/>
+            <circle cx="10" cy="10" r="1.75"/>
+            <circle cx="16" cy="10" r="1.75"/>
+        </svg>
+    </button>
+</div>
+
+<div class="pane-void" role="main" aria-label="Code Editor">
+    <div class="header">
+        <div class="brand-lockup">
+            <button id="toggleExplorerBtn" type="button" class="btn explorer-toggle" aria-pressed="true" title="Toggle Project File Explorer">Files</button>
+            <div id="fileTabs" class="file-tabs" role="tablist" aria-label="Open files">
+                <button type="button" class="file-tab" role="tab" data-file="index.html" data-tab="html" aria-selected="true">index.html</button>
+                <button type="button" class="file-tab" role="tab" data-file="styles.css" data-tab="css" aria-selected="false">styles.css</button>
+                <button type="button" class="file-tab" role="tab" data-file="script.js" data-tab="js" aria-selected="false">script.js</button>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="newBtn" type="button" class="btn" title="Start a blank project">New</button>
+            <button id="libraryBtn" type="button" class="btn" title="Open your project library">Projects</button>
+            <button id="folderBtn" type="button" class="btn" title="Open or sync a local project folder">Folder</button>
+            <button id="saveBtn" type="button" class="btn" title="Save project (Ctrl/Cmd+S)">Save</button>
+            <button id="exportBtn" type="button" class="btn" title="Export HTML, CSS, and JS">Export</button>
+            <button id="copyBtn" type="button" class="btn" title="Copy current file">Copy</button>
+            <button id="settingsBtn" type="button" class="btn help-btn" aria-label="Settings" title="Settings">
+                <span class="txt-short" aria-hidden="true">&#9881;</span><span class="txt-long">Settings</span>
+            </button>
+            <button id="helpBtn" type="button" class="btn help-btn" aria-label="Help" title="Help (F1)">
+                <span class="txt-short" aria-hidden="true">?</span><span class="txt-long">Help</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="file-bar" class="file-bar" role="region" aria-label="Linked folder" hidden>
+        <span id="fileBarText" aria-live="polite"></span>
+        <span class="file-bar-actions">
+            <button type="button" class="mini" id="fileSyncNowBtn">Sync disk</button>
+            <button type="button" class="mini" id="fileUnlinkBtn">Unlink</button>
+        </span>
+    </div>
+
+    <div class="insert-bar" role="toolbar" aria-label="Insert HTML5 Element">
+        <span class="bar-label">Insert:</span>
+        <button type="button" class="ins-btn" data-insert="section" title="Insert &lt;section&gt;">Section</button>
+        <button type="button" class="ins-btn" data-insert="article" title="Insert &lt;article class='card'&gt;">Card</button>
+        <button type="button" class="ins-btn" data-insert="flex" title="Insert Flex Row">Flex</button>
+        <button type="button" class="ins-btn" data-insert="grid" title="Insert 3-Column Grid">Grid</button>
+        <button type="button" class="ins-btn" data-insert="div" title="Insert &lt;div&gt;">Div</button>
+        <button type="button" class="ins-btn" data-insert="heading" title="Insert &lt;h2&gt;">Heading</button>
+        <button type="button" class="ins-btn" data-insert="paragraph" title="Insert &lt;p&gt;">Text</button>
+        <button type="button" class="ins-btn" data-insert="button" title="Insert &lt;button&gt;">Button</button>
+        <button type="button" class="ins-btn" data-insert="link" title="Insert &lt;a&gt;">Link</button>
+        <button type="button" class="ins-btn" data-insert="image" title="Insert &lt;img&gt;">Image</button>
+        <button type="button" class="ins-btn" data-insert="list" title="Insert &lt;ul&gt;">List</button>
+        <button type="button" class="ins-btn" data-insert="form" title="Insert &lt;form&gt;">Form</button>
+    </div>
+
+    <div class="workspace-body">
+        <aside id="fileExplorer" class="file-explorer" aria-label="Project File Explorer">
+            <div class="explorer-header">
+                <span id="explorerTitle" class="explorer-title">Project Files</span>
+                <button type="button" id="newFileBtn" class="mini" title="Create a new file in this project">+ File</button>
+            </div>
+            <div class="explorer-search-wrap">
+                <input type="search" id="explorerFilter" class="explorer-search" placeholder="Filter files..." aria-label="Filter project files" autocomplete="off">
+            </div>
+            <div id="explorerTree" class="explorer-tree" role="tree" aria-label="Files in project"></div>
+        </aside>
+        <div class="editor-wrap">
+            <textarea id="editor" aria-label="Source code" spellcheck="false"
+                      placeholder="Type HTML, CSS, or JavaScript here..."></textarea>
+        </div>
+    </div>
+
+    <div class="element-bar" role="toolbar" aria-label="DOM Path and Suggestions">
+        <div id="breadcrumbBar" class="breadcrumb-bar" role="navigation" aria-label="Tag selector">
+            <span class="crumb-empty">body</span>
+        </div>
+        <div class="suggestions" role="group" aria-label="Code suggestions" hidden></div>
+        <p id="suggestSay" class="sr-only" role="status" aria-live="polite"></p>
+    </div>
+</div>
+
+<div class="pane-canvas" role="region" aria-label="Design and Live Stage">
+    <div class="header">
+        <div class="stage-header-left">
+            <h2>Stage</h2>
+            <div class="mode-switch" role="group" aria-label="Stage Mode">
+                <button type="button" id="modeDesignBtn" class="mode-btn" data-mode="design" aria-pressed="true"
+                        title="Design Mode: click elements to inspect, double-click text to edit inline">Design
+                </button>
+                <button type="button" id="modeLiveBtn" class="mode-btn" data-mode="live" aria-pressed="false"
+                        title="Live Mode: run interactive JavaScript and test links">Live JS
+                </button>
+            </div>
+            <div class="viewport-switch" role="group" aria-label="Viewport size">
+                <button type="button" class="vp-btn" data-vp="full" aria-pressed="true" title="Full responsive width">100%</button>
+                <button type="button" class="vp-btn" data-vp="tablet" aria-pressed="false" title="Tablet (768px)">768px</button>
+                <button type="button" class="vp-btn" data-vp="mobile" aria-pressed="false" title="Mobile (375px)">375px</button>
+            </div>
+        </div>
+        <div class="canvas-tools">
+            <div id="panesSwitch" class="panes-switch" role="group" aria-label="Workspace Layout">
+                <button type="button" data-panes="write" aria-pressed="false" aria-label="Code only"
+                        title="Code view only (Ctrl/Cmd+Shift+1)">Code
+                </button>
+                <button type="button" data-panes="both" aria-pressed="true" aria-label="Split Code and Stage"
+                        title="Split view (Ctrl/Cmd+Shift+2)">Split
+                </button>
+                <button type="button" data-panes="preview" aria-pressed="false" aria-label="Stage only"
+                        title="Design/Live Stage only (Ctrl/Cmd+Shift+3)">Design
+                </button>
+            </div>
+            <button type="button" id="inspectorToggleBtn" class="canvas-btn" aria-pressed="true"
+                    title="Toggle Properties &amp; CSS Designer panel">Inspector
+            </button>
+            <button type="button" id="outlineBtn" class="canvas-btn" aria-haspopup="dialog"
+                    title="DOM Tree &amp; Element Outline">DOM
+            </button>
+        </div>
+    </div>
+
+    <div id="render-target" class="stage-viewport">
+        <div id="stage-frame-wrap" class="stage-frame-wrap">
+            <iframe id="stageFrame" title="Live WYSIWYG Stage" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+    </div>
+
+    <section id="inspectorPanel" class="inspector-panel" aria-label="Properties and CSS Designer">
+        <div id="inspectorHeader" class="inspector-header">
+            <div class="inspector-tabs" role="tablist" aria-label="Inspector sections">
+                <button type="button" class="insp-tab" data-insp="props" aria-selected="true">Properties (HTML)</button>
+                <button type="button" class="insp-tab" data-insp="css" aria-selected="false">CSS Designer</button>
+            </div>
+            <div class="inspector-selection-badge">
+                <span id="inspSelectedTag">No element selected</span>
+                <div class="insp-actions">
+                    <button type="button" class="mini" id="inspMoveUpBtn" title="Move element up (Alt+Up)" disabled>&uarr;</button>
+                    <button type="button" class="mini" id="inspMoveDownBtn" title="Move element down (Alt+Down)" disabled>&darr;</button>
+                    <button type="button" class="mini" id="inspDupBtn" title="Duplicate selected element" disabled>Duplicate</button>
+                    <button type="button" class="mini" id="inspWrapBtn" title="Wrap selected element in a &lt;div&gt;" disabled>Wrap &lt;div&gt;</button>
+                    <button type="button" class="mini danger-mini" id="inspDeleteBtn" title="Delete selected element (Del)" disabled>Delete</button>
+                    <button type="button" class="mini" id="inspFloatBtn" title="Switch between docked panel and floating modal window">&#10530; Float</button>
+                    <button type="button" class="mini" id="inspCollapseBtn" title="Collapse or expand inspector body">&#9662;</button>
+                    <button type="button" class="mini" id="inspCloseBtn" title="Hide Inspector (Ctrl/Cmd+Shift+I)">&times;</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="inspPropsPane" class="inspector-body">
+            <div class="insp-grid">
+                <label class="insp-field">
+                    <span>ID</span>
+                    <input type="text" id="propId" placeholder="e.g. hero" autocomplete="off" disabled>
+                </label>
+                <label class="insp-field insp-wide">
+                    <span>Classes (space-separated)</span>
+                    <input type="text" id="propClass" placeholder="e.g. card featured" autocomplete="off" disabled>
+                </label>
+                <label class="insp-field insp-wide">
+                    <span>Text Content</span>
+                    <input type="text" id="propText" placeholder="Inline text of element" autocomplete="off" disabled>
+                </label>
+                <label class="insp-field" id="propHrefWrap">
+                    <span>Link (href)</span>
+                    <input type="text" id="propHref" placeholder="#section or https://..." autocomplete="off" disabled>
+                </label>
+                <label class="insp-field" id="propSrcWrap">
+                    <span>Source (src)</span>
+                    <input type="text" id="propSrc" placeholder="image.png" autocomplete="off" disabled>
+                </label>
+                <label class="insp-field" id="propAltWrap">
+                    <span>Alt / Title</span>
+                    <input type="text" id="propAlt" placeholder="Accessible description" autocomplete="off" disabled>
+                </label>
+            </div>
+        </div>
+
+        <div id="inspCssPane" class="inspector-body" hidden>
+            <div class="css-target-bar">
+                <label class="insp-inline-label">
+                    <span>Target Rule:</span>
+                    <select id="cssTargetSelect" aria-label="Target CSS selector or inline style"></select>
+                </label>
+                <button type="button" class="mini" id="cssJumpRuleBtn" title="Jump to this CSS rule in the Code editor">Go to CSS &#8599;</button>
+                <input type="text" id="cssCustomSelector" class="css-custom-input" placeholder=".new-class or #id" aria-label="Custom CSS selector">
+                <button type="button" class="mini" id="cssAddRuleBtn">Use Selector</button>
+                <span id="cssBoxSummary" class="css-box-summary" aria-live="polite"></span>
+            </div>
+            <div class="insp-grid css-grid">
+                <label class="insp-field">
+                    <span>Display</span>
+                    <select id="cssDisplay">
+                        <option value="">(default)</option>
+                        <option value="block">block</option>
+                        <option value="flex">flex</option>
+                        <option value="grid">grid</option>
+                        <option value="inline-block">inline-block</option>
+                        <option value="inline">inline</option>
+                        <option value="none">none</option>
+                    </select>
+                </label>
+                <label class="insp-field">
+                    <span>Padding</span>
+                    <input type="text" id="cssPadding" placeholder="e.g. 1.5rem">
+                </label>
+                <label class="insp-field">
+                    <span>Margin</span>
+                    <input type="text" id="cssMargin" placeholder="e.g. 0 auto">
+                </label>
+                <label class="insp-field">
+                    <span>Gap</span>
+                    <input type="text" id="cssGap" placeholder="e.g. 1rem">
+                </label>
+                <label class="insp-field">
+                    <span>Width / Max-W</span>
+                    <input type="text" id="cssWidth" placeholder="e.g. 100% or 760px">
+                </label>
+                <label class="insp-field">
+                    <span>Font Size</span>
+                    <input type="text" id="cssFontSize" placeholder="e.g. 1.25rem">
+                </label>
+                <label class="insp-field">
+                    <span>Text Align</span>
+                    <select id="cssTextAlign">
+                        <option value="">(inherit)</option>
+                        <option value="left">left</option>
+                        <option value="center">center</option>
+                        <option value="right">right</option>
+                    </select>
+                </label>
+                <label class="insp-field">
+                    <span>Radius</span>
+                    <input type="text" id="cssRadius" placeholder="e.g. 0.5rem">
+                </label>
+                <label class="insp-field">
+                    <span>Text Color</span>
+                    <div class="color-pair">
+                        <input type="color" id="cssColorPicker" value="#0f172a" aria-label="Pick text color">
+                        <input type="text" id="cssColor" placeholder="#0f172a">
+                    </div>
+                </label>
+                <label class="insp-field">
+                    <span>Background</span>
+                    <div class="color-pair">
+                        <input type="color" id="cssBgPicker" value="#ffffff" aria-label="Pick background color">
+                        <input type="text" id="cssBg" placeholder="#ffffff">
+                    </div>
+                </label>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="library-modal" class="modal-overlay">
+    <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="library-title">
+        <div class="modal-header">
+            <h2 id="library-title">Your Projects</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="library-tools">
+            <input id="librarySearch" class="library-search" type="search" placeholder="Search your projects"
+                   aria-label="Search your projects" autocomplete="off">
+            <div class="library-views" role="group" aria-label="Show">
+                <button type="button" class="chip" id="libViewScripts" aria-pressed="true">Projects</button>
+                <button type="button" class="chip" id="libViewTrash" aria-pressed="false">Recently deleted</button>
+            </div>
+            <button type="button" class="chip" id="libStarterBtn">Load Starter Template</button>
+            <button type="button" class="chip" id="libImport">Import file&hellip;</button>
+            <input type="file" id="importInput" accept=".html,.htm,.css,.js" multiple hidden>
+        </div>
+        <div id="library-list" class="modal-body"></div>
+        <div id="library-status" role="status" aria-live="polite"></div>
+    </div>
+</div>
+
+<div id="versions-modal" class="modal-overlay">
+    <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="versions-title">
+        <div class="modal-header">
+            <h2 id="versions-title">Project Snapshots</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="versions-top">
+            <p id="versionsFor" class="versions-for"></p>
+            <form id="versionForm" class="rename-form">
+                <input type="text" id="versionName" maxlength="80" autocomplete="off"
+                       placeholder="Name this snapshot, e.g. Before hero redesign"
+                       aria-label="Snapshot name">
+                <button type="submit" class="btn primary">Keep Snapshot</button>
+            </form>
+        </div>
+        <div id="versions-list" class="modal-body"></div>
+        <div id="versions-status" role="status" aria-live="polite"></div>
+    </div>
+</div>
+
+<div id="outline-modal" class="modal-overlay">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="outline-title">
+        <div class="modal-header">
+            <h2 id="outline-title">DOM Structure &amp; Stats</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="library-tools">
+            <input id="outlineFilter" class="library-search" type="search" placeholder="Filter by tag, #id, .class, or text"
+                   aria-label="Filter DOM elements" autocomplete="off">
+            <span id="domStatsBadge" class="dom-stats-badge"></span>
+        </div>
+        <div id="outline-list" class="modal-body outline-list"></div>
+    </div>
+</div>
+
+<div id="export-modal" class="modal-overlay">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="export-title">
+        <div class="modal-header">
+            <h2 id="export-title">Export Project</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <section class="export-option">
+                <h3>Standalone Single-File HTML</h3>
+                <p>Bundles <code>index.html</code>, <code>styles.css</code>, and <code>script.js</code> into a single self-contained <code>.html</code> file that opens anywhere.</p>
+                <div class="export-buttons">
+                    <button type="button" class="btn primary" id="exportBundleBtn">Download bundled .html</button>
+                    <button type="button" class="btn" id="copyBundleBtn">Copy bundled HTML</button>
+                </div>
+            </section>
+            <section class="export-option">
+                <h3>Separate Source Files</h3>
+                <p>Download the individual source files cleanly as written.</p>
+                <div class="export-buttons">
+                    <button type="button" class="btn" id="exportHtmlBtn">index.html</button>
+                    <button type="button" class="btn" id="exportCssBtn">styles.css</button>
+                    <button type="button" class="btn" id="exportJsBtn">script.js</button>
+                </div>
+            </section>
+            <section class="export-option">
+                <h3>Local Project Folder (Tauri / File System API)</h3>
+                <p id="folderExportNote">Write <code>index.html</code>, <code>styles.css</code>, and <code>script.js</code> directly to a folder on disk.</p>
+                <div class="export-buttons">
+                    <button type="button" class="btn" id="exportFolderBtn">Save to Folder&hellip;</button>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<div id="settings-modal" class="modal-overlay">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="modal-header">
+            <h2 id="settings-title">Settings</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <fieldset class="settings-group">
+                <legend>Theme</legend>
+                <div class="radio-row">
+                    <label><input type="radio" name="theme" value="dark"> Dark</label>
+                    <label><input type="radio" name="theme" value="light"> Light</label>
+                    <label><input type="radio" name="theme" value="retro"> Retro</label>
+                    <label><input type="radio" name="theme" value="system"> System</label>
+                </div>
+            </fieldset>
+            <fieldset class="settings-group">
+                <legend>Code text size</legend>
+                <div class="radio-row">
+                    <label><input type="radio" name="size" value="small"> Small</label>
+                    <label><input type="radio" name="size" value="normal"> Normal</label>
+                    <label><input type="radio" name="size" value="large"> Large</label>
+                    <label><input type="radio" name="size" value="larger"> Larger</label>
+                </div>
+            </fieldset>
+            <fieldset class="settings-group">
+                <legend>Editor helpers</legend>
+                <label class="check-row">
+                    <input type="checkbox" id="setColours">
+                    <span>Syntax color hints in the code editor</span>
+                </label>
+                <label class="check-row">
+                    <input type="checkbox" id="setIndent">
+                    <span>Smart indentation on Enter and tag expansion on Tab</span>
+                </label>
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn primary" data-close>Done</button>
+        </div>
+    </div>
+</div>
+
+<div id="help-modal" class="modal-overlay">
+    <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="modal-header">
+            <h2 id="help-title">Plainchant Web Guide</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>Dreamweaver-Style Round-Trip Editing</h3>
+            <p>Your <code>index.html</code>, <code>styles.css</code>, and <code>script.js</code> files are always the single source of truth. Every visual action on the Stage splices only the exact character range in your source code.</p>
+            <ul>
+                <li><strong>Select &amp; Inspect:</strong> In <strong>Design Mode</strong>, click any element on the Stage to highlight it, view its ancestor path in the bottom <strong>Tag Selector</strong> bar, and edit its HTML attributes or CSS rules in the <strong>Inspector</strong>.</li>
+                <li><strong>Inline Text Editing:</strong> Double-click any text element on the Stage to edit its copy directly in place. Press <kbd>Enter</kbd> or click away to commit the change as an undoable edit (<kbd>Ctrl/Cmd+Z</kbd>).</li>
+                <li><strong>CSS Designer:</strong> Choose whether your style changes target a shared CSS selector in <code>styles.css</code> (like <code>.card</code>) or the element's inline <code>style</code> attribute.</li>
+                <li><strong>Insert Bar &amp; Shorthand:</strong> Click any button in the <strong>Insert</strong> toolbar to add semantic HTML5 blocks inside or after the selected element, or type shorthand like <code>section.hero</code> or <code>ul*3</code> in the HTML editor and press <kbd>Tab</kbd>.</li>
+                <li><strong>Live JS Mode:</strong> Switch the Stage from <strong>Design</strong> to <strong>Live JS</strong> to execute <code>script.js</code> and interact with your page normally.</li>
+                <li><strong>Hybrid Desktop &amp; Browser:</strong> Open and sync real project directories on disk via Tauri or the browser File System Access API using the <strong>Folder</strong> button.</li>
+            </ul>
+            <div class="help-actions">
+                <button type="button" class="btn primary" id="helpLoadStarter">Load Starter Template</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn primary" data-close>Got it</button>
+        </div>
+    </div>
+</div>
+
+<div id="dropHint" class="drop-hint" hidden>Drop HTML, CSS, or JS files here to import</div>
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+<script src="src/html-ast.js"></script>
+<script src="src/css-ast.js"></script>
+<script src="src/code-shade.js"></script>
+<script src="src/dom-outline.js"></script>
+<script src="src/project.js"></script>
+<script src="src/editing.js"></script>
+<script src="src/suggest.js"></script>
+<script src="src/library.js"></script>
+<script src="src/store.js"></script>
+<script src="src/versions.js"></script>
+<script src="src/filesync.js"></script>
+<script src="src/importing.js"></script>
+<script src="src/app/core.js"></script>
+<script src="src/app/layout.js"></script>
+<script src="src/app/persistence.js"></script>
+<script src="src/app/dialogs.js"></script>
+<script src="src/app/library-ui.js"></script>
+<script src="src/app/versions-ui.js"></script>
+<script src="src/app/settings.js"></script>
+<script src="src/app/typing.js"></script>
+<script src="src/app/shade.js"></script>
+<script src="src/app/panes.js"></script>
+<script src="src/app/stage.js"></script>
+<script src="src/app/inspector-ui.js"></script>
+<script src="src/app/outline-ui.js"></script>
+<script src="src/app/export.js"></script>
+<script src="src/app/import.js"></script>
+<script src="src/app/tauri-files.js"></script>
+<script src="src/app/help.js"></script>
+<script src="src/app/offline.js"></script>
+<script src="src/app/main.js"></script>
+</body>
+</html>
