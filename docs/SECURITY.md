@@ -20,9 +20,14 @@ Plainchant Web is a local web and desktop application (Tauri v2 + Rust backend) 
 4. **Isolated Studio Workspace (`D-006`)**:
    - Opening a local directory via `open_project_folder` reads text files into memory and sets the asset server root, but **never** automatically writes back to disk during editing. Disk writes occur only when the user explicitly triggers **Export** (`save_project_folder` in [`src-tauri/src/main.rs`](../src-tauri/src/main.rs)).
 
+5. **Opt-in Network Preview Server (`D-029`)**:
+   - [`src-tauri/src/preview.rs`](../src-tauri/src/preview.rs) runs only after the user presses **Start sharing** in the Preview dialog. It binds `0.0.0.0` on an ephemeral port, serves read-only `GET`/`HEAD`, and answers only under `/<token>/`, where the token is 128 random bits; any other path or token gets `404`.
+   - It serves the Studio working copy held in memory (including unsaved text and added images), plus non-text files from the linked folder. Paths are checked with `is_safe_relative`, so `..`, absolute paths, and encoded variants are refused.
+   - Traffic is plain HTTP, so anyone on the same network who has the link can read the project. The dialog says so. **Stop sharing** or quitting the app ends the listener and clears the content. The always-on asset server in item 3 stays on loopback.
+
 ## Secrets & configuration
 
-- Plainchant Web requires no API keys, cloud credentials, or external network access.
+- Plainchant Web requires no API keys, cloud credentials, or external services. The only network listeners are the loopback asset server and the opt-in preview server above.
 - Never commit `.env` files, private keys, or user project exports into the repository.
 
 ## Reporting

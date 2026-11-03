@@ -97,6 +97,8 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/imagelib.js` | Project image listing, unique upload paths, and size formatting (UMD, no DOM) |
 | `src/app/asset-ui.js` | Assets modal: thumbnails, usage, insert/use/pick/delete, and adding images |
 | `src/zip.js` | Dependency-free ZIP writer and reader (stored entries, CRC-32, UTF-8 names; UMD, no DOM) |
+| `src/preview.js` | Preview link building, entry page choice, and asset signature (UMD, no DOM) |
+| `src/app/preview-ui.js` | Preview dialog: new-tab snapshot (browser) and opt-in network sharing (Tauri), with live push on edit |
 | `src/app/zip-ui.js` | Export dialog **Download project .zip** button (hidden in Tauri) |
 | `src/finding.js` | Plain-text search and replace offset helpers for the find bar (UMD, no DOM) |
 | `src/app/find-project.js` | Project scope of the find bar: results list, per-file selection, and Replace All in Project |
@@ -116,7 +118,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/app/stage-live.js` | Live JS link bridge and project link following (loaded after `stage.js`) |
 | `src/app/console-ui.js` | Console Inspector tab: log rows, filters, unread badge, click-to-jump (loaded after `inspector-ui.js`) |
 | `src/app/` | Classic scripts sharing one global scope, loaded in order by `app.html` (`core.js` first, `main.js` last) |
-| `src-tauri/` | Tauri v2 Rust desktop shell, recursive project folder loader, and localhost static asset server |
+| `src-tauri/` | Tauri v2 Rust desktop shell, recursive project folder loader, localhost static asset server, and opt-in network preview server (`src/preview.rs`) |
 | `test/` | Node unit and structural test runner (`test/run.js`, `test/*.test.js`) |
 | `AGENTS.md` | Canonical agent instructions |
 | `CLAUDE.md` | Imports `AGENTS.md` for Claude/agent tooling |

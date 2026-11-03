@@ -260,3 +260,21 @@ test('structure: the Assets modal, Browse button, image library, and asset-ui.js
     assert.includes(readRoot('src/app/typing.js'), 'restoreProjectAssets(snap.assets)', 'asset changes are part of undo history');
     assert.includes(readRoot('src-tauri/src/main.rs'), 'assets: Option<BTreeMap<String, String>>', 'the desktop export writes added images');
 });
+
+test('structure: the Preview dialog, preview.js, the Tauri preview commands, and the push hooks are wired in (P7-12)', () => {
+    ['id="previewBtn"', 'id="preview-modal"', 'id="previewTabBtn"', 'id="previewToggleBtn"', 'id="previewUrls"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/preview.js') !== -1 && order.indexOf('src/preview.js') < order.indexOf('src/app/core.js'), 'preview.js loads before the app scripts');
+    assert.ok(listed.indexOf('preview-ui.js') > listed.indexOf('tauri-files.js'), 'preview-ui.js loads after tauri-files.js (it uses hasTauri and encodeProjectAssets)');
+    const ui = readRoot('src/app/preview-ui.js');
+    ['preview_start', 'preview_update', 'preview_stop', 'preview_open'].forEach((cmd) => {
+        assert.includes(ui, cmd);
+        assert.includes(readRoot('src-tauri/src/main.rs'), 'preview::' + cmd);
+    });
+    assert.includes(readRoot('src/app/core.js'), 'schedulePreviewPush');
+    assert.includes(readRoot('src/app/assets.js'), 'schedulePreviewPush');
+    const rust = readRoot('src-tauri/src/preview.rs');
+    assert.ok(!/bind\("0\.0\.0\.0:0"\)/.test(readRoot('src-tauri/src/main.rs')), 'the always-on asset server stays on loopback');
+    assert.includes(readRoot('src-tauri/src/main.rs'), '"127.0.0.1:0"');
+    assert.includes(rust, 'strip_prefix(prefix.as_str())');
+});

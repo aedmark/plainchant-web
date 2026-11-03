@@ -323,6 +323,26 @@
           "related": ["browser-binary-assets", "explorer-file-operations"]
         },
         {
+          "id": "network-preview",
+          "title": "Preview in a browser or on a phone",
+          "summary": "Opens the project in a real browser tab, or shares it read-only on your network from the desktop app.",
+          "tags": ["preview", "network", "D-029"],
+          "what": "The **Preview** button opens a dialog. In the desktop app, **Start sharing** serves the open project, including unsaved edits and added images, on your network behind a private link; you open that link on a phone or in another browser, and the page reloads as you edit. **Open in this computer's browser** opens the same link locally. In the browser build, **Open in new tab** opens a one-time snapshot of the current page. Sharing is off until you start it and stops on **Stop sharing** or when you quit.",
+          "how": [
+            "`src/app/preview-ui.js` sends every text file (with the open file's unsaved text) and the entry page to the Rust `preview_start` and `preview_update` commands, 400 ms after each `render()`; images are sent as base64 only when `Preview.assetSignature()` changes.",
+            "`src-tauri/src/preview.rs` binds `0.0.0.0` on a random port and answers only `GET` and `HEAD` under `/<token>/`, where the token is 128 random bits; it keeps the files in memory, falls back to the linked folder for images that exist only on disk, and bumps a version only when content changes.",
+            "Served pages carry a small script that polls `/<token>/__pc_version` and reloads when it changes; the browser build instead shows a `Project.assemblePreview` snapshot as a blob URL."
+          ],
+          "why": "Recorded in D-029: the always-on asset server serves the disk copy on loopback, so a separate opt-in, token-gated server is the only way to show the working copy to a phone without widening that boundary, at the cost of plain HTTP that anyone on the network with the link can read.",
+          "evidence": [
+            {"label": "Preview server", "target": "src-tauri/src/preview.rs"},
+            {"label": "Preview dialog", "target": "src/app/preview-ui.js"},
+            {"label": "Link and signature helpers", "target": "src/preview.js"},
+            {"label": "Helper tests", "target": "test/preview.test.js"}
+          ],
+          "related": ["zip-export", "browser-binary-assets"]
+        },
+        {
           "id": "problems-link-checker",
           "title": "Problems tab (links, accessibility, markup)",
           "summary": "Finds broken links and missing files across the whole project and jumps to each one.",

@@ -1426,3 +1426,10 @@ body.insert-dragging, body.insert-dragging * { cursor: grabbing !important; user
 .asset-actions { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .asset-actions .mini { white-space: nowrap; }
 #assetStatus { padding: 0.4rem 1rem; font-size: 0.72rem; color: var(--text-void-muted); }
+
+#previewBtn.sharing { box-shadow: inset 0 -2px 0 var(--focus); }
+.preview-urls { margin-top: 0.75rem; display: grid; gap: 0.5rem; }
+.preview-url { display: grid; grid-template-columns: 9.5rem 1fr auto; gap: 0.5rem; align-items: center; }
+.preview-url label { font-size: 0.8rem; color: var(--text-void-muted); }
+.preview-url input { min-width: 0; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+@media (max-width: 560px) { .preview-url { grid-template-columns: 1fr auto; } .preview-url label { grid-column: 1 / -1; } }

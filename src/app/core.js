@@ -374,6 +374,7 @@ function render(typed) {
     refreshInspector();
     if (typeof refreshPartsUi === 'function') refreshPartsUi();
     if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
+    if (typeof schedulePreviewPush === 'function') schedulePreviewPush();
 }
 
 if (toggleExplorerBtn && fileExplorer) {

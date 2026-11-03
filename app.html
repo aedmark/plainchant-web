@@ -58,6 +58,7 @@
             <button id="assetsBtn" type="button" class="btn" title="Browse and add the project's images">Assets</button>
             <button id="saveBtn" type="button" class="btn" title="Save project to Studio workspace (Ctrl/Cmd+S)">Save</button>
             <button id="exportBtn" type="button" class="btn" title="Export project to disk or bundle">Export</button>
+            <button id="previewBtn" type="button" class="btn" title="Preview the project in a real browser or on a phone">Preview</button>
             <button id="copyBtn" type="button" class="btn" title="Copy current file">Copy</button>
             <button id="settingsBtn" type="button" class="btn help-btn" aria-label="Settings" title="Settings">
                 <span class="txt-short" aria-hidden="true">&#9881;</span><span class="txt-long">Settings</span>
@@ -479,6 +480,37 @@
     </div>
 </div>
 
+<div id="preview-modal" class="modal-overlay">
+    <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="preview-title">
+        <div class="modal-header">
+            <h2 id="preview-title">Preview in a Browser or on a Phone</h2>
+            <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <section class="export-option" id="previewTabSection">
+                <h3>New browser tab</h3>
+                <p>Opens a snapshot of the current page in a new tab of this browser, with its stylesheets, scripts, and images inline. It does not update as you edit, and links to other pages do not work.</p>
+                <div class="export-buttons">
+                    <button type="button" class="btn" id="previewTabBtn">Open in new tab</button>
+                </div>
+            </section>
+            <section class="export-option" id="previewNetSection">
+                <h3>Live preview on this network</h3>
+                <p id="previewNetNote">Serves the open project, including unsaved edits and added images, read-only over HTTP so you can open it in any browser or on a phone on the same Wi-Fi. Pages reload by themselves when you edit. Anyone on your network who has the link can view it, so share it only on a network you trust. Sharing is off until you start it and stops when you press Stop or quit the app.</p>
+                <div class="export-buttons">
+                    <button type="button" class="btn primary" id="previewToggleBtn">Start sharing</button>
+                    <button type="button" class="btn" id="previewOpenBtn" hidden>Open in this computer's browser</button>
+                </div>
+                <div id="previewUrls" class="preview-urls" hidden></div>
+            </section>
+            <section class="export-option" id="previewDesktopOnly" hidden>
+                <h3>Live preview on this network</h3>
+                <p>Preview on a phone or in another browser needs the desktop app, which can serve the project on your network. In this browser, use the new tab above, or export the project to a folder and serve it yourself.</p>
+            </section>
+        </div>
+    </div>
+</div>
+
 <div id="export-modal" class="modal-overlay">
     <div class="modal-content wide" role="dialog" aria-modal="true" aria-labelledby="export-title">
         <div class="modal-header">
@@ -664,6 +696,7 @@
 <script src="src/imagelib.js"></script>
 <script src="src/layout.js"></script>
 <script src="src/hints.js"></script>
+<script src="src/preview.js"></script>
 <script src="src/importing.js"></script>
 <script src="src/app/core.js"></script>
 <script src="src/app/layout.js"></script>
@@ -698,6 +731,7 @@
 <script src="src/app/import.js"></script>
 <script src="src/app/tauri-files.js"></script>
 <script src="src/app/zip-ui.js"></script>
+<script src="src/app/preview-ui.js"></script>
 <script src="src/app/help.js"></script>
 <script src="src/app/offline.js"></script>
 <script src="src/app/main.js"></script>

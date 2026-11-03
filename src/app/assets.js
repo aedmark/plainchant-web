@@ -39,6 +39,7 @@ function adoptProjectAssets(provided) {
         if (currentSnapshot) currentSnapshot.assets = Object.assign({}, projectAssets);
         drawStageNow();
         if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
+        if (typeof schedulePreviewPush === 'function') schedulePreviewPush();
     }).catch(() => { if (id === currentScriptId) projectAssetsReady = true; });
 }
 
@@ -93,6 +94,7 @@ function finishAssetChange() {
     renderExplorer();
     drawStageNow();
     if (typeof scheduleProblemsCheck === 'function') scheduleProblemsCheck();
+    if (typeof schedulePreviewPush === 'function') schedulePreviewPush();
     scheduleAutoSave();
     syncLatestHistoryState();
 }

@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-03
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`82/82` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`2/2`)
+  - `npm test` — passed (`84/84` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `19` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `20` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -46,14 +46,16 @@ Last updated: 2026-11-03
 - **CSS pseudo-states (`P7-07`, `D-021`)**: State bar in the CSS Designer, forced-state preview via `[data-pc-force~="state"]` selector twins (`src/app/css-states.js`, `CssAst.forceStates`).
 
 - **Zip export (`P7-13`, `D-022`)**: Export dialog button, stored zip writer (`src/zip.js`, `src/app/zip-ui.js`).
-
+- **Network preview (`P7-12`, `D-029`)**: **Preview** dialog; desktop **Start sharing** runs a token-gated read-only server on the LAN with live reload, browser build opens a snapshot tab (`src/app/preview-ui.js`, `src/preview.js`, `src-tauri/src/preview.rs`).
 - **Asset manager (`P7-02`, `D-023`)**: Assets modal, picker, uploads and deletes for blob images in the browser build (`src/app/asset-ui.js`, `src/imagelib.js`).
 
 ### In flight
 
-- `P7-02` and its `D-024` follow-ups are complete but uncommitted. Nothing half-built.
+- Nothing half-built.
 
 ### Known issues & gotchas
+
+- **Network preview is plain HTTP and unverified on real devices (`D-029`)**: while sharing, anyone on the network with the link can read the project. HTTP behaviour has Rust tests over a loopback socket; a real phone, Tauri window, macOS/Windows openers, and firewall prompts were not exercised. No QR code.
 
 - **WebKitGTK HTML5 Drag-and-Drop**: Native `draggable="true"` / `dragover` / `drop` inside an `iframe[srcdoc]` is unreliable on Linux WebKitGTK (`D-008`). Keep Stage drag-and-drop on deterministic pointer events (`mousedown` / `mousemove` / `mouseup` in [`src/app/stage.js`](../src/app/stage.js)).
 - **500-Line Module Cap**: [`test/structure.test.js`](../test/structure.test.js) enforces a hard 500-line ceiling on every `.js` file under `src/app/` (`D-001`). [`src/app/stage.js`](../src/app/stage.js) (~458 lines) and [`src/app/core.js`](../src/app/core.js) are near the limit; extract helpers before adding large features.
@@ -72,7 +74,7 @@ Last updated: 2026-11-03
 
 ### Next up
 
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`) is unprioritized (`P7-02`, `P7-13` are done), so ask which is next.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): the maintainer's four priorities (`P7-04`..`P7-07`) are done; the rest (`P7-14`, `P7-15`) is unprioritized (`P7-02`, `P7-13` are done), so ask which is next.
 
 ### Open questions
 
@@ -83,6 +85,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2r: 2026-11-03: P7-12 preview in a browser or on a phone
+
+- **Did**: [`src-tauri/src/preview.rs`](../src-tauri/src/preview.rs) (opt-in token-gated LAN server, 4 commands); [`src/preview.js`](../src/preview.js); [`src/app/preview-ui.js`](../src/app/preview-ui.js) and the Preview dialog; push hooks in `render()` and asset changes.
+- **Decided**: `D-029` (maintainer chose the desktop LAN server).
+- **Verified**: `npm test` (`84/84`); `cargo test` (`5/5`, including real loopback HTTP); browser check of the dialog, a mocked Tauri bridge, and the new-tab snapshot. Full check results are in this session's final report.
+- **Next**: ask which of `P7-14`, `P7-15` is next.
 
 ### Session 2q: 2026-11-03: P7-11 accessibility and markup hints
 

@@ -21,11 +21,13 @@ globalThis.Zip = require('../src/zip.js');
 globalThis.ImageLib = require('../src/imagelib.js');
 globalThis.Layout = require('../src/layout.js');
 globalThis.Hints = require('../src/hints.js');
+globalThis.Preview = require('../src/preview.js');
 
 require('./html-ast.test.js');
 require('./css-ast.test.js');
 require('./layout.test.js');
 require('./hints.test.js');
+require('./preview.test.js');
 require('./project.test.js');
 require('./structure.test.js');
 

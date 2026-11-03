@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde::Serialize;
+mod preview;
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::{Read, Write};
@@ -379,8 +381,10 @@ mod tests {
 fn main() {
     let root_holder = Arc::new(Mutex::new(None));
     let port = spawn_asset_server(root_holder.clone());
+    let preview_state = preview::PreviewState::new(root_holder.clone());
 
     tauri::Builder::default()
+        .manage(preview_state)
         .manage(ServerState {
             root_dir: root_holder,
             port,
@@ -388,7 +392,11 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             open_project_folder,
             open_project_folder_at,
-            save_project_folder
+            save_project_folder,
+            preview::preview_start,
+            preview::preview_update,
+            preview::preview_stop,
+            preview::preview_open
         ])
         .run(tauri::generate_context!())
         .expect("error while running Plainchant Web Tauri application");

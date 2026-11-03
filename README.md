@@ -35,6 +35,8 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
 - **Problems Tab (Links, Accessibility, Markup):**
   - Checks every page and stylesheet for dead links, missing images, stylesheets, and scripts, and missing `#anchor` targets; click a problem to jump to it.
   - Also flags missing `alt` text, skipped heading levels, unnamed links, buttons, and form fields, a missing `lang` or `<title>`, duplicate ids, and unclosed or stray tags; a **Show** filter limits the list.
+- **Preview in a Browser or on a Phone:**
+  - **Preview** opens a snapshot of the page in a new tab (browser build). In the desktop app, **Start sharing** serves the open project read-only on your network behind a private link; pages reload as you edit. Share the link only on a network you trust.
 - **Project-Wide Find & Replace (`Ctrl/Cmd+Shift+F`):**
   - The **Project** toggle on the find bar lists matches in every file, lets you skip files, and replaces across the project in one undo step.
 - **Zip Export:**
