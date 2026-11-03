@@ -42,7 +42,7 @@ function updateFolderBar() {
         'Project Environment: ' + shortName + ' (' + count + ' files) — Working copy in studio; local disk is not modified until you Export.';
 }
 
-async function scanBrowserDir(dirHandle, prefix, files, tree, depth) {
+async function scanBrowserDir(dirHandle, prefix, files, tree, depth, assets) {
     if (depth > 5) return;
     const IGNORED = new Set(['.git', 'node_modules', 'target', '.venv', 'venv', '.idea', '.vscode', 'dist']);
     const entries = [];
@@ -55,7 +55,7 @@ async function scanBrowserDir(dirHandle, prefix, files, tree, depth) {
         const relPath = prefix ? prefix + '/' + name : name;
         if (handle.kind === 'directory') {
             tree.push({ path: relPath, kind: 'dir', is_text: false });
-            await scanBrowserDir(handle, relPath, files, tree, depth + 1);
+            await scanBrowserDir(handle, relPath, files, tree, depth + 1, assets);
         } else if (handle.kind === 'file') {
             const isText = Importing.accept(name) || /\.(svg|md|xml|webmanifest)$/i.test(name);
             if (isText) {
@@ -67,12 +67,27 @@ async function scanBrowserDir(dirHandle, prefix, files, tree, depth) {
                 } catch (e) {
                 }
             }
+            if (!isText && assets) await collectBrowserAsset(handle, relPath, assets);
             tree.push({ path: relPath, kind: 'file', is_text: isText });
         }
     }
 }
 
-async function writeBrowserDirEntries(rootHandle, entriesMap) {
+async function collectBrowserAsset(handle, relPath, assets) {
+    try {
+        const file = await handle.getFile();
+        if (file.size > ASSET_MAX_FILE_BYTES || assets.bytes + file.size > ASSET_MAX_TOTAL_BYTES) {
+            assets.skipped.push(relPath);
+            return;
+        }
+        assets.files[relPath] = file;
+        assets.bytes += file.size;
+    } catch (e) {
+        assets.skipped.push(relPath);
+    }
+}
+
+async function writeBrowserDirEntries(rootHandle, entriesMap, assetMap) {
     for (const [relPath, content] of Object.entries(entriesMap || {})) {
         const parts = String(relPath || '').split('/').filter(Boolean);
         if (!parts.length) continue;
@@ -86,14 +101,24 @@ async function writeBrowserDirEntries(rootHandle, entriesMap) {
         await writable.write(content || '');
         await writable.close();
     }
+    for (const [relPath, blob] of Object.entries(assetMap || {})) {
+        const parts = String(relPath || '').split('/').filter(Boolean);
+        let dir = rootHandle;
+        for (let i = 0; i < parts.length - 1; i++) {
+            dir = await dir.getDirectoryHandle(parts[i], { create: true });
+        }
+        const writable = await (await dir.getFileHandle(parts[parts.length - 1], { create: true })).createWritable();
+        await writable.write(blob);
+        await writable.close();
+    }
 }
 
-function activateImportedFolderProject(folderMeta, payload, baseUrl) {
+function activateImportedFolderProject(folderMeta, payload, baseUrl, assets) {
     flushSave();
     currentScriptId = newId();
     selectedPcId = null;
     linkedFolder = folderMeta;
-    loadProjectIntoEditor(payload, { baseUrl: baseUrl || '' });
+    loadProjectIntoEditor(payload, { baseUrl: baseUrl || '', assets: assets ? assets.files : undefined });
     if (fileExplorer) {
         fileExplorer.hidden = false;
         if (toggleExplorerBtn) toggleExplorerBtn.setAttribute('aria-pressed', 'true');
@@ -101,9 +126,11 @@ function activateImportedFolderProject(folderMeta, payload, baseUrl) {
     updateFolderBar();
     rememberCurrent();
     saveScript(true);
+    saveProjectAssets();
     render(false);
     const shortName = String(folderMeta.name || '').split(/[\\/]/).filter(Boolean).pop() || folderMeta.name;
-    showNotice('Created new project environment from "' + shortName + '". Changes stay in Studio until exported to disk.');
+    const skipped = assets && assets.skipped.length ? ' ' + assets.skipped.length + ' large file(s) were not loaded for preview.' : '';
+    showNotice('Created new project environment from "' + shortName + '". Changes stay in Studio until exported to disk.' + skipped);
 }
 
 async function openProjectFolder() {
@@ -127,11 +154,13 @@ async function openProjectFolder() {
             const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             const files = {};
             const tree = [];
-            await scanBrowserDir(dirHandle, '', files, tree, 0);
+            const assets = { files: {}, bytes: 0, skipped: [] };
+            await scanBrowserDir(dirHandle, '', files, tree, 0, assets);
             activateImportedFolderProject(
                 { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle },
                 { entries: files, tree: tree },
-                ''
+                '',
+                assets
             );
         } catch (err) {
             if (err && err.name !== 'AbortError') {
@@ -175,7 +204,8 @@ async function exportProjectToFolder(forceNewFolder = false) {
             if (!dirHandle) {
                 dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             }
-            await writeBrowserDirEntries(dirHandle, projectFiles.entries);
+            const targetIsSource = !forceNewFolder && linkedFolder && linkedFolder.handle;
+            await writeBrowserDirEntries(dirHandle, projectFiles.entries, targetIsSource ? null : projectAssets);
             if (!linkedFolder) {
                 linkedFolder = { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle };
                 updateFolderBar();

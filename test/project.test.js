@@ -145,3 +145,45 @@ test('project: resolveRelativePath normalizes project links and ignores external
         assert.equal(r('index.html', href), null, String(href) + ' is not a project path');
     });
 });
+
+test('project: rewriteAssetUrls points relative asset references at blob URLs and leaves everything else alone', () => {
+    const urls = { 'images/hero.png': 'blob:H', 'img/a b.png': 'blob:AB', 'fonts/x.woff2': 'blob:F', 'sub/pic.jpg': 'blob:P' };
+    const html = [
+        '<img src="images/hero.png" alt="x">',
+        '<img src=\'./images/hero.png?v=2\'>',
+        '<img srcset="images/hero.png 1x, missing.png 2x">',
+        '<video poster="img/a%20b.png"></video>',
+        '<a href="images/hero.png">link</a>',
+        '<img src="https://example.com/images/hero.png">',
+        '<div style="background:url(images/hero.png)"></div>',
+        '<p>src="images/hero.png" in text</p>'
+    ].join('\n');
+    const out = Project.rewriteAssetUrls(html, 'index.html', urls);
+    assert.includes(out, '<img src="blob:H" alt="x">');
+    assert.includes(out, '<img src="blob:H">');
+    assert.includes(out, 'srcset="blob:H 1x, missing.png 2x"');
+    assert.includes(out, 'poster="blob:AB"');
+    assert.includes(out, '<a href="images/hero.png">', 'anchor hrefs are not rewritten');
+    assert.includes(out, 'src="https://example.com/images/hero.png"');
+    assert.includes(out, 'url("blob:H")');
+    assert.includes(out, '<p>src="images/hero.png" in text</p>', 'text outside tags is untouched');
+    assert.equal(Project.rewriteAssetUrls('<img src="pic.jpg">', 'sub/page.html', urls), '<img src="blob:P">');
+});
+
+test('project: assemblePreview rewrites stylesheet urls relative to the stylesheet and mimeFor names types', () => {
+    const files = { entries: {
+        'index.html': '<html><head><link rel="stylesheet" href="css/site.css"></head><body><img src="images/hero.png"></body></html>',
+        'css/site.css': 'body { background: url(../images/hero.png); } @font-face { src: url("../fonts/x.woff2"); }'
+    } };
+    const urls = { 'images/hero.png': 'blob:H', 'fonts/x.woff2': 'blob:F' };
+    const doc = Project.assemblePreview(files, { liveJs: false, assetUrls: urls });
+    assert.includes(doc, '<img src="blob:H"');
+    assert.includes(doc, 'url("blob:H")');
+    assert.includes(doc, 'url("blob:F")');
+    assert.excludes(doc, '../images/hero.png');
+    const plain = Project.assemblePreview(files, { liveJs: false });
+    assert.includes(plain, 'src="images/hero.png"', 'without assetUrls the preview is unchanged');
+    assert.equal(Project.mimeFor('a/b/Photo.JPG'), 'image/jpeg');
+    assert.equal(Project.mimeFor('f.woff2'), 'font/woff2');
+    assert.equal(Project.mimeFor('x.unknown'), 'application/octet-stream');
+});

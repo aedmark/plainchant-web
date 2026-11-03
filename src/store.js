@@ -5,12 +5,14 @@
     'use strict';
 
     const DB_NAME = 'plainchant_web';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const SCRIPTS = 'scripts';
     const META = 'meta';
     const VERSIONS = 'versions';
     const FILES = 'files';
+    const ASSETS = 'assets';
     const BY_SCRIPT = 'byScript';
+    const assetKey = (scriptId, path) => scriptId + '\u0000' + path;
     const ofScript = (id) => IDBKeyRange.bound([id, -Infinity], [id, Infinity]);
 
     const isRecord = (s) => !!s && typeof s === 'object' && typeof s.id === 'string' && s.id !== '' && typeof s.content === 'string';
@@ -74,6 +76,9 @@
                     db.createObjectStore(VERSIONS, { keyPath: 'id' }).createIndex(BY_SCRIPT, ['scriptId', 'takenAt']);
                 }
                 if (!db.objectStoreNames.contains(FILES)) db.createObjectStore(FILES, { keyPath: 'scriptId' });
+                if (!db.objectStoreNames.contains(ASSETS)) {
+                    db.createObjectStore(ASSETS, { keyPath: 'key' }).createIndex(BY_SCRIPT, 'scriptId');
+                }
             };
             request.onsuccess = () => {
                 const db = request.result;
@@ -109,6 +114,37 @@
         keys.onsuccess = () => keys.result.forEach((key) => versions.delete(key));
     }
 
+    function dropAssetsOf(assets, scriptId) {
+        const keys = assets.index(BY_SCRIPT).getAllKeys(IDBKeyRange.only(scriptId));
+        keys.onsuccess = () => keys.result.forEach((key) => assets.delete(key));
+    }
+
+    function putAssets(db, scriptId, files) {
+        const tx = db.transaction([ASSETS], 'readwrite');
+        const store = tx.objectStore(ASSETS);
+        const keys = store.index(BY_SCRIPT).getAllKeys(IDBKeyRange.only(scriptId));
+        keys.onsuccess = () => {
+            keys.result.forEach((key) => store.delete(key));
+            Object.keys(files || {}).forEach((path) => {
+                store.put({ key: assetKey(scriptId, path), scriptId: scriptId, path: path, blob: files[path] });
+            });
+        };
+        return finished(tx);
+    }
+
+    function loadAssets(db, scriptId) {
+        const tx = db.transaction([ASSETS], 'readonly');
+        return promised(tx.objectStore(ASSETS).index(BY_SCRIPT).getAll(IDBKeyRange.only(scriptId))).then((list) => {
+            const out = {};
+            list.forEach((a) => { out[a.path] = a.blob; });
+            return out;
+        });
+    }
+
+    function copyAssets(db, fromId, toId) {
+        return loadAssets(db, fromId).then((files) => (Object.keys(files).length ? putAssets(db, toId, files) : null));
+    }
+
     function keepVersion(versions, version, rules, now) {
         if (version) versions.put(version);
         const all = versions.index(BY_SCRIPT).getAll(ofScript(version.scriptId));
@@ -117,12 +153,13 @@
 
     function write(db, change) {
         const removing = (change.remove || []).length > 0;
-        const tx = db.transaction(removing ? [SCRIPTS, META, VERSIONS, FILES] : [SCRIPTS, META], 'readwrite');
+        const tx = db.transaction(removing ? [SCRIPTS, META, VERSIONS, FILES, ASSETS] : [SCRIPTS, META], 'readwrite');
         const scripts = tx.objectStore(SCRIPTS);
         (change.remove || []).forEach((id) => {
             scripts.delete(id);
             dropVersionsOf(tx.objectStore(VERSIONS), id);
             tx.objectStore(FILES).delete(id);
+            dropAssetsOf(tx.objectStore(ASSETS), id);
         });
         (change.put || []).forEach((s) => scripts.put(s));
         putMeta(tx.objectStore(META), change.meta);
@@ -197,6 +234,7 @@
         diff: diff, guardSave: guardSave, reconcile: reconcile,
         open: open, loadAll: loadAll, write: write, saveScript: saveScript,
         addVersion: addVersion, loadVersions: loadVersions, removeVersion: removeVersion,
+        putAssets: putAssets, loadAssets: loadAssets, copyAssets: copyAssets,
         putLink: putLink, loadLinks: loadLinks, removeLink: removeLink
     };
 });

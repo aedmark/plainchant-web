@@ -387,6 +387,7 @@ function drawStageNow() {
         ast: currentHtmlAst,
         activeHtml: activeHtmlFile,
         baseUrl: projectBaseUrl,
+        assetUrls: projectAssetUrls,
         liveJs: !isDesign,
         bridgeCss: isDesign ? BRIDGE_CSS : '',
         bridgeScript: buildBridgeScript(isDesign, selectedPcId)

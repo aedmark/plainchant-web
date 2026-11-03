@@ -190,6 +190,26 @@
           "related": ["js-console", "stage-drag-and-actions"]
         },
         {
+          "id": "browser-binary-assets",
+          "title": "Binary project assets in the browser build",
+          "summary": "Images, fonts, and other binaries from an opened folder render on the Stage and survive reload.",
+          "tags": ["assets", "browser", "D-013"],
+          "what": "When a folder is opened in a Chromium browser, non-text files (up to 25 MB each, 200 MB per project) are kept with the project so relative `src`, `srcset`, `poster`, `<link href>`, and CSS `url()` references display on the Stage. The desktop app does not need this because it serves files over localhost.",
+          "how": [
+            "`scanBrowserDir()` in `src/app/tauri-files.js` collects binaries as Blobs; `src/app/assets.js` creates `blob:` URLs and saves the Blobs to the IndexedDB `assets` store keyed by project.",
+            "`Project.assemblePreview()` rewrites matching relative references through `Project.rewriteAssetUrls()` and `rewriteCssUrls()`; stylesheet URLs resolve relative to the stylesheet file.",
+            "Assets are loaded again when the project opens, copied on Duplicate, removed when the trash purge deletes the project, and written by **Export to a new folder**."
+          ],
+          "why": "Recorded in D-013: the `srcdoc` Stage resolves relative URLs against the app origin, and persisting Blobs separately keeps the single-string pack format of D-004 and the isolated workspace of D-006.",
+          "evidence": [
+            {"label": "URL rewriting", "target": "src/project.js"},
+            {"label": "Asset state and persistence", "target": "src/app/assets.js"},
+            {"label": "Asset store", "target": "src/store.js"},
+            {"label": "Rewrite tests", "target": "test/project.test.js"}
+          ],
+          "related": ["multi-file-undo-redo"]
+        },
+        {
           "id": "menus-and-context-insert",
           "title": "Top menu bar, Insert dropdown, and right-click context menu",
           "summary": "Unified element insertion and DOM manipulation from the top menu bar or right-click context menu.",

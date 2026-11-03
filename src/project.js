@@ -227,6 +227,51 @@
         return stack.length ? stack.join('/') : null;
     }
 
+    const MIME = {
+        png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', avif: 'image/avif',
+        svg: 'image/svg+xml', ico: 'image/x-icon', bmp: 'image/bmp', woff: 'font/woff', woff2: 'font/woff2',
+        ttf: 'font/ttf', otf: 'font/otf', mp4: 'video/mp4', webm: 'video/webm', ogv: 'video/ogg',
+        mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', pdf: 'application/pdf'
+    };
+
+    function mimeFor(filePath) {
+        const ext = String(filePath || '').split('.').pop().toLowerCase();
+        return MIME[ext] || 'application/octet-stream';
+    }
+
+    function assetUrlFor(urls, fromFile, rawUrl) {
+        const target = resolveRelativePath(fromFile, rawUrl);
+        return target && Object.prototype.hasOwnProperty.call(urls, target) ? urls[target] : null;
+    }
+
+    function rewriteCssUrls(css, fromFile, urls) {
+        return String(css).replace(/url\(\s*(['"]?)([^'")]*?)\1\s*\)/gi, (full, quote, raw) => {
+            const hit = assetUrlFor(urls, fromFile, raw);
+            return hit ? 'url("' + hit + '")' : full;
+        });
+    }
+
+    function rewriteAssetUrls(html, fromFile, urls) {
+        const attrRe = /(\s)(src|poster|srcset|href)(\s*=\s*)(?:"([^"]*)"|'([^']*)')/gi;
+        const withAttrs = String(html).replace(/<[a-z][^<>]*>/gi, (tag) => {
+            const isLink = /^<link\b/i.test(tag);
+            return tag.replace(attrRe, (full, space, name, eq, dq, sq) => {
+                const attr = name.toLowerCase();
+                if (attr === 'href' && !isLink) return full;
+                const value = dq != null ? dq : sq;
+                const next = attr === 'srcset'
+                    ? value.split(',').map((candidate) => {
+                        const parts = candidate.trim().split(/\s+/);
+                        const hit = assetUrlFor(urls, fromFile, parts[0]);
+                        return hit ? [hit].concat(parts.slice(1)).join(' ') : candidate.trim();
+                    }).join(', ')
+                    : (assetUrlFor(urls, fromFile, value) || value);
+                return space + name + eq + '"' + next + '"';
+            });
+        });
+        return rewriteCssUrls(withAttrs, fromFile, urls);
+    }
+
     function normalizeEntries(files) {
         const f = files || {};
         const entries = Object.assign({}, f.entries || {});
@@ -501,6 +546,8 @@
 
         const ast = opts.ast || HtmlAst.parse(rawHtml);
         let html = HtmlAst.stamp(rawHtml, ast);
+        const assetUrls = opts.assetUrls && Object.keys(opts.assetUrls).length ? opts.assetUrls : null;
+        if (assetUrls) html = rewriteAssetUrls(html, activeHtmlPath, assetUrls);
 
         const links = linkedStylesheets(html, entries, activeHtmlPath);
         const inlinedCssPaths = new Set();
@@ -510,7 +557,7 @@
                 inlinedCssPaths.add(lnk.path);
                 html = html.replace(
                     lnk.fullMatch,
-                    '<style id="pc-project-css" data-pc-href="' + lnk.path + '">\n' + entries[lnk.path] + '\n</style>'
+                    '<style id="pc-project-css" data-pc-href="' + lnk.path + '">\n' + (assetUrls ? rewriteCssUrls(entries[lnk.path], lnk.path, assetUrls) : entries[lnk.path]) + '\n</style>'
                 );
             }
         });
@@ -518,7 +565,7 @@
         const fallbackCss = f.css != null ? f.css : (entries['styles.css'] || entries['style.css'] || '');
         const hasInjectedStyle = html.indexOf('id="pc-project-css"') !== -1;
         const styleBlock = !hasInjectedStyle
-            ? '<style id="pc-project-css">\n' + String(fallbackCss) + '\n</style>'
+            ? '<style id="pc-project-css">\n' + (assetUrls ? rewriteCssUrls(fallbackCss, primaryCssFile(f, activeHtmlPath), assetUrls) : String(fallbackCss)) + '\n</style>'
             : '';
 
         html = html.replace(/<script\b([^>]*)\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)')([^>]*)>\s*<\/script>/gi, (full, pre, s1, s2) => {
@@ -639,6 +686,9 @@
         DEFAULT_JS: DEFAULT_JS,
         resolveRelPath: resolveRelPath,
         resolveRelativePath: resolveRelativePath,
+        mimeFor: mimeFor,
+        rewriteAssetUrls: rewriteAssetUrls,
+        rewriteCssUrls: rewriteCssUrls,
         consoleBridge: consoleBridge,
         normalizeEntries: normalizeEntries,
         linkedStylesheets: linkedStylesheets,

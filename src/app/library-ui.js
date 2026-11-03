@@ -139,7 +139,11 @@ function renderLibrary() {
             dupBtn.textContent = 'Duplicate';
             dupBtn.addEventListener('click', () => {
                 const res = Library.duplicate(getScripts(), script.id, newId(), Date.now());
-                if (res) { putScripts(res.scripts); renderLibrary(); }
+                if (res) {
+                    putScripts(res.scripts);
+                    if (storageMode === 'idb') Store.copyAssets(scriptDb, script.id, res.id).catch(() => {});
+                    renderLibrary();
+                }
             });
 
             const delBtn = document.createElement('button');

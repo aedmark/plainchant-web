@@ -30,6 +30,7 @@ async function importFiles(fileList) {
     }
     if (importedHtml) {
         currentScriptId = newId();
+        saveProjectAssets();
     }
     editor.value = projectFiles[activeTab] || '';
     saveScript(false);

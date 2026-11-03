@@ -111,6 +111,7 @@ function loadProjectIntoEditor(rawOrFiles, options = {}) {
     renderFileTabs();
     renderExplorer();
     if (typeof resetHistory === 'function') resetHistory();
+    if (typeof adoptProjectAssets === 'function') adoptProjectAssets(options.assets);
 }
 
 function renderFileTabs() {

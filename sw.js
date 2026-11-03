@@ -21,6 +21,7 @@ const APP_FILES = [
     'src/app/core.js',
     'src/app/layout.js',
     'src/app/persistence.js',
+    'src/app/assets.js',
     'src/app/dialogs.js',
     'src/app/library-ui.js',
     'src/app/versions-ui.js',

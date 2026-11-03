@@ -26,6 +26,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Multi-page link navigation**: In Live JS mode, clicking a relative link to a project page opens that file in the Studio. In Design mode, `Ctrl/Cmd+Click` a link, the `Follow ↗` Stage badge button, or **Follow Link ↗** in Properties does the same; a plain click still selects and edits text (`P5-02`, `D-012`, `D-009`).
 
+- **Project images in the browser build**: Opening a folder in a Chromium browser now loads images, fonts, and other binary files (up to 25 MB each, 200 MB per project) so they render on the Stage, survive reload, follow Duplicate, and are written by **Export to a new folder** (`P7-09`, `D-013`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.
