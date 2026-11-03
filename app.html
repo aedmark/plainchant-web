@@ -76,6 +76,7 @@
             <button type="button" class="file-tab" role="tab" data-file="styles.css" data-tab="css" aria-selected="false">styles.css</button>
             <button type="button" class="file-tab" role="tab" data-file="script.js" data-tab="js" aria-selected="false">script.js</button>
         </div>
+        <button id="formatBtn" type="button" class="btn" title="Format this file: re-indent and tidy HTML, CSS, or JS (Alt+Shift+F)">Format</button>
     </div>
 
     <div id="file-bar" class="file-bar" role="region" aria-label="Imported project workspace" hidden>
@@ -612,6 +613,7 @@
                 <li><strong>Dockable &amp; Floating Inspector:</strong> Edit HTML attributes or use the <strong>CSS Designer</strong> to inspect computed styles, modify rules, or click <strong>Go to CSS &#8599;</strong> to jump straight to the rule in your stylesheet. Toggle, collapse, or move the Inspector (bottom, top, left, right, or floating, from its <strong>Dock</strong> menu) (<kbd>Ctrl/Cmd+Shift+I</kbd>).</li>
                 <li><strong>Insert Menu &amp; Right-Click Context Menu:</strong> Use the top <strong>Insert &#9662;</strong> menu, right-click on the Stage or HTML editor, or type shorthand like <code>section.hero</code> or <code>ul*3</code> and press <kbd>Tab</kbd>.</li>
                 <li><strong>Multi-File Undo &amp; Redo:</strong> Use <strong>&#8630;</strong> / <strong>&#8631;</strong> or <kbd>Ctrl/Cmd+Z</kbd> and <kbd>Ctrl/Cmd+Shift+Z</kbd> (<kbd>Ctrl+Y</kbd>) across all files and visual actions.</li>
+                <li><strong>Format:</strong> The <strong>Format</strong> button (<kbd>Alt+Shift+F</kbd>) re-indents and tidies the open HTML, CSS, or JS file in one undo step. HTML and CSS are rebuilt line by line; JavaScript is only re-indented.</li>
                 <li><strong>Line Numbers &amp; Find/Replace:</strong> The code editor shows line numbers. Press <kbd>Ctrl/Cmd+F</kbd> to find in the current file or <kbd>Ctrl/Cmd+H</kbd> to find and replace, or <kbd>Ctrl/Cmd+Shift+F</kbd> (the <strong>Project</strong> button) to search and replace in every file; <kbd>Enter</kbd> / <kbd>Shift+Enter</kbd> step through matches and <kbd>Esc</kbd> closes the bar.</li>
                 <li><strong>Safe Folder Projects &amp; Export:</strong> Opening a local folder creates an isolated Studio project environment. Changes are not written to local disk until you click <strong>Export</strong>, which preserves your existing folder and file structure.</li>
             </ul>
@@ -697,6 +699,7 @@
 <script src="src/layout.js"></script>
 <script src="src/hints.js"></script>
 <script src="src/preview.js"></script>
+<script src="src/format.js"></script>
 <script src="src/importing.js"></script>
 <script src="src/app/core.js"></script>
 <script src="src/app/layout.js"></script>
@@ -732,6 +735,7 @@
 <script src="src/app/tauri-files.js"></script>
 <script src="src/app/zip-ui.js"></script>
 <script src="src/app/preview-ui.js"></script>
+<script src="src/app/format-ui.js"></script>
 <script src="src/app/help.js"></script>
 <script src="src/app/offline.js"></script>
 <script src="src/app/main.js"></script>

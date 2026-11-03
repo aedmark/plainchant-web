@@ -323,6 +323,25 @@
           "related": ["browser-binary-assets", "explorer-file-operations"]
         },
         {
+          "id": "format-file",
+          "title": "Format the current file",
+          "summary": "Re-indents and tidies the open HTML, CSS, or JavaScript file in one undo step.",
+          "tags": ["format", "editing", "D-030"],
+          "what": "The **Format** button beside the file tabs, or `Alt+Shift+F`, tidies the open file. CSS gets one declaration per line, `prop: value;`, and a blank line between top-level rules. HTML is laid out by block with short inline content kept on one line, and `<pre>`, `<textarea>`, and non-JavaScript scripts are left alone. JavaScript is only re-indented. The file's own indent (tabs, 2 or 4 spaces) is kept.",
+          "how": [
+            "`Format.byPath()` in `src/format.js` picks `formatHtml`, `formatCss`, or `formatJs` from the extension; other file types get a notice.",
+            "The formatters only change whitespace (CSS also adds a final `;` and a space after `:`); the JavaScript pass counts `{ ( [` outside strings, comments, regex literals, and template literals and never touches lines inside a multi-line string.",
+            "`src/app/format-ui.js` turns the result into one `Editing.diffEdit()` and applies it with `applyEdit()`, so Undo restores the previous text and the Stage redraws."
+          ],
+          "why": "Recorded in D-030: a dependency-free formatter has to be conservative, so JavaScript is re-indented rather than rewritten, at the cost of not wrapping lines or restyling operators.",
+          "evidence": [
+            {"label": "Formatters", "target": "src/format.js"},
+            {"label": "Button and shortcut", "target": "src/app/format-ui.js"},
+            {"label": "Formatter tests", "target": "test/format.test.js"}
+          ],
+          "related": ["network-preview", "problems-link-checker"]
+        },
+        {
           "id": "network-preview",
           "title": "Preview in a browser or on a phone",
           "summary": "Opens the project in a real browser tab, or shares it read-only on your network from the desktop app.",

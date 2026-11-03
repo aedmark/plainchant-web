@@ -1433,3 +1433,5 @@ body.insert-dragging, body.insert-dragging * { cursor: grabbing !important; user
 .preview-url label { font-size: 0.8rem; color: var(--text-void-muted); }
 .preview-url input { min-width: 0; font-family: ui-monospace, monospace; font-size: 0.8rem; }
 @media (max-width: 560px) { .preview-url { grid-template-columns: 1fr auto; } .preview-url label { grid-column: 1 / -1; } }
+
+#formatBtn { position: sticky; right: 0; margin-left: auto; flex: none; }

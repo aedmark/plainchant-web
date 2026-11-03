@@ -278,3 +278,12 @@ test('structure: the Preview dialog, preview.js, the Tauri preview commands, and
     assert.includes(readRoot('src-tauri/src/main.rs'), '"127.0.0.1:0"');
     assert.includes(rust, 'strip_prefix(prefix.as_str())');
 });
+
+test('structure: the Format button, format.js, and the Alt+Shift+F shortcut are wired in (P7-14)', () => {
+    assert.includes(html, 'id="formatBtn"');
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/format.js') !== -1 && order.indexOf('src/format.js') < order.indexOf('src/app/core.js'), 'format.js loads before the app scripts');
+    assert.ok(listed.indexOf('format-ui.js') !== -1, 'format-ui.js is loaded');
+    const ui = readRoot('src/app/format-ui.js');
+    ['Format.byPath', 'Editing.diffEdit', "e.code === 'KeyF'"].forEach((needle) => assert.includes(ui, needle));
+});
