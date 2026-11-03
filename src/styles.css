@@ -507,11 +507,27 @@ body[data-panes="preview"] .pane-void { display: none; }
     flex: 1;
     min-height: 0;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
 }
+
+.editor-gutter {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding-right: 0.5rem;
+    text-align: right;
+    color: var(--text-void-muted);
+    border-right: 1px solid var(--border-void);
+    user-select: none;
+}
+
+.editor-gutter .gl { box-sizing: border-box; }
+.editor-gutter .gl-selected { background-color: var(--selection); }
+.editor-gutter .gl-active { color: var(--text-strong); font-weight: 700; }
 
 #editor {
     flex: 1;
+    min-width: 0;
     width: 100%;
     padding: 1rem 1.25rem;
     background: transparent;
@@ -1187,3 +1203,40 @@ body.shaded #editor {
 .parts-help { margin: 0 0 0.4rem; font-size: 0.72rem; color: var(--text-void-muted); }
 .parts-list { font-family: var(--font-code); font-size: 0.74rem; overflow-y: auto; max-height: 150px; }
 .parts-list .console-row { align-items: center; }
+
+.find-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.85rem;
+    border-bottom: 1px solid var(--border-void);
+    background-color: var(--bg-raised);
+    flex-shrink: 0;
+}
+
+.find-bar[hidden] { display: none; }
+.find-bar input[type="text"] {
+    flex: 1 1 8rem;
+    min-width: 6rem;
+    max-width: 14rem;
+    padding: 0.2rem 0.4rem;
+    font: 0.76rem var(--font-code);
+    color: var(--text-strong);
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-mid);
+    border-radius: 0.25rem;
+}
+
+.find-bar .mini[aria-pressed="true"] { background: var(--text-strong); color: var(--bg-void); }
+.find-count { min-width: 4.5rem; font-size: 0.72rem; color: var(--text-void-muted); }
+.editor-find {
+    position: absolute;
+    pointer-events: none;
+    overflow: hidden;
+    color: transparent;
+    z-index: 0;
+}
+
+.sh-find-match { color: transparent; background-color: rgba(245, 158, 11, 0.32); border-radius: 2px; }
+.sh-find-current { background-color: rgba(245, 158, 11, 0.7); outline: 1px solid #f59e0b; }

@@ -7,7 +7,7 @@ Why things are this way lives in [DECISIONS.md](DECISIONS.md); this file says *w
 
 ## The shape, in one paragraph
 
-The browser or Tauri v2 desktop window loads `app.html`, which loads 13 pure UMD modules (`src/*.js`) followed by 23 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
+The browser or Tauri v2 desktop window loads `app.html`, which loads 14 pure UMD modules (`src/*.js`) followed by 24 classic application scripts (`src/app/*.js`) sharing a single global scope (D-001). Multi-file project state lives in `projectFiles.entries` (`src/app/core.js`). On every edit, `render()` parses the active HTML (`HtmlAst.parse`) and linked CSS (`CssAst.parse`), paints syntax colors and line highlights behind the transparent code `<textarea>` (`src/app/shade.js`, D-002), and assembles an ephemeral preview document (`Project.assemblePreview`) stamped with `data-pc-id` attributes for `<iframe id="stageFrame">` (`src/app/stage.js`, D-003). Visual interactions on the Stage communicate back to the parent window via `postMessage`, splicing exact byte ranges in the HTML or CSS source and persisting to IndexedDB (`src/store.js`, D-004).
 
 ## Code map
 
@@ -15,7 +15,8 @@ The browser or Tauri v2 desktop window loads `app.html`, which loads 13 pure UMD
 | --- | --- | --- | --- |
 | HTML5 AST & splicer | `src/html-ast.js` | `HtmlAst.parse()`, `stamp()`, `setAttr()`, `setText()`, `insertElement()`, `moveElement()`, `duplicateElement()` | Pure string/AST transforms; no DOM (D-003) |
 | CSS AST & splicer | `src/css-ast.js` | `CssAst.parse()`, `findRulesForElement()`, `findRuleBySelector()`, `setProperty()` | Pure string/AST transforms; no DOM (D-003) |
-| Syntax shader | `src/code-shade.js`, `src/app/shade.js` | `CodeShade.shade()`, `drawShade()`, `highlightCodeRange()` | `#editor` and `.editor-shade` (D-002) |
+| Syntax shader & line gutter | `src/code-shade.js`, `src/app/shade.js` | `CodeShade.shade()`, `drawShade()`, `highlightCodeRange()`, `drawGutter()` | `#editor`, `.editor-shade`, `#editorGutter` (D-002, D-015) |
+| Find / Replace | `src/finding.js`, `src/app/find.js` | `Finding.findAll()`, `openFind()`, `replaceCurrentMatch()`, `replaceEveryMatch()` | `#findBar`, `.editor-find` layer, `applyEdit()` in `typing.js` (D-015) |
 | Project & preview bundler | `src/project.js` | `Project.pack()`, `unpack()`, `assemblePreview()`, `primaryCssFile()` | `HtmlAst` (`stamp` only in preview) (D-004, D-006) |
 | Core state & File Explorer | `src/app/core.js` | `loadProjectIntoEditor()`, `openFileInEditor()`, `applyHtmlTransform()`, `applyCssTransform()`, `render()` | `HtmlAst`, `CssAst`, `Project`, `shade.js`, `stage.js`, `typing.js` |
 | Code typing & Undo/Redo | `src/app/typing.js`, `src/editing.js`, `src/suggest.js` | `applyEdit()`, `performUndo()`, `performRedo()`, `insertSnippet()` | `Editing`, `Suggest`, `core.js` (D-010) |

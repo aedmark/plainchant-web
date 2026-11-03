@@ -66,7 +66,7 @@ Goal: Give developers live runtime observability and seamless multi-page navigat
 
 Goal: Upgrade the Code editor with line-number gutters and in-file Find/Replace, and add full file lifecycle management and per-file dirty tracking in the File Explorer.
 
-- [ ] P6-01 **Line Numbers Gutter & Find/Replace (`Ctrl/Cmd+F`, `Ctrl/Cmd+H`) in the Code Editor** (requested by maintainer, 2026-11-02).
+- [x] P6-01 **Line Numbers Gutter & Find/Replace (`Ctrl/Cmd+F`, `Ctrl/Cmd+H`) in the Code Editor** (requested by maintainer, 2026-11-02). Done 2026-11-02 (D-015). The markup in this spec did not match the app (there is no `#code-scroll` or `#code-pane`), so `#editorGutter` sits inside `.editor-wrap` and `#findBar` sits above `.workspace-body`. Search matches are drawn on their own layer under the text instead of inside `.editor-shade`, so they also work with syntax colours off. Verified by `test/project.test.js` (`Finding`), `test/structure.test.js`, and a browser check of wrapped-line numbering, find, case toggle, next/previous, Replace, Replace All, and undo.
   - **Line Numbers Gutter (`app.html`, `src/styles.css`, `src/app/shade.js`)**:
     - Add `<div id="editorGutter" class="editor-gutter" aria-hidden="true"></div>` inside `#code-scroll` alongside `.editor-wrap`.
     - Synchronize gutter line numbers and wrapped-line heights with `drawShade()` and `highlightCodeRange()`, highlighting both the active caret line and any Stage-selected code range.

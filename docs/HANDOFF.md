@@ -5,11 +5,11 @@
 ## Current state
 
 Last updated: 2026-11-02
-- **Phase**: Phase 5 complete (`P5-01`, `P5-02`); `P7-09`, `P7-10` done early; Phase 6 specced (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
+- **Phase**: Phases 1-5 complete; `P6-01`, `P7-09`, `P7-10` done; `P6-02` next (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`33/33` unit & structural tests)
+  - `npm test` — passed (`35/35` unit & structural tests)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
-  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `14` entries, `6/6` tests)
+  - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `15` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
 
 ### What works
@@ -31,9 +31,11 @@ Last updated: 2026-11-02
 - **Browser binary assets (`P7-09`, `D-013`)**: images/fonts from an opened folder load as Blobs, persist in the IndexedDB `assets` store (DB v2), and render via `blob:` URLs (`src/app/assets.js`, `Project.rewriteAssetUrls`).
 - **Shared page parts (`P7-10`, `D-014`)**: marker-region parts, **Parts** tab, **Make Part…**, auto-sync on part edit (`src/parts.js`, `src/app/parts-ui.js`).
 
+- **Line numbers & Find/Replace (`P6-01`, `D-015`)**: `#editorGutter` in `src/app/shade.js`; `#findBar` with `Ctrl/Cmd+F` / `Ctrl/Cmd+H` in `src/app/find.js` and `src/finding.js`.
+
 ### In flight
 
-- `P7-09` is committed locally (`06e84b4`) and `P7-10` is committed after it; neither is pushed. Nothing half-built.
+- `P6-01` is complete but uncommitted. Nothing half-built.
 
 ### Known issues & gotchas
 
@@ -46,10 +48,9 @@ Last updated: 2026-11-02
 
 ### Next up
 
-1. **`P6-01`**: Line Numbers Gutter (`#editorGutter`) & Find/Replace bar (`#findBar`, `Ctrl/Cmd+F`, `Ctrl/Cmd+H`, `src/app/find.js`) in the Code editor.
-2. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
+1. **`P6-02`**: File Operations in Explorer (Rename, Duplicate, Delete in `src/app/explorer-ui.js`) & per-file dirty indicators (`•`) on `#fileTabs` and `#fileExplorer`.
 
-4. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order after Phase 6 is `P7-04` link checker, `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states.
+2. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)): maintainer-chosen order after Phase 6 is `P7-04` link checker, `P7-05` project-wide find/replace, `P7-06` palette drag-to-insert, `P7-07` CSS Designer pseudo-states.
 
 ### Open questions
 
@@ -60,6 +61,13 @@ Last updated: 2026-11-02
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2d: 2026-11-02: P6-01 line numbers and Find/Replace
+
+- **Did**: gutter in [`src/app/shade.js`](../src/app/shade.js) (hidden-mirror row heights, caret and Stage-selection highlight); [`src/finding.js`](../src/finding.js) helpers; [`src/app/find.js`](../src/app/find.js) bar, match layer, shortcuts; CSS, `app.html`, help text, README.
+- **Decided**: `D-015`. The roadmap's `#code-scroll` / `#code-pane` do not exist, so markup went in `.editor-wrap` / above `.workspace-body`.
+- **Verified**: `npm test` (`35/35`), browser check of wrapped-line numbering, find, case toggle, next/previous, Replace, Replace All, undo. Full check results are in this session's final report.
+- **Next**: `P6-02`.
 
 ### Session 2c: 2026-11-02: P7-09 browser binary assets and P7-10 shared page parts
 

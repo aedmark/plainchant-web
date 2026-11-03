@@ -10,6 +10,78 @@ let shadeLang = null;
 let shadeBroken = false;
 let highlightedLines = [-1, -1];
 
+const editorGutter = document.getElementById('editorGutter');
+const gutterMeasure = document.createElement('div');
+const GUTTER_WRAP_LIMIT = 4000;
+let gutterFrame = 0;
+let gutterCaretLine = -1;
+
+function scheduleGutter() {
+    if (!gutterFrame) gutterFrame = setTimeout(drawGutter, 16);
+}
+
+function lineHeights(lines, lineHeight) {
+    if (lines.length > GUTTER_WRAP_LIMIT) return lines.map(() => lineHeight);
+    copyEditorType(gutterMeasure);
+    Object.assign(gutterMeasure.style, { position: 'absolute', visibility: 'hidden', left: '-9999px', top: '0', paddingTop: '0', paddingBottom: '0' });
+    const rows = document.createDocumentFragment();
+    lines.forEach((line) => {
+        const row = document.createElement('div');
+        row.textContent = line || '\u200b';
+        rows.appendChild(row);
+    });
+    gutterMeasure.textContent = '';
+    gutterMeasure.appendChild(rows);
+    document.body.appendChild(gutterMeasure);
+    const heights = Array.from(gutterMeasure.children).map((row) => row.getBoundingClientRect().height || lineHeight);
+    gutterMeasure.remove();
+    return heights;
+}
+
+function drawGutter() {
+    gutterFrame = 0;
+    if (!editorGutter || editor.offsetParent === null) return;
+    const lines = editor.value.split('\n');
+    const cs = getComputedStyle(editor);
+    const lineHeight = parseFloat(cs.lineHeight) || 20;
+    Object.assign(editorGutter.style, {
+        fontFamily: cs.fontFamily, fontSize: cs.fontSize, lineHeight: cs.lineHeight,
+        paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, width: (String(lines.length).length + 2) + 'ch'
+    });
+    const heights = lineHeights(lines, lineHeight);
+    const rows = document.createDocumentFragment();
+    heights.forEach((h, i) => {
+        const row = document.createElement('div');
+        row.className = 'gl';
+        row.style.height = h + 'px';
+        row.textContent = String(i + 1);
+        rows.appendChild(row);
+    });
+    editorGutter.textContent = '';
+    editorGutter.appendChild(rows);
+    gutterCaretLine = -1;
+    applyGutterClasses();
+    editorGutter.scrollTop = editor.scrollTop;
+}
+
+function applyGutterClasses() {
+    if (!editorGutter) return;
+    const [sLine, eLine] = highlightedLines;
+    const rows = editorGutter.children;
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].classList.toggle('gl-selected', sLine !== -1 && i >= sLine && i <= eLine);
+        rows[i].classList.toggle('gl-active', i === gutterCaretLine);
+    }
+}
+
+function updateGutterCaret() {
+    if (document.activeElement !== editor) return;
+    const line = editor.value.slice(0, editor.selectionStart).split('\n').length - 1;
+    if (line === gutterCaretLine) return;
+    gutterCaretLine = line;
+    applyGutterClasses();
+}
+
 function shadeLine(line, last) {
     const el = document.createElement('span');
     el.className = 'sh-' + line.kind;
@@ -29,6 +101,8 @@ function lineKey(line) {
 }
 
 function drawShade() {
+    scheduleGutter();
+    if (typeof refreshFind === 'function') refreshFind();
     if (shadeBroken || !settings.colours) return;
     try {
         const text = editor.value;
@@ -83,6 +157,7 @@ function applyLineHighlightClasses() {
         const active = sLine !== -1 && i >= sLine && i <= eLine;
         children[i].classList.toggle('sh-selected-line', active);
     }
+    applyGutterClasses();
 }
 
 function placeShade() {
@@ -122,6 +197,12 @@ function stopShade(why, detail) {
     console.warn('Plainchant Web: ' + why + ', so they are off until reload.', detail);
 }
 
-editor.addEventListener('scroll', () => { shadeLayer.scrollTop = editor.scrollTop; });
-if (typeof ResizeObserver === 'function') new ResizeObserver(() => { placeShade(); checkShade(); }).observe(editor);
-window.addEventListener('resize', placeShade);
+editor.addEventListener('scroll', () => {
+    shadeLayer.scrollTop = editor.scrollTop;
+    if (editorGutter) editorGutter.scrollTop = editor.scrollTop;
+});
+if (typeof ResizeObserver === 'function') new ResizeObserver(() => { placeShade(); checkShade(); scheduleGutter(); }).observe(editor);
+window.addEventListener('resize', () => { placeShade(); scheduleGutter(); });
+document.addEventListener('selectionchange', updateGutterCaret);
+editor.addEventListener('focus', updateGutterCaret);
+editor.addEventListener('blur', () => { gutterCaretLine = -1; applyGutterClasses(); });

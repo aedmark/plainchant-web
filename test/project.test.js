@@ -238,3 +238,33 @@ test('parts: nested, unclosed, and stray markers are reported and never rewritte
     assert.equal(Parts.find('stray <!-- /pc:part -->').invalid.length, 1);
     assert.equal(Parts.sync({ 'a.html': '<!-- pc:part src="b.html" -->x', 'b.html': 'y' }, null).changed.length, 0);
 });
+
+test('finding: search, navigation, and replacement helpers use exact offsets', () => {
+    const text = 'Foo foo FOO\nfoo';
+    assert.deepEqual(Finding.findAll(text, 'foo').map((m) => m.start), [0, 4, 8, 12]);
+    assert.deepEqual(Finding.findAll(text, 'foo', { caseSensitive: true }).map((m) => m.start), [4, 12]);
+    assert.deepEqual(Finding.findAll(text, ''), []);
+    assert.deepEqual(Finding.findAll('a.b a+b (a)', 'a.b').map((m) => m.start), [0], 'regex characters are literal');
+    assert.deepEqual(Finding.findAll('aaa', 'aa').map((m) => m.start), [0], 'matches do not overlap');
+    assert.deepEqual(Finding.findAll('x$&y', '$&').map((m) => m.start), [1]);
+
+    const matches = Finding.findAll(text, 'foo');
+    assert.equal(Finding.nearest(matches, 0), 0);
+    assert.equal(Finding.nearest(matches, 5), 2);
+    assert.equal(Finding.nearest(matches, 13), 0, 'wraps to the first match');
+    assert.equal(Finding.nearest([], 3), -1);
+    assert.equal(Finding.step(matches, 3, 1), 0);
+    assert.equal(Finding.step(matches, 0, -1), 3);
+    assert.equal(Finding.step(matches, -1, -1), 3);
+    assert.equal(Finding.step([], -1, 1), -1);
+
+    const one = Finding.replaceAt(text, matches[1], 'bar');
+    assert.equal(one.text, 'Foo bar FOO\nfoo');
+    assert.equal(one.caret, 7);
+    const all = Finding.replaceAll(text, 'foo', '$1-baz');
+    assert.equal(all.text, '$1-baz $1-baz $1-baz\n$1-baz', 'replacement text is literal');
+    assert.equal(all.count, 4);
+    assert.deepEqual(Finding.replaceAll('abc', 'x', 'y'), { text: 'abc', count: 0 });
+    assert.equal(Finding.findAll('é É', 'é').length, 2, 'case-insensitive search folds accented letters');
+    assert.equal(Finding.findAll('é É', 'é', { caseSensitive: true }).length, 1);
+});

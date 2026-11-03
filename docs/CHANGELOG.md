@@ -30,6 +30,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 - **Shared page parts**: Select an element and choose **Make Part…** to move it into a reusable file (for example `parts/header.html`); pages keep a marked copy, and editing the part file updates every page. A **Parts** Inspector tab shows which pages differ and can insert a part into another page. Pages stay plain HTML (`P7-10`, `D-014`).
 
+- **Line numbers and Find/Replace**: The code editor shows a line-number gutter that follows wrapped lines and highlights the caret line and Stage-selected block. `Ctrl/Cmd+F` / `Ctrl/Cmd+H` open a find bar with match highlighting, a case toggle, next/previous (`Enter` / `Shift+Enter`), **Replace**, and **Replace All**, all undoable (`P6-01`, `D-015`).
+
 ### Changed
 
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.
