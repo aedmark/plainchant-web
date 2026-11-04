@@ -312,3 +312,18 @@ test('structure: the File and Edit menus hold the moved toolbar buttons and menu
     assert.ok(!strip.includes('formatBtn'), 'the Format button is not in the tab strip');
     assert.ok(listed.indexOf('menus.js') > listed.indexOf('typing.js') && listed.indexOf('menus.js') > listed.indexOf('find.js'), 'menus.js loads after typing.js and find.js');
 });
+
+test('structure: Open file / Open folder / Open project, saved folder links, and Reload from disk are wired in (D-033)', () => {
+    ['id="openFileBtn"', 'id="folderBtn"', 'id="libraryBtn"', 'id="fileReloadBtn"'].forEach((needle) => assert.includes(html, needle));
+    const panel = html.slice(html.indexOf('id="fileMenuPanel"'), html.indexOf('</div>', html.indexOf('id="fileMenuPanel"')));
+    ['openFileBtn', 'folderBtn', 'libraryBtn'].forEach((id) => assert.includes(panel, 'id="' + id + '"'));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/projectlink.js') !== -1 && order.indexOf('src/projectlink.js') < order.indexOf('src/app/core.js'), 'projectlink.js loads before the app scripts');
+    assert.ok(listed.indexOf('project-links.js') > listed.indexOf('tauri-files.js'), 'project-links.js loads after tauri-files.js');
+    const tauri = readRoot('src/app/tauri-files.js');
+    ['folderOwner', 'openExistingFolderProject', 'adoptExportFolder', 'markLinkSynced', 'detachProjectFolder'].forEach((needle) => assert.includes(tauri, needle));
+    assert.includes(readRoot('src/app/persistence.js'), 'Store.loadLinks');
+    assert.includes(readRoot('src/app/persistence.js'), 'restoreProjectLink');
+    assert.includes(readRoot('src-tauri/src/main.rs'), 'use_project_folder,');
+    assert.includes(readRoot('src/app/project-links.js'), "tauriInvoke('use_project_folder'");
+});

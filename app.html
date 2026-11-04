@@ -39,8 +39,9 @@
                 <button id="fileMenuBtn" type="button" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="fileMenuPanel" title="Projects, folders, export, and preview">File &#9662;</button>
                 <div id="fileMenuPanel" class="menu-panel" role="menu" aria-label="File" hidden>
                     <button id="newBtn" type="button" class="menu-item" role="menuitem" title="Start a blank project"><span>New project</span></button>
-                    <button id="libraryBtn" type="button" class="menu-item" role="menuitem" title="Open your project library"><span>Projects&hellip;</span></button>
-                    <button id="folderBtn" type="button" class="menu-item" role="menuitem" title="Open a local project folder into Studio"><span>Open folder&hellip;</span></button>
+                    <button id="openFileBtn" type="button" class="menu-item" role="menuitem" title="Open a single .html, .css, or .js file as its own project"><span>Open file&hellip;</span></button>
+                    <button id="folderBtn" type="button" class="menu-item" role="menuitem" title="Open a folder as a project (a folder that is already a project opens that project)"><span>Open folder&hellip;</span></button>
+                    <button id="libraryBtn" type="button" class="menu-item" role="menuitem" title="Open a project from your library"><span>Open project&hellip;</span></button>
                     <button id="exportBtn" type="button" class="menu-item" role="menuitem" title="Export project to disk or bundle"><span>Export&hellip;</span></button>
                     <button id="previewBtn" type="button" class="menu-item" role="menuitem" title="Preview the project in a real browser or on a phone"><span>Preview&hellip;</span></button>
                 </div>
@@ -95,6 +96,7 @@
     <div id="file-bar" class="file-bar" role="region" aria-label="Imported project workspace" hidden>
         <span id="fileBarText" aria-live="polite"></span>
         <span class="file-bar-actions">
+            <button type="button" class="mini" id="fileReloadBtn" title="Replace the Studio copy with the files now on disk (undoable)" hidden>Reload from disk</button>
             <button type="button" class="mini" id="fileSyncNowBtn" title="Open Export dialog to write changes back to disk">Export to Disk&hellip;</button>
             <button type="button" class="mini" id="fileUnlinkBtn" title="Detach source folder reference">Detach</button>
         </span>
@@ -435,7 +437,7 @@
                 <button type="button" class="chip" id="libViewTrash" aria-pressed="false">Recently deleted</button>
             </div>
             <button type="button" class="chip" id="libStarterBtn">Load Starter Template</button>
-            <button type="button" class="chip" id="libImport">Import file&hellip;</button>
+            <button type="button" class="chip" id="libImport">Open file&hellip;</button>
             <input type="file" id="importInput" accept=".html,.htm,.css,.js" multiple hidden>
         </div>
         <div id="library-list" class="modal-body"></div>
@@ -714,6 +716,7 @@
 <script src="src/layout.js"></script>
 <script src="src/hints.js"></script>
 <script src="src/preview.js"></script>
+<script src="src/projectlink.js"></script>
 <script src="src/format.js"></script>
 <script src="src/shortcuts.js"></script>
 <script src="src/importing.js"></script>
@@ -749,6 +752,7 @@
 <script src="src/app/export.js"></script>
 <script src="src/app/import.js"></script>
 <script src="src/app/tauri-files.js"></script>
+<script src="src/app/project-links.js"></script>
 <script src="src/app/zip-ui.js"></script>
 <script src="src/app/preview-ui.js"></script>
 <script src="src/app/format-ui.js"></script>

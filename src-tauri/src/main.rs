@@ -246,10 +246,23 @@ fn scan_directory(
     }
 }
 
-fn load_dir_payload(dir: PathBuf, state: &tauri::State<ServerState>) -> Result<ProjectFolderPayload, String> {
+fn strip_verbatim(path: &str) -> String {
+    match path.strip_prefix(r"\\?\") {
+        Some(rest) if !rest.starts_with("UNC\\") => rest.to_string(),
+        _ => path.to_string(),
+    }
+}
+
+fn canonical_dir(dir: PathBuf) -> Result<PathBuf, String> {
     if !dir.exists() || !dir.is_dir() {
         return Err(format!("Directory does not exist: {}", dir.display()));
     }
+    let real = fs::canonicalize(&dir).unwrap_or(dir);
+    Ok(PathBuf::from(strip_verbatim(&real.to_string_lossy())))
+}
+
+fn load_dir_payload(dir: PathBuf, state: &tauri::State<ServerState>) -> Result<ProjectFolderPayload, String> {
+    let dir = canonical_dir(dir)?;
     if let Ok(mut guard) = state.root_dir.lock() {
         *guard = Some(dir.clone());
     }
@@ -275,6 +288,15 @@ fn open_project_folder(state: tauri::State<ServerState>) -> Result<Option<Projec
         return Ok(None);
     };
     load_dir_payload(dir, &state).map(Some)
+}
+
+#[tauri::command]
+fn use_project_folder(path: String, state: tauri::State<ServerState>) -> Result<String, String> {
+    let dir = canonical_dir(PathBuf::from(path))?;
+    if let Ok(mut guard) = state.root_dir.lock() {
+        *guard = Some(dir);
+    }
+    Ok(format!("http://127.0.0.1:{}/", state.port))
 }
 
 #[tauri::command]
@@ -371,6 +393,20 @@ mod tests {
     }
 
     #[test]
+    fn strips_the_windows_verbatim_prefix_but_not_unc() {
+        assert_eq!(strip_verbatim(r"\\?\C:\Work\site"), r"C:\Work\site");
+        assert_eq!(strip_verbatim(r"\\?\UNC\host\share"), r"\\?\UNC\host\share");
+        assert_eq!(strip_verbatim("/home/me/site"), "/home/me/site");
+    }
+
+    #[test]
+    fn canonical_dir_resolves_dots_and_rejects_missing_folders() {
+        let here = canonical_dir(PathBuf::from(".")).unwrap();
+        assert!(here.is_absolute());
+        assert!(canonical_dir(PathBuf::from("./no/such/folder")).is_err());
+    }
+
+    #[test]
     fn rejects_paths_that_leave_the_project() {
         assert!(is_safe_relative(Path::new("images/a.png")));
         assert!(!is_safe_relative(Path::new("../a.png")));
@@ -392,6 +428,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             open_project_folder,
             open_project_folder_at,
+            use_project_folder,
             save_project_folder,
             preview::preview_start,
             preview::preview_update,

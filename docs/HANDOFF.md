@@ -7,7 +7,7 @@
 Last updated: 2026-11-03
 - **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`94/94` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`97/97` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -44,6 +44,7 @@ Last updated: 2026-11-03
 - **CSS pseudo-states (`P7-07`, `D-021`)**: State bar in the CSS Designer, forced-state preview via `[data-pc-force~="state"]` selector twins (`src/app/css-states.js`, `CssAst.forceStates`).
 - **Zip export (`P7-13`, `D-022`)**: Export dialog button, stored zip writer (`src/zip.js`, `src/app/zip-ui.js`).
 - **Shortcut cheat sheet (`P7-15`, `D-031`)**: Help guide section from `src/shortcuts.js`, guarded by `test/shortcuts.test.js`.
+- **Open file / folder / project (`D-033`)**: saved folder links, one folder = one project, Reload from disk (`src/projectlink.js`, `src/app/project-links.js`).
 - **File / Edit menus (`D-032`)**: toolbar regrouped (`src/app/menus.js`).
 - **Format (`P7-14`, `D-030`)**: **Edit > Format file** and `Alt+Shift+F`; HTML and CSS rebuilt, JS re-indented only (`src/format.js`, `src/app/format-ui.js`).
 - **Network preview (`P7-12`, `D-029`)**: **Preview** dialog; desktop **Start sharing** runs a token-gated read-only server on the LAN with live reload, browser build opens a snapshot tab (`src/app/preview-ui.js`, `src/preview.js`, `src-tauri/src/preview.rs`).
@@ -56,7 +57,6 @@ Last updated: 2026-11-03
 ### Known issues & gotchas
 
 - **Network preview is plain HTTP and unverified on real devices (`D-029`)**: while sharing, anyone on the network with the link can read the project. HTTP behaviour has Rust tests over a loopback socket; a real phone, Tauri window, macOS/Windows openers, and firewall prompts were not exercised. No QR code.
-
 - **WebKitGTK HTML5 Drag-and-Drop**: Native `draggable="true"` / `dragover` / `drop` inside an `iframe[srcdoc]` is unreliable on Linux WebKitGTK (`D-008`). Keep Stage drag-and-drop on deterministic pointer events (`mousedown` / `mousemove` / `mouseup` in [`src/app/stage.js`](../src/app/stage.js)).
 - **500-Line Module Cap**: [`test/structure.test.js`](../test/structure.test.js) enforces a hard 500-line ceiling on every `.js` file under `src/app/` (`D-001`). [`src/app/stage.js`](../src/app/stage.js) (~458 lines) and [`src/app/core.js`](../src/app/core.js) are near the limit; extract helpers before adding large features.
 - **Service worker is cache-first (`sw.js`)**: after changing any app file, a browser that already installed the app can keep serving old scripts; hard-reload when testing. `CACHE_NAME` has never been bumped, so consider a version bump per release.
@@ -85,6 +85,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2w: 2026-11-03: Open file / folder / project and one folder = one project (maintainer feedback)
+
+- **Did**: folder links saved in the existing `files` store; reopening a known folder opens its project with **Reload from disk** when the disk changed; **Open file…**; canonical folder paths and `use_project_folder` in Rust ([`src/projectlink.js`](../src/projectlink.js), [`src/app/project-links.js`](../src/app/project-links.js)).
+- **Decided**: `D-033` (maintainer chose: open the Studio copy and offer a reload; standalone one-file projects).
+- **Verified**: `npm test`, `cargo test`; browser check with a faked Tauri bridge (first open, reopen without a duplicate, disk change, reload and undo, switch away and back, link survives a page reload, Open file with css, html, and several files). No real desktop window or directory picker.
+- **Next**: more maintainer feedback. Folders opened before this change have no saved link.
 
 ### Session 2v: 2026-11-03: toolbar File and Edit menus (maintainer feedback)
 

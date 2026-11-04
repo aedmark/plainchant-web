@@ -25,7 +25,10 @@ function tauriInvoke(cmd, args) {
 function clearLinkedFolder() {
     linkedFolder = null;
     projectBaseUrl = '';
+    pendingDisk = null;
+    renderDiskPending();
     updateFolderBar();
+    restoreProjectLink(currentScriptId);
 }
 
 function updateFolderBar() {
@@ -134,6 +137,7 @@ function activateImportedFolderProject(folderMeta, payload, baseUrl, assets) {
     updateFolderBar();
     rememberCurrent();
     saveScript(true);
+    saveProjectLink(folderMeta, payload.entries);
     saveProjectAssets();
     render(false);
     const shortName = String(folderMeta.name || '').split(/[\\/]/).filter(Boolean).pop() || folderMeta.name;
@@ -165,11 +169,10 @@ async function openProjectFolder() {
         try {
             const res = await tauriInvoke('open_project_folder', {});
             if (!res || !res.path) return;
-            activateImportedFolderProject(
-                { kind: 'Tauri disk', name: res.path, path: res.path, baseUrl: res.base_url || '' },
-                { entries: res.files || {}, tree: res.tree || [] },
-                res.base_url || ''
-            );
+            const meta = { kind: 'Tauri disk', name: res.path, path: res.path, baseUrl: res.base_url || '' };
+            const owner = await folderOwner(meta, null);
+            if (owner) { await openExistingFolderProject(owner, meta, { files: res.files || {}, tree: res.tree || [] }); return; }
+            activateImportedFolderProject(meta, { entries: res.files || {}, tree: res.tree || [] }, res.base_url || '');
         } catch (err) {
             showNotice('Folder open failed: ' + (err.message || err), true);
         }
@@ -183,12 +186,10 @@ async function openProjectFolder() {
             const tree = [];
             const assets = { files: {}, bytes: 0, skipped: [] };
             await scanBrowserDir(dirHandle, '', files, tree, 0, assets);
-            activateImportedFolderProject(
-                { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle },
-                { entries: files, tree: tree },
-                '',
-                assets
-            );
+            const meta = { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle };
+            const owner = await folderOwner(meta, null);
+            if (owner) { await openExistingFolderProject(owner, meta, { files: files, tree: tree }); return; }
+            activateImportedFolderProject(meta, { entries: files, tree: tree }, '', assets);
         } catch (err) {
             if (err && err.name !== 'AbortError') {
                 showNotice('Could not open folder: ' + err.message, true);
@@ -215,12 +216,10 @@ async function exportProjectToFolder(forceNewFolder = false) {
                 dirs: projectFolderPaths()
             });
             if (!savedPath) return;
-            if (!linkedFolder) {
-                linkedFolder = { kind: 'Tauri disk', name: savedPath, path: savedPath, baseUrl: projectBaseUrl || '' };
-                updateFolderBar();
-            }
+            await adoptExportFolder({ kind: 'Tauri disk', name: savedPath, path: savedPath, baseUrl: projectBaseUrl || '' });
             if (typeof refreshExportModal === 'function') refreshExportModal();
             markFilesSaved();
+            if (linkedFolder) markLinkSynced();
             showNotice('Exported ' + fileCount + ' project files (retaining folder structure) to ' + savedPath);
         } catch (err) {
             showNotice('Disk export failed: ' + (err.message || err), true);
@@ -234,13 +233,14 @@ async function exportProjectToFolder(forceNewFolder = false) {
             if (!dirHandle) {
                 dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             }
-            await writeBrowserDirEntries(dirHandle, projectFiles.entries, projectAssets, projectFolderPaths());
-            if (!linkedFolder) {
-                linkedFolder = { kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle };
-                updateFolderBar();
+            if (typeof dirHandle.requestPermission === 'function' && (await dirHandle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+                throw new Error('Permission to write to the folder was not granted.');
             }
+            await writeBrowserDirEntries(dirHandle, projectFiles.entries, projectAssets, projectFolderPaths());
+            await adoptExportFolder({ kind: 'Browser Directory', name: dirHandle.name, handle: dirHandle });
             if (typeof refreshExportModal === 'function') refreshExportModal();
             markFilesSaved();
+            if (linkedFolder) markLinkSynced();
             showNotice('Exported ' + fileCount + ' project files (retaining folder structure) to ' + dirHandle.name);
         } catch (err) {
             if (err && err.name !== 'AbortError') {
@@ -258,7 +258,7 @@ exportFolderBtn.addEventListener('click', () => exportProjectToFolder(false));
 if (exportNewFolderBtn) exportNewFolderBtn.addEventListener('click', () => exportProjectToFolder(true));
 fileSyncNowBtn.addEventListener('click', openExportModal);
 fileUnlinkBtn.addEventListener('click', () => {
-    clearLinkedFolder();
+    detachProjectFolder();
     render(false);
     showNotice('Detached source folder reference. Project files remain in your Studio workspace.');
 });

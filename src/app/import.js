@@ -11,38 +11,26 @@ async function importFiles(fileList) {
         if (!images.length) showNotice('Please choose .html, .css, or .js files.', true);
         return;
     }
-    syncBufferFromEditor();
-    let importedHtml = false;
+    const entries = {};
     for (const file of files) {
-        const buf = await file.arrayBuffer();
-        const text = Importing.decode(new Uint8Array(buf));
-        const kind = Importing.kindOf(file.name);
-        if (kind === 'css') {
-            projectFiles.css = text;
-            if (activeTab === 'css') editor.value = text;
-        } else if (kind === 'js') {
-            projectFiles.js = text;
-            if (activeTab === 'js') editor.value = text;
-        } else {
-            const unpacked = Project.unpack(text);
-            projectFiles.html = unpacked.html;
-            if (unpacked.css && files.length === 1) projectFiles.css = unpacked.css;
-            if (unpacked.js && files.length === 1) projectFiles.js = unpacked.js;
-            importedHtml = true;
-        }
+        const text = Importing.decode(new Uint8Array(await file.arrayBuffer()));
+        if (Importing.kindOf(file.name) === 'html' && /^\s*\{|PLAINCHANT:FILE:/.test(text)) Object.assign(entries, Project.unpack(text).entries);
+        else entries[file.name] = text;
     }
-    if (importedHtml) {
-        currentScriptId = newId();
-        saveProjectAssets();
-    }
-    editor.value = projectFiles[activeTab] || '';
-    saveScript(false);
+    flushSave();
+    currentScriptId = newId();
+    selectedPcId = null;
+    clearLinkedFolder();
+    loadProjectIntoEditor({ entries: entries });
+    saveScript(true);
+    saveProjectAssets();
     render(false);
     closeModal(libraryModal);
-    showNotice('Imported ' + files.map((f) => f.name).join(', '));
+    showNotice('Opened ' + files.map((f) => f.name).join(', ') + ' as a new project.');
 }
 
 libImport.addEventListener('click', () => importInput.click());
+document.getElementById('openFileBtn').addEventListener('click', () => importInput.click());
 importInput.addEventListener('change', () => {
     if (importInput.files && importInput.files.length) importFiles(importInput.files);
     importInput.value = '';

@@ -94,6 +94,7 @@ async function openStorage(factory) {
         scriptDb = db;
         storageMode = 'idb';
         library = all.scripts;
+        projectLinks = await Store.loadLinks(db).catch(() => ({}));
         pointer = typeof all.meta.currentScriptId === 'string' ? all.meta.currentScriptId : null;
     } catch (e) {
         storageMode = 'none';
@@ -132,6 +133,7 @@ async function restoreLastScript(factory) {
         loadProjectIntoEditor(Project.starter());
     }
     rememberCurrent();
+    restoreProjectLink(currentScriptId);
 }
 
 function purgeTrash() {

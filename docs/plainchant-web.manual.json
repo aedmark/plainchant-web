@@ -449,12 +449,13 @@
           "how": [
             "In Tauri (`src-tauri/src/main.rs`), `open_project_folder` recursively reads text files into `projectFiles.entries`, records the directory tree, and starts a loopback HTTP static asset server (`127.0.0.1:<port>`) rejecting any `..` path traversal.",
             "`Project.assemblePreview()` injects `<base href=\"http://127.0.0.1:<port>/<dir>/\">` so relative images (`images/photo.jpg`), fonts, and stylesheets render faithfully in `#stageFrame`.",
-            "In `src/app/tauri-files.js`, opening a folder creates a new Studio library record (`currentScriptId = newId()`). Auto-save writes only to IndexedDB; clicking **Export → Save Project to Local Folder** writes all files back to disk while retaining the folder and file structure."
+            "In `src/app/tauri-files.js`, opening a folder the first time creates a Studio library record and saves a folder link with it (`src/app/project-links.js`); opening the same folder again opens that project instead of making a copy, and offers **Reload from disk** if the files changed since the last export (D-033). Auto-save writes only to IndexedDB; clicking **Export → Save Project to Local Folder** writes all files back to disk while retaining the folder and file structure."
           ],
           "why": "Recorded in D-006: auto-overwriting a user's existing project folder on every 1.5s studio auto-save risks unintended destructive changes before the user is ready to commit their work to disk.",
           "evidence": [
             {"label": "Tauri folder IPC & asset server", "target": "src-tauri/src/main.rs"},
             {"label": "Studio folder environment loader", "target": "src/app/tauri-files.js"},
+            {"label": "Folder links and one-folder-one-project", "target": "src/app/project-links.js"},
             {"label": "Export modal & disk writer", "target": "src/app/export.js"},
             {"label": "Preview assembler", "target": "src/project.js"}
           ],
