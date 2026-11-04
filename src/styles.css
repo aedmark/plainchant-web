@@ -1462,4 +1462,7 @@ body.insert-dragging, body.insert-dragging * { cursor: grabbing !important; user
     color: var(--text-void); font-size: 0.78rem; text-align: left; white-space: nowrap; cursor: pointer;
 }
 .menu-item:hover, .menu-item:focus-visible { background: var(--btn-hover); color: var(--text-strong); outline: none; }
+.menu-sep { height: 1px; margin: 0.2rem 0.3rem; background: var(--border-mid); }
+.menu-item:disabled { opacity: 0.45; cursor: default; }
+.menu-item:disabled:hover { background: none; color: var(--text-void); }
 .menu-item kbd { font: 0.7rem ui-monospace, monospace; color: var(--text-void-muted); }

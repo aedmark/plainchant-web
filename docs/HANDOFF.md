@@ -96,7 +96,7 @@ Last updated: 2026-11-03
 ### Session 2v: 2026-11-03: toolbar File and Edit menus (maintainer feedback)
 
 - **Did**: **File ▾** and **Edit ▾** menus replace the New, Projects, Folder, Export, Preview, Copy, and Format buttons ([`src/app/menus.js`](../src/app/menus.js)); the Format button left the tab strip.
-- **Decided**: `D-032` (maintainer chose File / Edit menus). Undo, Redo, Insert, Assets, and Save stay on the toolbar.
+- **Decided**: `D-032` (maintainer chose File / Edit menus). Insert, Assets, and Save stay on the toolbar (Undo and Redo moved into Edit).
 - **Verified**: `npm test`; browser check of open, switch, close, focus, arrow keys, Escape, and each moved item. Desktop window not checked.
 - **Next**: more maintainer feedback on odd behaviour.
 

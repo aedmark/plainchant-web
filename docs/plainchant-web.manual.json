@@ -427,7 +427,7 @@
           "title": "Project-wide multi-file Undo and Redo stack",
           "summary": "Snapshots all project files, active tabs, and Stage selection across Code, Stage, and Inspector edits.",
           "tags": ["undo", "state", "D-010"],
-          "what": "Supports `Ctrl/Cmd+Z` (Undo) and `Ctrl/Cmd+Shift+Z` / `Ctrl+Y` (Redo) plus top-bar `#undoBtn` / `#redoBtn` across all files in the project.",
+          "what": "Supports `Ctrl/Cmd+Z` (Undo) and `Ctrl/Cmd+Shift+Z` / `Ctrl+Y` (Redo) plus the **Edit** menu items `#undoBtn` / `#redoBtn` across all files in the project.",
           "how": [
             "`src/app/typing.js` maintains `undoStack` and `redoStack` (up to 150 snapshots), storing a deep clone of `projectFiles.entries`, `activeFile`, `activeHtmlFile`, `selectedPcId`, and editor selection offsets.",
             "Rapid typing in `#editor` coalesces into 600ms bursts (`TYPING_COALESCE_MS`), while every Stage drag/move, inline text edit burst, and Inspector change records a discrete undo checkpoint."

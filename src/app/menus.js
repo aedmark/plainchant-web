@@ -20,11 +20,11 @@ appMenus.forEach((menu) => {
         closeAppMenus(menu);
         if (typeof setInsertMenuOpen === 'function') setInsertMenuOpen(false);
         setAppMenu(menu, open);
-        if (open) menu.panel.querySelector('.menu-item').focus({ preventScroll: true });
+        if (open) menu.panel.querySelector('.menu-item:not(:disabled)').focus({ preventScroll: true });
     });
     menu.panel.addEventListener('click', () => setAppMenu(menu, false));
     menu.wrap.addEventListener('keydown', (e) => {
-        const items = Array.from(menu.panel.querySelectorAll('.menu-item'));
+        const items = Array.from(menu.panel.querySelectorAll('.menu-item:not(:disabled)'));
         const at = items.indexOf(document.activeElement);
         if (e.key === 'Escape' && !menu.panel.hidden) {
             e.stopPropagation();
