@@ -76,12 +76,13 @@
           "what": "Provides live syntax coloring for HTML, CSS, and JavaScript, Emmet-lite tag abbreviation expansion on `Tab`, smart `Enter` auto-indentation, and line-range highlighting (`highlightCodeRange`) when an element is clicked on the Stage.",
           "how": [
             "`#editor` is a transparent-text `<textarea>` positioned over `.editor-shade` (`src/app/shade.js`).",
-            "`CodeShade.shade()` (`src/code-shade.js`) tokenizes each line and wraps Stage-selected line ranges in `.sh-selected-line`.",
+            "`CodeShade.shade()` (`src/code-shade.js`) asks the vendored Prism (`Prism.tokenize()` only) for tokens, maps them to the editor's marks, splits them into lines, and wraps Stage-selected line ranges in `.sh-selected-line` (D-034).",
             "`checkShade()` verifies line-wrap alignment between the textarea and the background layer, falling back to plain text if browser zoom or font metrics ever diverge."
           ],
           "why": "Recorded in D-002: delivers responsive code editing and visual block highlighting in a few hundred lines of vanilla JS without bundling megabytes of Monaco or CodeMirror.",
           "evidence": [
-            {"label": "Tokenizer & shader", "target": "src/code-shade.js"},
+            {"label": "Prism token mapper & shader", "target": "src/code-shade.js"},
+            {"label": "Vendored Prism", "target": "src/vendor/prism/prism.js"},
             {"label": "Editor shade renderer", "target": "src/app/shade.js"},
             {"label": "Typing & Emmet helpers", "target": "src/editing.js"}
           ],

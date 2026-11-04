@@ -4,7 +4,7 @@ A lightweight, Dreamweaver-inspired **HTML5, CSS, and JavaScript WYSIWYG Studio*
 
 Your project's HTML, CSS, and JavaScript files are always the single source of truth. Every visual action on the Stage—clicking text to edit it in place, dragging elements to reorder them, inspecting box-model margins and padding, inserting semantic HTML5 components, or tweaking CSS rules—splices only the exact byte range in your underlying code.
 
-Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend dependencies, works in any modern browser or as a native desktop app via **Tauri v2**.
+Static HTML, CSS, and JavaScript: no frontend build step, no runtime frontend dependencies beyond a vendored copy of [Prism](https://prismjs.com) for syntax colours, works in any modern browser or as a native desktop app via **Tauri v2**.
 
 ## Features
 

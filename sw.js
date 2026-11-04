@@ -8,6 +8,7 @@ const APP_FILES = [
     'src/styles.css',
     'src/html-ast.js',
     'src/css-ast.js',
+    'src/vendor/prism/prism.js',
     'src/code-shade.js',
     'src/dom-outline.js',
     'src/project.js',

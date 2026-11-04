@@ -15,7 +15,7 @@ The browser or Tauri v2 desktop window loads `app.html`, which loads 23 pure UMD
 | --- | --- | --- | --- |
 | HTML5 AST & splicer | `src/html-ast.js` | `HtmlAst.parse()`, `stamp()`, `setAttr()`, `setText()`, `insertElement()`, `moveElement()`, `duplicateElement()` | Pure string/AST transforms; no DOM (D-003) |
 | CSS AST & splicer | `src/css-ast.js` | `CssAst.parse()`, `findRulesForElement()`, `findRuleBySelector()`, `setProperty()` | Pure string/AST transforms; no DOM (D-003) |
-| Syntax shader & line gutter | `src/code-shade.js`, `src/app/shade.js` | `CodeShade.shade()`, `drawShade()`, `highlightCodeRange()`, `drawGutter()` | `#editor`, `.editor-shade`, `#editorGutter` (D-002, D-015) |
+| Syntax shader & line gutter | `src/code-shade.js`, `src/vendor/prism/prism.js` (D-034), `src/app/shade.js` | `CodeShade.shade()`, `drawShade()`, `highlightCodeRange()`, `drawGutter()` | `#editor`, `.editor-shade`, `#editorGutter` (D-002, D-015) |
 | Find / Replace | `src/finding.js`, `src/app/find.js`, `src/app/find-project.js` | `Finding.findAll()`, `findInFiles()`, `replaceInFiles()`, `openFind()`, `replaceCurrentMatch()`, `replaceAcrossProject()` | `#findBar`, `#findResults`, `.editor-find` layer, `applyEdit()` in `typing.js`, `commitPartEntries()` in `parts-ui.js` (D-015, D-019) |
 | Project & preview bundler | `src/project.js` | `Project.pack()`, `unpack()`, `assemblePreview()`, `primaryCssFile()` | `HtmlAst` (`stamp` only in preview) (D-004, D-006) |
 | Explorer folders, moves & tab order | `src/app/explorer-move.js`, `Project.moveFolder()` / `deriveTree()` / `validateFolderPath()`, `treeAfter` `mkdir` / `moveDir` | `newProjectFolder()`, `moveProjectPath()`, `moveProjectFolderTo()`, `moveAssetTo()`, `decorateExplorerDir()` | Explorer pointer drag, `commitFileChange` `apply` hook, export `dirs` (D-027) |
@@ -79,7 +79,7 @@ Code / Stage / Inspector input -> HtmlAst / CssAst byte-range splice -> projectF
 
 | Dependency | Version | For | Why this one (and not writing it) |
 | --- | --- | --- | --- |
-| Frontend runtime | None | `app.html`, `src/*.js`, `src/app/*.js` | Zero frontend dependencies by design (D-001) |
+| Frontend runtime | Prism 1.30.0 (vendored, unmodified) | `src/vendor/prism/prism.js`, used only by `src/code-shade.js` | Zero frontend dependencies by design (D-001), with this one exception (D-034) |
 | `tauri` / `tauri-build` | `2` | Native desktop window & IPC (`src-tauri/Cargo.toml`) | Lightweight OS webview wrapper (D-005) |
 | `rfd` | `0.15` | Native OS folder picker dialog in `src-tauri` | Standard Rust native file dialog crate |
 | `serde` / `serde_json` | `1` | Tauri IPC payload serialization | Required by Tauri command macros |

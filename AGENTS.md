@@ -38,7 +38,7 @@ Do not manufacture ceremony: typo-only or mechanical changes do not need a decis
 
 ## Working agreement
 
-Direct-to-`master` workflow with maintainer review in-session. Agents may commit and push when requested by the maintainer, but must never add runtime frontend dependencies, delete user project data, or force-push.
+Direct-to-`master` workflow with maintainer review in-session. Agents may commit and push when requested by the maintainer, but must never add runtime frontend dependencies (the one maintainer-approved exception is vendored Prism, D-034), delete user project data, or force-push.
 
 - Default branch: `master`.
 - Working branch pattern: `feature/<topic>` when branching is requested; otherwise `master`.
@@ -82,7 +82,8 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/styles.css` | Studio stylesheet (dark, light, and retro themes; responsive layout; Inspector and context menus) |
 | `src/html-ast.js` | Non-destructive HTML5 parser, `data-pc-id` stamper, and surgical byte-range splicer (UMD, no DOM) |
 | `src/css-ast.js` | Non-destructive CSS rule/declaration parser, selector matcher, and rule splicer (UMD, no DOM) |
-| `src/code-shade.js` | Line-by-line syntax classifier and token shader for HTML, CSS, and JS (UMD, no DOM) |
+| `src/code-shade.js` | Syntax colour mapper for HTML, CSS, and JS: turns Prism tokens into per-line runs (UMD, no DOM) |
+| `src/vendor/prism/` | Vendored, unmodified Prism 1.30.0 (`prism.js`, its MIT `LICENSE`, and an update note); credited in `LICENSE` |
 | `src/dom-outline.js` | Hierarchical DOM tree builder and ancestor breadcrumb formatter (UMD, no DOM) |
 | `src/project.js` | Multi-file project bundle packer/unpacker, preview assembler, and single-file HTML exporter (UMD) |
 | `src/editing.js` | Tab abbreviation expander, smart Enter auto-indenter, diff calculator, and HTML5 snippets (UMD) |
@@ -145,7 +146,7 @@ Things an agent must not change without explicit permission. Every rule includes
 
 ## Engineering conventions
 
-- Vanilla JavaScript (ES2020+), zero frontend frameworks, zero npm runtime dependencies (D-001).
+- Vanilla JavaScript (ES2020+), zero frontend frameworks, zero npm runtime dependencies (D-001); the only third-party runtime code is the vendored, unmodified Prism in `src/vendor/prism/` (D-034).
 - Classic `<script>` files in `src/app/*.js` (no ES modules, so `file://` and offline execution work everywhere) and UMD modules in `src/*.js` so Node tests can `require()` them directly (D-001, D-002).
 - Every file in `src/app/*.js` must be listed in `app.html` in load order (`core.js` first, `main.js` last), must stay at or under 500 lines, and must not redeclare any top-level identifier declared in another `src/app/*.js` file (`test/structure.test.js`).
 - Any asset linked in `app.html` must also be listed in `sw.js` `APP_FILES` (`test/structure.test.js`).

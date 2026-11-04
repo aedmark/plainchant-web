@@ -7,7 +7,7 @@
 Last updated: 2026-11-03
 - **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`99/99` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`103/103` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -85,6 +85,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2z: 2026-11-03: Prism for syntax colours (maintainer request)
+
+- **Did**: vendored Prism 1.30.0 (`src/vendor/prism/`), rewrote [`src/code-shade.js`](../src/code-shade.js) around `Prism.tokenize()` with the same output shape, added a Third-Party Notices section to `LICENSE`, and [`test/codeshade.test.js`](../test/codeshade.test.js).
+- **Decided**: `D-034`: the maintainer allowed a local Prism or a credited facsimile; I vendored the real file. This is the only exception to the zero-dependency rule.
+- **Verified**: `npm test`; browser check of three file types, tab switches, and that Prism's auto-highlighting is off. Not run in the desktop window.
+- **Next**: the file-switch fix `82d2ef5` is still unpushed.
 
 ### Session 2y: 2026-11-03: fix mashed file text after a tab switch (maintainer report)
 

@@ -75,7 +75,7 @@ test('offline: the service worker keeps a copy of exactly the files the app uses
     const swListed = Array.from(sw.match(/const APP_FILES = \[([\s\S]*?)\];/)[1].matchAll(/'([^']+)'/g)).map((m) => m[1]);
     assert.equal(new Set(swListed).size, swListed.length, 'a file is listed twice');
     const pageLinks = Array.from(html.matchAll(/<link [^>]*href="([^"]+)"/g)).map((m) => m[1]);
-    const scripts = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    const scripts = Array.from(html.matchAll(/<script src="([^"]+)"[^>]*><\/script>/g)).map((m) => m[1]);
     const expected = ['./', 'index.html', 'app.html', 'src/home.css', 'manifest.webmanifest'].concat(pageLinks, scripts, fontUrls, manifest.icons.map((i) => i.src));
     assert.deepEqual(swListed.slice().sort(), Array.from(new Set(expected)).sort());
     swListed.filter((f) => f !== './').forEach((f) => assert.ok(fs.existsSync(path.join(root, f)), f + ' is listed but missing'));
@@ -347,4 +347,18 @@ test('structure: the syntax colour layer is emptied when the language changes or
     assert.includes(shade, "if (shadeLang !== activeTab) {\n            shadeLayer.textContent = '';");
     assert.includes(shade, 'shadeLayer.children.length !== shadeKeys.length');
     assert.ok(!/if \(shadeLang !== activeTab\) shadeKeys = \[\];/.test(shade), 'resetting only the keys leaves the old lines in the layer');
+});
+
+test('structure: Prism is vendored unmodified with its licence, loaded before code-shade.js with auto-highlighting off, and credited in LICENSE (D-034)', () => {
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"[^>]*><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/vendor/prism/prism.js') !== -1 && order.indexOf('src/vendor/prism/prism.js') < order.indexOf('src/code-shade.js'), 'prism.js loads before code-shade.js');
+    assert.includes(html, '<script src="src/vendor/prism/prism.js" data-manual></script>');
+    const prism = readRoot('src/vendor/prism/prism.js');
+    ['Prism.languages.markup = {', 'Prism.languages.css = {', 'Prism.languages.javascript = '].forEach((needle) => assert.includes(prism, needle));
+    assert.includes(readRoot('src/vendor/prism/LICENSE'), 'Copyright (c) 2012 Lea Verou');
+    const license = readRoot('LICENSE');
+    ['Prism', 'prismjs.com', 'Lea Verou', 'MIT License'].forEach((needle) => assert.includes(license, needle));
+    const shade = readRoot('src/code-shade.js');
+    assert.includes(shade, 'Prism.tokenize');
+    assert.ok(!/\.highlight\(|highlightElement|innerHTML/.test(shade + readRoot('src/app/shade.js')), 'Prism output is never turned into HTML');
 });

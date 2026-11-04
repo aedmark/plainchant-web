@@ -25,6 +25,9 @@ Plainchant Web is a local web and desktop application (Tauri v2 + Rust backend) 
    - It serves the Studio working copy held in memory (including unsaved text and added images), plus non-text files from the linked folder. Paths are checked with `is_safe_relative`, so `..`, absolute paths, and encoded variants are refused.
    - Traffic is plain HTTP, so anyone on the same network who has the link can read the project. The dialog says so. **Stop sharing** or quitting the app ends the listener and clears the content. The always-on asset server in item 3 stays on loopback.
 
+6. **Vendored Third-Party Code (`D-034`)**:
+   - [`src/vendor/prism/prism.js`](../src/vendor/prism/prism.js) is an unmodified copy of Prism 1.30.0 that runs in the Studio window. It only tokenizes text; its HTML output is never used (a test enforces this), and the coloured copy is built with `textContent`, so file text cannot inject markup. Its regexes can be slow on adversarial input, so files over 150,000 characters are not coloured.
+
 ## Secrets & configuration
 
 - Plainchant Web requires no API keys, cloud credentials, or external services. The only network listeners are the loopback asset server and the opt-in preview server above.
