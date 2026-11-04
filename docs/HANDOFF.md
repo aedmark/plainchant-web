@@ -7,7 +7,7 @@
 Last updated: 2026-11-03
 - **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`97/97` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`98/98` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -85,6 +85,12 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2x: 2026-11-03: home page and quick guide
+
+- **Did**: rewrote [`index.html`](../index.html) and trimmed [`src/home.css`](../src/home.css) (it began as an exact copy of the sister `plainchant` site's stylesheet; screenplay-only classes were replaced by code, Stage, step, and feature blocks).
+- **Verified**: `npm test`; browser check at desktop and phone width (no horizontal overflow). Copy was written from what the app does; the desktop app has only been run on Linux, so the page names no platforms.
+- **Next**: more maintainer feedback. The manual link (`docs/manual.html`) is not in the service worker cache and is not in the Tauri `dist` build, so it works on a web host only.
 
 ### Session 2w: 2026-11-03: Open file / folder / project and one folder = one project (maintainer feedback)
 

@@ -327,3 +327,17 @@ test('structure: Open file / Open folder / Open project, saved folder links, and
     assert.includes(readRoot('src-tauri/src/main.rs'), 'use_project_folder,');
     assert.includes(readRoot('src/app/project-links.js'), "tauriInvoke('use_project_folder'");
 });
+
+test('structure: the home page is a self-contained how-to whose links and anchors resolve (index.html)', () => {
+    const home = readRoot('index.html');
+    assert.ok(!/<script\b/i.test(home) && !/<style\b/i.test(home), 'index.html has no inline or external scripts or inline styles');
+    const local = Array.from(home.matchAll(/(?:href|src)="([^"#:]+)(?:#[^"]*)?"/g)).map((m) => m[1]).filter((u) => !/^(https?:|mailto:)/.test(u));
+    assert.ok(local.length >= 6, 'the page links to its stylesheet, app, manual, and license');
+    local.forEach((u) => assert.ok(fs.existsSync(path.join(root, u)), 'index.html links to a missing file: ' + u));
+    const ids = new Set(Array.from(home.matchAll(/\bid="([^"]+)"/g)).map((m) => m[1]));
+    Array.from(home.matchAll(/href="#([^"]+)"/g)).forEach((m) => assert.ok(ids.has(m[1]), 'index.html links to a missing anchor #' + m[1]));
+    ['href="app.html"', 'href="docs/manual.html"', '<h1 id="title">'].forEach((needle) => assert.includes(home, needle));
+    assert.ok(!/(?:src|href)="(?:https?:)?\/\/(?!github\.com\/aedmark\/)/i.test(home), 'the only outside links are to the project repositories');
+    const homeCss = readRoot('src/home.css');
+    assert.ok(!/url\(\s*['"]?(?:https?:)?\/\//i.test(homeCss) && !/@import/.test(homeCss), 'home.css loads nothing from another site');
+});
