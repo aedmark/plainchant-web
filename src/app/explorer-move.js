@@ -33,6 +33,7 @@ function newProjectFolder() {
     if (answer == null) return;
     const check = Project.validateFolderPath(projectFilePaths(), projectDirPaths(), answer, '');
     if (!check.ok) { showNotice(check.error, true); return; }
+    expandExplorerTo(check.path);
     beginAssetChange();
     projectFiles.tree = Project.treeAfter(ensureProjectTree(), { type: 'mkdir', path: check.path });
     finishAssetChange();
@@ -44,6 +45,7 @@ function deleteProjectFolder(dir) {
         showNotice(dir + ' is not empty. Move or delete its files first.', true);
         return;
     }
+    explorerCollapsed.delete(dir);
     beginAssetChange();
     projectFiles.tree = ensureProjectTree().filter((item) => item.path !== dir && item.path.indexOf(dir + '/') !== 0);
     finishAssetChange();
@@ -64,6 +66,7 @@ async function moveProjectFolderTo(src, to) {
     const res = Project.moveFolder(projectFiles.entries, src, to, { known: projectFilePaths() });
     if (res.error) { showNotice(res.error, true); return false; }
     if (res.path === src) return false;
+    expandExplorerTo(res.path);
     const renamed = new Map(res.moves.map((m) => [m.from, m.to]));
     const swap = (p) => renamed.get(p) || p;
     commitFileChange(res.entries, {
@@ -78,6 +81,7 @@ async function moveProjectFolderTo(src, to) {
 async function moveProjectPath(src, destDir) {
     const to = joinPath(destDir, baseName(src));
     if (to === src) return;
+    expandExplorerTo(to);
     if (projectDirPaths().indexOf(src) !== -1) {
         await moveProjectFolderTo(src, to);
     } else if (src in projectFiles.entries) {

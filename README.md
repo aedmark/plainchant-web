@@ -30,6 +30,7 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
 - **Line Numbers & Find/Replace (`Ctrl/Cmd+F`, `Ctrl/Cmd+H`):**
   - A line-number gutter follows wrapped lines, and the find bar highlights every match in the current file with case matching, next/previous, **Replace**, and **Replace All** (undoable).
 - **Explorer File Operations & Unsaved Dots:**
+  - Click a folder name to collapse or expand it. Clicking an image opens it in the Assets dialog instead of inserting it.
   - Create folders with **+ Folder**, drag files or folders onto a folder to move them (links update), and drag file tabs to reorder them.
   - Rename, duplicate, or delete files from the Explorer (hover buttons or right-click); renames update links to the file, and everything is undoable. A `•` marks files changed since the last Save or Export.
 - **Problems Tab (Links, Accessibility, Markup):**

@@ -170,6 +170,7 @@ function openFileInEditor(filePath) {
     if (!(filePath in projectFiles.entries)) return;
     syncBufferFromEditor();
     if (!openTabs.includes(filePath)) openTabs.push(filePath);
+    expandExplorerTo(filePath);
     activeFile = filePath;
     activeTab = langForFile(filePath);
     const switchedHtml = /\.html?$/i.test(filePath) && filePath !== activeHtmlFile;
@@ -209,6 +210,17 @@ function switchFileTab(tabOrFile) {
     }
 }
 
+const explorerCollapsed = new Set();
+
+function expandExplorerTo(path) {
+    for (let at = path.split('/').slice(0, -1).join('/'); at; at = at.split('/').slice(0, -1).join('/')) explorerCollapsed.delete(at);
+}
+
+function toggleExplorerDir(path) {
+    if (!explorerCollapsed.delete(path)) explorerCollapsed.add(path);
+    renderExplorer();
+}
+
 function renderExplorer() {
     if (!explorerTree) return;
     ensureEntries();
@@ -218,7 +230,8 @@ function renderExplorer() {
         : Object.keys(projectFiles.entries).sort().map((p) => ({ path: p, kind: 'file', is_text: true }));
 
     explorerTree.textContent = '';
-    const filtered = rawTree.filter((item) => !query || item.path.toLowerCase().includes(query));
+    const hidden = (path) => !query && Array.from(explorerCollapsed).some((dir) => path.indexOf(dir + '/') === 0);
+    const filtered = rawTree.filter((item) => (!query || item.path.toLowerCase().includes(query)) && !hidden(item.path));
 
     if (!filtered.length) {
         const empty = document.createElement('p');
@@ -238,7 +251,16 @@ function renderExplorer() {
             dirRow.style.paddingLeft = (0.5 + depth * 0.75) + 'rem';
             const dirLabel = document.createElement('span');
             dirLabel.className = 'explorer-dir-name';
-            dirLabel.textContent = '▾ ' + name + '/';
+            const collapsed = !query && explorerCollapsed.has(item.path);
+            dirLabel.textContent = (collapsed ? '▸ ' : '▾ ') + name + '/';
+            dirLabel.setAttribute('role', 'button');
+            dirLabel.tabIndex = 0;
+            dirLabel.setAttribute('aria-expanded', String(!collapsed));
+            dirLabel.title = (collapsed ? 'Expand ' : 'Collapse ') + item.path;
+            dirLabel.addEventListener('click', () => toggleExplorerDir(item.path));
+            dirLabel.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExplorerDir(item.path); }
+            });
             dirRow.appendChild(dirLabel);
             if (typeof decorateExplorerDir === 'function') decorateExplorerDir(dirRow);
             explorerTree.appendChild(dirRow);
@@ -271,10 +293,9 @@ function renderExplorer() {
             if (item.path in projectFiles.entries) {
                 openFileInEditor(item.path);
             } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext)) {
-                const snippet = '<img src="' + HtmlAst.escapeAttr(item.path) + '" alt="' + HtmlAst.escapeAttr(name.replace(/\.[^.]+$/, '')) + '" style="max-width: 100%; height: auto;">';
-                const nextHtml = HtmlAst.insertElement(projectFiles.html, selectedPcId, 'inside-end', snippet);
-                applyHtmlTransform(nextHtml, selectedPcId);
-                showNotice('Inserted <img> for ' + item.path);
+                openAssetManager();
+                assetSearch.value = item.path;
+                renderAssets();
             } else {
                 showNotice('Binary file: ' + item.path);
             }

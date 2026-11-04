@@ -69,6 +69,7 @@ function moveProjectFileTo(path, answer) {
     const res = Project.renameFile(projectFiles.entries, path, answer, { known: knownTreePaths() });
     if (res.error) { showNotice(res.error, true); return false; }
     const swap = (p) => (p === path ? res.path : p);
+    expandExplorerTo(res.path);
     commitFileChange(res.entries, {
         tree: Project.treeAfter(projectFiles.tree, { type: 'rename', from: path, to: res.path }),
         openTabs: openTabs.map(swap), activeFile: swap(activeFile), activeHtmlFile: swap(activeHtmlFile)

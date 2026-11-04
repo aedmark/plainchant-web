@@ -58,6 +58,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ### Changed
 
+- **Explorer folders collapse**: click a folder's name (or press Enter or Space on it) in the Explorer to collapse or expand it; the arrow shows the state. Opening, moving, renaming, or creating a file or folder inside a collapsed folder expands it, and filtering the list shows every match.
+- **Clicking an image in the Explorer no longer inserts it**: it opens the Assets dialog filtered to that image, where **Insert** is an explicit button. Before, the click added an `<img>` to the page.
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.
 
 ### Fixed

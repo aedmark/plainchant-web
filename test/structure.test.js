@@ -294,3 +294,11 @@ test('structure: the Help guide renders the shortcut cheat sheet from shortcuts.
     assert.ok(order.indexOf('src/shortcuts.js') !== -1 && order.indexOf('src/shortcuts.js') < order.indexOf('src/app/core.js'), 'shortcuts.js loads before the app scripts');
     assert.includes(readRoot('src/app/help.js'), 'Shortcuts.GROUPS');
 });
+
+test('structure: Explorer folders collapse and an image click opens Assets instead of inserting', () => {
+    const core = readRoot('src/app/core.js');
+    ['explorerCollapsed', 'toggleExplorerDir', 'expandExplorerTo', 'aria-expanded'].forEach((needle) => assert.includes(core, needle));
+    assert.ok(!core.includes("'Inserted <img> for '"), 'the Explorer no longer inserts an image when it is clicked');
+    assert.includes(core, 'openAssetManager();');
+    assert.includes(readRoot('src/app/explorer-move.js'), 'expandExplorerTo');
+});

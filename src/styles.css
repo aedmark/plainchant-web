@@ -1443,3 +1443,6 @@ body.insert-dragging, body.insert-dragging * { cursor: grabbing !important; user
 .shortcut-list dd { margin: 0; color: var(--text-void-muted); }
 .shortcut-list kbd { font: 0.74rem ui-monospace, monospace; padding: 0.05rem 0.35rem; border: 1px solid var(--border-strong); border-radius: 0.25rem; background: var(--bg-sunken); color: var(--text-void); }
 @media (max-width: 560px) { .shortcut-list dl { grid-template-columns: 1fr; } .shortcut-list dt { white-space: normal; } }
+
+.explorer-dir-name { cursor: pointer; user-select: none; }
+.explorer-dir-name:focus-visible { outline: 1.5px solid var(--focus); outline-offset: 1px; }
