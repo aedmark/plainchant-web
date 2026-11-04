@@ -346,7 +346,7 @@
           "title": "Format the current file",
           "summary": "Re-indents and tidies the open HTML, CSS, or JavaScript file in one undo step.",
           "tags": ["format", "editing", "D-030"],
-          "what": "The **Format** button beside the file tabs, or `Alt+Shift+F`, tidies the open file. CSS gets one declaration per line, `prop: value;`, and a blank line between top-level rules. HTML is laid out by block with short inline content kept on one line, and `<pre>`, `<textarea>`, and non-JavaScript scripts are left alone. JavaScript is only re-indented. The file's own indent (tabs, 2 or 4 spaces) is kept.",
+          "what": "**Edit > Format file**, or `Alt+Shift+F`, tidies the open file. CSS gets one declaration per line, `prop: value;`, and a blank line between top-level rules. HTML is laid out by block with short inline content kept on one line, and `<pre>`, `<textarea>`, and non-JavaScript scripts are left alone. JavaScript is only re-indented. The file's own indent (tabs, 2 or 4 spaces) is kept.",
           "how": [
             "`Format.byPath()` in `src/format.js` picks `formatHtml`, `formatCss`, or `formatJs` from the extension; other file types get a notice.",
             "The formatters only change whitespace (CSS also adds a final `;` and a space after `:`); the JavaScript pass counts `{ ( [` outside strings, comments, regex literals, and template literals and never touches lines inside a multi-line string.",
@@ -365,7 +365,7 @@
           "title": "Preview in a browser or on a phone",
           "summary": "Opens the project in a real browser tab, or shares it read-only on your network from the desktop app.",
           "tags": ["preview", "network", "D-029"],
-          "what": "The **Preview** button opens a dialog. In the desktop app, **Start sharing** serves the open project, including unsaved edits and added images, on your network behind a private link; you open that link on a phone or in another browser, and the page reloads as you edit. **Open in this computer's browser** opens the same link locally. In the browser build, **Open in new tab** opens a one-time snapshot of the current page. Sharing is off until you start it and stops on **Stop sharing** or when you quit.",
+          "what": "**File > Preview…** opens a dialog. In the desktop app, **Start sharing** serves the open project, including unsaved edits and added images, on your network behind a private link; you open that link on a phone or in another browser, and the page reloads as you edit. **Open in this computer's browser** opens the same link locally. In the browser build, **Open in new tab** opens a one-time snapshot of the current page. Sharing is off until you start it and stops on **Stop sharing** or when you quit.",
           "how": [
             "`src/app/preview-ui.js` sends every text file (with the open file's unsaved text) and the entry page to the Rust `preview_start` and `preview_update` commands, 400 ms after each `render()`; images are sent as base64 only when `Preview.assetSignature()` changes.",
             "`src-tauri/src/preview.rs` binds `0.0.0.0` on a random port and answers only `GET` and `HEAD` under `/<token>/`, where the token is 128 random bits; it keeps the files in memory, falls back to the linked folder for images that exist only on disk, and bumps a version only when content changes.",

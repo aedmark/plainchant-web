@@ -42,6 +42,7 @@ function renderPreviewPanel() {
     previewOpenBtn.hidden = !sharing;
     previewUrlsBox.hidden = !sharing;
     previewBtn.classList.toggle('sharing', sharing);
+    document.getElementById('fileMenuBtn').classList.toggle('sharing', sharing);
     previewBtn.title = sharing ? 'Previewing on your network - open to stop' : 'Preview the project in a real browser or on a phone';
     previewUrlsBox.textContent = '';
     if (!sharing) return;

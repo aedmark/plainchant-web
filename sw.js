@@ -63,6 +63,7 @@ const APP_FILES = [
     'src/app/zip-ui.js',
     'src/app/preview-ui.js',
     'src/app/format-ui.js',
+    'src/app/menus.js',
     'src/app/help.js',
     'src/app/offline.js',
     'src/app/main.js',

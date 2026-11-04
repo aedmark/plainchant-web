@@ -302,3 +302,13 @@ test('structure: Explorer folders collapse and an image click opens Assets inste
     assert.includes(core, 'openAssetManager();');
     assert.includes(readRoot('src/app/explorer-move.js'), 'expandExplorerTo');
 });
+
+test('structure: the File and Edit menus hold the moved toolbar buttons and menus.js drives them (D-032)', () => {
+    ['id="fileMenuBtn"', 'id="editMenuBtn"', 'id="fileMenuPanel"', 'id="editMenuPanel"'].forEach((needle) => assert.includes(html, needle));
+    const panel = (id) => html.slice(html.indexOf('id="' + id + '"'), html.indexOf('</div>', html.indexOf('id="' + id + '"')));
+    ['newBtn', 'libraryBtn', 'folderBtn', 'exportBtn', 'previewBtn'].forEach((id) => assert.includes(panel('fileMenuPanel'), 'id="' + id + '"'));
+    ['copyBtn', 'formatBtn', 'menuFindBtn', 'menuReplaceBtn', 'menuFindProjectBtn'].forEach((id) => assert.includes(panel('editMenuPanel'), 'id="' + id + '"'));
+    const strip = html.slice(html.indexOf('class="tab-strip"'), html.indexOf('id="file-bar"'));
+    assert.ok(!strip.includes('formatBtn'), 'the Format button is not in the tab strip');
+    assert.ok(listed.indexOf('menus.js') > listed.indexOf('typing.js') && listed.indexOf('menus.js') > listed.indexOf('find.js'), 'menus.js loads after typing.js and find.js');
+});

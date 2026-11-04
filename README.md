@@ -38,6 +38,8 @@ Static HTML, CSS, and JavaScript: no frontend build step, zero runtime frontend 
   - Also flags missing `alt` text, skipped heading levels, unnamed links, buttons, and form fields, a missing `lang` or `<title>`, duplicate ids, and unclosed or stray tags; a **Show** filter limits the list.
 - **Keyboard Shortcuts:**
   - Press `F1` (or `Ctrl/Cmd+/`) for the guide, which ends with a cheat sheet of every shortcut.
+- **File and Edit Menus:**
+  - **File ▾** holds New project, Projects, Open folder, Export, and Preview; **Edit ▾** holds Copy file, Format file, Find, Replace, and Find in project. Undo, Redo, Insert ▾, Assets, and Save stay on the toolbar.
 - **Format (`Alt+Shift+F`):**
   - Re-indents and tidies the open HTML, CSS, or JavaScript file in one undo step; JavaScript is only re-indented.
 - **Preview in a Browser or on a Phone:**

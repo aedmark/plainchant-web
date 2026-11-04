@@ -58,6 +58,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ### Changed
 
+- **File and Edit menus**: The crowded toolbar is regrouped. **File ▾** has New project, Projects, Open folder, Export, and Preview; **Edit ▾** has Copy file, Format file, Find, Replace, and Find in project, with their shortcuts shown. The separate Format button beside the file tabs, which could overlap the tabs in a narrow window, is gone. Undo, Redo, Insert ▾, Assets, and Save stay on the toolbar.
 - **Explorer folders collapse**: click a folder's name (or press Enter or Space on it) in the Explorer to collapse or expand it; the arrow shows the state. Opening, moving, renaming, or creating a file or folder inside a collapsed folder expands it, and filtering the list shows every match.
 - **Clicking an image in the Explorer no longer inserts it**: it opens the Assets dialog filtered to that image, where **Insert** is an explicit button. Before, the click added an `<img>` to the page.
 - Live JS scripts no longer run inside a `try/catch` block, so top-level `let`/`const` behave as on a real page; runtime errors now appear in the Console tab.

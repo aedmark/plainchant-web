@@ -7,7 +7,7 @@
 Last updated: 2026-11-03
 - **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`93/93` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`94/94` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -44,7 +44,8 @@ Last updated: 2026-11-03
 - **CSS pseudo-states (`P7-07`, `D-021`)**: State bar in the CSS Designer, forced-state preview via `[data-pc-force~="state"]` selector twins (`src/app/css-states.js`, `CssAst.forceStates`).
 - **Zip export (`P7-13`, `D-022`)**: Export dialog button, stored zip writer (`src/zip.js`, `src/app/zip-ui.js`).
 - **Shortcut cheat sheet (`P7-15`, `D-031`)**: Help guide section from `src/shortcuts.js`, guarded by `test/shortcuts.test.js`.
-- **Format (`P7-14`, `D-030`)**: **Format** button and `Alt+Shift+F`; HTML and CSS rebuilt, JS re-indented only (`src/format.js`, `src/app/format-ui.js`).
+- **File / Edit menus (`D-032`)**: toolbar regrouped (`src/app/menus.js`).
+- **Format (`P7-14`, `D-030`)**: **Edit > Format file** and `Alt+Shift+F`; HTML and CSS rebuilt, JS re-indented only (`src/format.js`, `src/app/format-ui.js`).
 - **Network preview (`P7-12`, `D-029`)**: **Preview** dialog; desktop **Start sharing** runs a token-gated read-only server on the LAN with live reload, browser build opens a snapshot tab (`src/app/preview-ui.js`, `src/preview.js`, `src-tauri/src/preview.rs`).
 - **Asset manager (`P7-02`, `D-023`)**: Assets modal, picker, uploads and deletes for blob images in the browser build (`src/app/asset-ui.js`, `src/imagelib.js`).
 
@@ -84,6 +85,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2v: 2026-11-03: toolbar File and Edit menus (maintainer feedback)
+
+- **Did**: **File ▾** and **Edit ▾** menus replace the New, Projects, Folder, Export, Preview, Copy, and Format buttons ([`src/app/menus.js`](../src/app/menus.js)); the Format button left the tab strip.
+- **Decided**: `D-032` (maintainer chose File / Edit menus). Undo, Redo, Insert, Assets, and Save stay on the toolbar.
+- **Verified**: `npm test`; browser check of open, switch, close, focus, arrow keys, Escape, and each moved item. Desktop window not checked.
+- **Next**: more maintainer feedback on odd behaviour.
 
 ### Session 2u: 2026-11-03: Explorer polish (maintainer feedback)
 

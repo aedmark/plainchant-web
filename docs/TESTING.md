@@ -14,7 +14,7 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
 
 ## Test layout
 
-- [`test/run.js`](../test/run.js) — Zero-dependency Node.js test harness that executes all `test/*.test.js` suites (`93` tests total):
+- [`test/run.js`](../test/run.js) — Zero-dependency Node.js test harness that executes all `test/*.test.js` suites (`94` tests total):
   - [`test/html-ast.test.js`](../test/html-ast.test.js) — Unit tests for [`src/html-ast.js`](../src/html-ast.js): `parse`, `stamp`, `setAttr`, `setText`, `insertElement`, `removeElement`, `moveElement` (before/after/inside), and `duplicateElement`.
   - [`test/css-ast.test.js`](../test/css-ast.test.js) — Unit tests for [`src/css-ast.js`](../src/css-ast.js): `parse`, `findRulesForElement`, `findRuleBySelector` (including grouped selectors), `setProperty`, and `addRule`.
   - [`test/project.test.js`](../test/project.test.js) — Unit tests for [`src/project.js`](../src/project.js): multi-file `pack`/`unpack` round-trips, linked stylesheet discovery, preview assembly, `Project.resolveRelativePath` (relative, `..`, hash/query, encoded, external schemes), `Project.rewriteAssetUrls` / `assemblePreview` blob URL rewriting, `Project.mimeFor`, shared-part scanning, syncing, and pulling (`Parts`), search and replace offsets and project-wide search/replace (`Finding.findAll`, `findInFiles`, `replaceInFiles`), the syntax shader round-trip (`CodeShade`: no characters lost, no safety fallback on the repo's own files), file path validation, rename with link rewriting, duplicate, delete, tree updates, `FileSync.dirtyPaths`, link checking (`Links`: missing targets, severities, anchors, case, exact offsets, caching), `HtmlAst.insertElementAt` offsets and ids, `DomOutline.dropPlacement`, pseudo-state helpers and forced-state preview rewriting (`CssAst.stateOf` / `baseSelector` / `withState` / `forceStates`, `Project.assemblePreview`), the zip writer (`Zip.build` / `Zip.list` / `crc32`), the image library (`ImageLib.list` / `uniquePath` / `formatBytes`), reference usage (`Links.usage`), the tree `add` operation, and the Live JS console bridge (injection order, error-line map, and forwarded console/`onerror`/rejection messages run in a Node `vm` sandbox).
@@ -35,6 +35,7 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
     - Insert-menu dragging is wired with pointer events only (no HTML5 drag and drop) and the `inside` drop guide exists (`P7-06`).
     - The CSS Designer State bar, forced-state bridge hooks, and `css-states.js` are wired in (`P7-07`).
     - The Export dialog's zip section, `zip.js`, and `zip-ui.js` are wired in (`P7-13`).
+    - The File and Edit menus, their items, and `menus.js` are wired in, and the Format button is no longer in the tab strip (`D-032`).
     - Explorer folders collapse and an image click opens Assets without inserting.
     - The Help guide renders the shortcut cheat sheet from `shortcuts.js`, and each listed shortcut still has its handler (`P7-15`).
     - The Format button, `format.js`, and the `Alt+Shift+F` shortcut are wired in (`P7-14`).
@@ -46,7 +47,7 @@ How to verify changes in Plainchant Web. Run the full suite before finishing a t
     - The Assets modal, **Browse…** buttons (Source and Bg Image), `imagelib.js`, `asset-ui.js`, the image drop route, asset undo, and the desktop `assets` export argument are wired in (`P7-02`, `D-024`).
     - The Inspector header wraps and the floating window clips overflow (CSS guard; layout itself was checked in a browser).
     - The Live JS bridge cancels `#anchor`, empty, and `?query` links and form submits so the Stage never loads the app page (run in a `vm` sandbox).
-- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-16`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-031`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
+- [`tools/check_docs.py`](../tools/check_docs.py) — Validates documentation links, [`ROADMAP.md`](../ROADMAP.md) task IDs (`P1-01`..`P7-16`), [`docs/DECISIONS.md`](DECISIONS.md) IDs (`D-001`..`D-032`, `Q-001`), [`AGENTS.md`](../AGENTS.md) layout paths, and [`docs/HANDOFF.md`](HANDOFF.md) budget.
 - [`tools/manual.py`](../tools/manual.py) & [`tools/test_manual.py`](../tools/test_manual.py) — Validates and builds the 3x What / How / Why manual ([`docs/plainchant-web.manual.json`](plainchant-web.manual.json) -> [`docs/manual.html`](manual.html)).
 
 ## Writing tests

@@ -99,6 +99,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/zip.js` | Dependency-free ZIP writer and reader (stored entries, CRC-32, UTF-8 names; UMD, no DOM) |
 | `src/shortcuts.js` | Keyboard-shortcut list for the Help guide, each entry naming its handler (UMD, no DOM) |
 | `src/format.js` | HTML, CSS, and JS formatter: block layout, rule layout, and re-indentation (UMD, no DOM) |
+| `src/app/menus.js` | Toolbar **File ▾** and **Edit ▾** menus: open/close, focus, arrow keys |
 | `src/app/format-ui.js` | **Format** button and `Alt+Shift+F` (one undo step) |
 | `src/preview.js` | Preview link building, entry page choice, and asset signature (UMD, no DOM) |
 | `src/app/preview-ui.js` | Preview dialog: new-tab snapshot (browser) and opt-in network sharing (Tauri), with live push on edit |
