@@ -7,7 +7,7 @@
 Last updated: 2026-11-03
 - **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`98/98` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`99/99` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -85,6 +85,12 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2y: 2026-11-03: fix mashed file text after a tab switch (maintainer report)
+
+- **Did**: [`src/app/shade.js`](../src/app/shade.js) `drawShade` now empties the colour layer when the language changes, and `paintShade` repaints from scratch if the layer's line count disagrees with its keys. Cause: `shadeKeys = []` was reset without clearing the DOM, so the incremental painter inserted the new lines and kept the old ones.
+- **Verified**: reproduced in the browser pane (the layer gained lines on every switch), then 9 switches including rapid ones and edit-then-switch matched the editor text. The file contents were never affected.
+- **Next**: more maintainer feedback.
 
 ### Session 2x: 2026-11-03: home page and quick guide
 

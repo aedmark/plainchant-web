@@ -341,3 +341,10 @@ test('structure: the home page is a self-contained how-to whose links and anchor
     const homeCss = readRoot('src/home.css');
     assert.ok(!/url\(\s*['"]?(?:https?:)?\/\//i.test(homeCss) && !/@import/.test(homeCss), 'home.css loads nothing from another site');
 });
+
+test('structure: the syntax colour layer is emptied when the language changes or the layer and its keys disagree', () => {
+    const shade = readRoot('src/app/shade.js');
+    assert.includes(shade, "if (shadeLang !== activeTab) {\n            shadeLayer.textContent = '';");
+    assert.includes(shade, 'shadeLayer.children.length !== shadeKeys.length');
+    assert.ok(!/if \(shadeLang !== activeTab\) shadeKeys = \[\];/.test(shade), 'resetting only the keys leaves the old lines in the layer');
+});

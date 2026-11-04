@@ -106,7 +106,10 @@ function drawShade() {
     if (shadeBroken || !settings.colours) return;
     try {
         const text = editor.value;
-        if (shadeLang !== activeTab) shadeKeys = [];
+        if (shadeLang !== activeTab) {
+            shadeLayer.textContent = '';
+            shadeKeys = [];
+        }
         shadeBase = CodeShade.shade(text, activeTab);
         shadeText = text;
         shadeLang = activeTab;
@@ -118,6 +121,10 @@ function drawShade() {
 
 function paintShade() {
     if (shadeBroken || !settings.colours || !shadeBase.length) return;
+    if (shadeLayer.children.length !== shadeKeys.length) {
+        shadeLayer.textContent = '';
+        shadeKeys = [];
+    }
     const lines = shadeBase.slice();
     const keys = lines.map(lineKey);
     keys[keys.length - 1] += '\u0004';
