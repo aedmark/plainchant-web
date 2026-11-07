@@ -1,3 +1,4 @@
+const CACHE_PREFIX = 'plainchant-web-';
 const CACHE_NAME = 'plainchant-web-v1';
 const APP_FILES = [
     './',
@@ -90,17 +91,31 @@ const APP_FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-    e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(APP_FILES)).then(() => self.skipWaiting()));
+    e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(APP_FILES.map((f) => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
     e.waitUntil(
-        caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+        // Only this app's old caches: another app on the same origin keeps its cache.
+        caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE_NAME).map((k) => caches.delete(k))))
             .then(() => self.clients.claim())
     );
 });
 
+// Network first (D-035): online, every file comes from the server, revalidated past the HTTP cache, and refreshes the
+// stored copy, so an update shows on the next load; offline, the stored copy answers. Copies are keyed without the
+// query string. caches.match() would search every cache on the origin, including another app's, so only this app's
+// own cache is read or written.
+const cacheKey = (url) => { const u = new URL(url); u.search = ''; u.hash = ''; return u.href; };
+
 self.addEventListener('fetch', (e) => {
-    if (e.request.method !== 'GET') return;
-    e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request)));
+    const req = e.request;
+    if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+    const key = cacheKey(req.url);
+    const fromCache = () => caches.open(CACHE_NAME).then((c) => c.match(key)).then((hit) => hit || Response.error());
+    e.respondWith(fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then((res) => {
+        if (!res || !res.ok) return res;
+        const copy = res.clone();
+        return caches.open(CACHE_NAME).then((c) => c.put(key, copy)).catch(() => {}).then(() => res);
+    }, fromCache));
 });

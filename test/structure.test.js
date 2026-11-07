@@ -362,3 +362,77 @@ test('structure: Prism is vendored unmodified with its licence, loaded before co
     assert.includes(shade, 'Prism.tokenize');
     assert.ok(!/\.highlight\(|highlightElement|innerHTML/.test(shade + readRoot('src/app/shade.js')), 'Prism output is never turned into HTML');
 });
+
+test('structure: askConfirm replaces window.confirm, and the confirm dialog is wired into app.html', () => {
+    ['id="confirm-modal"', 'id="confirmForm"', 'id="confirmText"', 'id="confirmCancelBtn"', 'id="confirmOkBtn"'].forEach((n) => assert.includes(html, n));
+    assert.includes(fs.readFileSync(path.join(appDir, 'dialogs.js'), 'utf8'), 'function askConfirm(');
+    onDisk.forEach((f) => assert.ok(!/window\.(?:confirm|prompt)\(/.test(fs.readFileSync(path.join(appDir, f), 'utf8').replace(/\/\/.*$/gm, '')), f + ' uses a browser dialog'));
+});
+
+// Runs sw.js in a sandbox with fake caches and network. The harness is synchronous, so promises are a synchronous
+// stand-in that can also reject.
+function runServiceWorker(network) {
+    const settle = (ok, value) => ({
+        then(onOk, onBad) {
+            const f = ok ? onOk : onBad;
+            if (!f) return settle(ok, value);
+            try { return lift(f(value)); } catch (err) { return settle(false, err); }
+        },
+        catch(onBad) { return this.then(null, onBad); }
+    });
+    const lift = (v) => (v && typeof v.then === 'function' ? v : settle(true, v));
+    const Sync = { resolve: lift, reject: (e) => settle(false, e), all: (list) => { const out = []; list.forEach((p, i) => lift(p).then((v) => { out[i] = v; })); return lift(out); } };
+    const handlers = {}, opened = [], fetched = [], added = [];
+    const origin = 'http://localhost:8080';
+    const store = { 'plainchant-web-v0': {}, 'plainchant-web-v1': { [origin + '/app.html']: 'cached app' }, 'plainchant-scribe-v1': { [origin + '/app.html']: 'scribe app', [origin + '/missing.js']: 'scribe file' }, 'other-app': {} };
+    const caches = {
+        keys: () => Sync.resolve(Object.keys(store)),
+        delete: (k) => { delete store[k]; return Sync.resolve(true); },
+        open: (k) => {
+            opened.push(k);
+            store[k] = store[k] || {};
+            return Sync.resolve({ match: (key) => Sync.resolve(store[k][key]), put: (key, res) => { store[k][key] = res; return Sync.resolve(); }, addAll: (reqs) => { added.push.apply(added, reqs); return Sync.resolve(); } });
+        },
+        match: () => { throw new Error('caches.match searches every app\'s cache on the origin'); }
+    };
+    function Request(url, init) { this.url = url; this.cache = init && init.cache; }
+    const Response = { error: () => 'network error' };
+    const fetch = (url, init) => { fetched.push([url, init]); return network(url); };
+    const self = { location: { origin: origin }, addEventListener: (type, fn) => { handlers[type] = fn; }, skipWaiting: () => {}, clients: { claim: () => Sync.resolve() } };
+    vm.runInNewContext(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), { self: self, caches: caches, fetch: fetch, Request: Request, Response: Response, URL: URL, Promise: Sync });
+    const get = (url, method) => {
+        let answer, intercepted = false;
+        handlers.fetch({ request: { method: method || 'GET', url: url }, respondWith: (p) => { intercepted = true; p.then((v) => { answer = v; }); } });
+        return { answer: answer, intercepted: intercepted };
+    };
+    return { handlers: handlers, store: store, opened: opened, fetched: fetched, added: added, get: get, origin: origin, Sync: Sync };
+}
+
+test('offline: the service worker touches only its own caches, so an app on the same origin keeps its cache (D-035)', () => {
+    const sw = runServiceWorker((url) => { throw new Error('no network in this test: ' + url); });
+    sw.handlers.activate({ waitUntil: () => {} });
+    assert.deepEqual(Object.keys(sw.store).sort(), ['other-app', 'plainchant-scribe-v1', 'plainchant-web-v1'], 'only an old Plainchant Web cache is deleted');
+    const offline = runServiceWorker(() => offline.Sync.reject(new Error('offline')));
+    assert.equal(offline.get(offline.origin + '/missing.js').answer, 'network error', 'a miss offline is not answered from another app\'s cache');
+    assert.ok(offline.opened.every((k) => k === 'plainchant-web-v1'), offline.opened.join());
+});
+
+test('offline: app files come from the network first and refresh the cache, so an update shows on the next load (D-035)', () => {
+    const fresh = { ok: true, body: 'new app', clone: () => ({ ok: true, body: 'new app (copy)' }) };
+    const sw = runServiceWorker((url) => sw.Sync.resolve(/missing/.test(url) ? { ok: false, status: 404, clone: () => { throw new Error('a failed response is not stored'); } } : fresh));
+    const r = sw.get(sw.origin + '/app.html?fresh=2#top');
+    assert.ok(r.intercepted);
+    assert.equal(r.answer, fresh, 'online, the network answers even though a cached copy exists');
+    assert.deepEqual(sw.fetched[0], [sw.origin + '/app.html?fresh=2#top', { cache: 'no-cache', credentials: 'same-origin' }], 'revalidated past the browser\'s HTTP cache');
+    assert.deepEqual(sw.store['plainchant-web-v1'][sw.origin + '/app.html'], { ok: true, body: 'new app (copy)' }, 'the stored copy is refreshed, keyed without the query');
+    assert.equal(sw.store['plainchant-scribe-v1'][sw.origin + '/app.html'], 'scribe app', 'another app\'s cache is untouched');
+    assert.equal(sw.get(sw.origin + '/missing.js').answer.status, 404, 'a 404 passes through');
+    assert.equal(sw.store['plainchant-web-v1'][sw.origin + '/missing.js'], undefined);
+    assert.equal(sw.get('https://fonts.example.org/a.woff2').intercepted, false, 'other origins are not handled');
+    assert.equal(sw.get(sw.origin + '/app.html', 'POST').intercepted, false);
+    const offline = runServiceWorker(() => offline.Sync.reject(new Error('offline')));
+    assert.equal(offline.get(offline.origin + '/app.html?x=1').answer, 'cached app', 'offline, the stored copy answers');
+    offline.handlers.install({ waitUntil: () => {} });
+    assert.equal(offline.added.length, (fs.readFileSync(path.join(root, 'sw.js'), 'utf8').match(/^    '[^']+',?$/gm) || []).length, 'install stores every app file');
+    assert.ok(offline.added.every((req) => req.cache === 'reload'), 'install skips the browser\'s HTTP cache');
+});

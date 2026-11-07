@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ## [Unreleased]
 
+### Changed
+
+- **Updates show on the next load**: the offline cache now asks the server first and falls back to its stored copy only when offline, and it leaves other apps' caches on the same address alone (`D-035`).
+- **Deleting an image or file from Assets** asks in a Studio dialog instead of the browser's confirm box.
+
 ### Added
 
 - **Home Screen & Starter Templates**: Welcome studio launcher ([`index.html`](../index.html)) with Blank HTML5, Product Landing Page, Creative Portfolio, and 90s GeoCities Retro starter templates plus Open Local Folder.

@@ -4,10 +4,10 @@
 
 ## Current state
 
-Last updated: 2026-11-03
+Last updated: 2026-11-06
 - **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
 - **Verified with**:
-  - `npm test` — passed (`103/103` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
+  - `npm test` — passed (`106/106` unit & structural tests); `cargo test --manifest-path src-tauri/Cargo.toml` — passed (`5/5`)
   - `python3 tools/check_docs.py` — passed (`0 error(s), 0 warning(s)`)
   - `python3 tools/manual.py check docs/plainchant-web.manual.json && python3 -m unittest tools/test_manual.py` — passed (`3` sections, `22` entries, `6/6` tests)
   - `cargo build --manifest-path src-tauri/Cargo.toml` — passed
@@ -59,16 +59,15 @@ Last updated: 2026-11-03
 - **Network preview is plain HTTP and unverified on real devices (`D-029`)**: while sharing, anyone on the network with the link can read the project. HTTP behaviour has Rust tests over a loopback socket; a real phone, Tauri window, macOS/Windows openers, and firewall prompts were not exercised. No QR code.
 - **WebKitGTK HTML5 Drag-and-Drop**: Native `draggable="true"` / `dragover` / `drop` inside an `iframe[srcdoc]` is unreliable on Linux WebKitGTK (`D-008`). Keep Stage drag-and-drop on deterministic pointer events (`mousedown` / `mousemove` / `mouseup` in [`src/app/stage.js`](../src/app/stage.js)).
 - **500-Line Module Cap**: [`test/structure.test.js`](../test/structure.test.js) enforces a hard 500-line ceiling on every `.js` file under `src/app/` (`D-001`). [`src/app/stage.js`](../src/app/stage.js) (~458 lines) and [`src/app/core.js`](../src/app/core.js) are near the limit; extract helpers before adding large features.
-- **Service worker is cache-first (`sw.js`)**: after changing any app file, a browser that already installed the app can keep serving old scripts; hard-reload when testing. `CACHE_NAME` has never been bumped, so consider a version bump per release.
 - **Browser folder open was not driven end to end**: `showDirectoryPicker` cannot be automated, so `P7-09` was checked by calling `activateImportedFolderProject` with a real PNG. Try it by hand in Chromium with a folder of images.
 - **Console line mapping (`D-011`)**: relies on document-relative `lineno` for inline scripts. Verified in Chromium only; check WebKitGTK (Tauri on Linux) when next running the desktop app. `stage.js` is ~466 lines; put new Stage code in `stage-live.js` or a new file.
 - **Insert drag was driven with synthetic pointer events (`D-020`)**: try a real mouse drag, and a drag in the Tauri WebKitGTK shell (pointer capture on `document.body`, `elementFromPoint` into the Stage).
 - **Hints are heuristics (`D-028`)**: no contrast, ARIA, or content-model checks; a clean Problems tab is not an accessibility audit. Labels are matched within one page only.
-- **Explorer drag driven with synthetic pointer events (`D-027`)**: try a real mouse drag and Tauri WebKitGTK; `window.prompt` for New/Rename folder is unverified there. Moves leave old copies on disk after export (`D-024`).
+- **Explorer drag driven with synthetic pointer events (`D-027`)**: try a real mouse drag and Tauri WebKitGTK; Moves leave old copies on disk after export (`D-024`).
 - **Breakpoint bar only supports exact `(max-width: Npx)` queries (`D-026`)**: other media blocks are ignored by the Designer. `inspector-ui.js` is at 487/500 lines; put new Designer code in its own file.
 - **Gap handles driven with synthetic pointer events (`D-025`)**: try a real mouse drag and the Tauri WebKitGTK shell (pointer capture inside the iframe, `MutationObserver` redraws). `stage.js` is still at the line limit; put new Stage code in its own file.
-- **Desktop image add/rename not driven in a real Tauri window (`D-024`)**: the base64 `assets` export, `adoptDiskImage` (fetch from the localhost server) and `window.prompt`/`confirm` are unverified there; the Rust decoder and path guard have unit tests. Deleting disk-only images is deliberately not offered, and export never deletes files.
-- **Dialogs in the desktop shell (`D-017`)**: Rename, New File, and Make Part use `window.prompt`; not verified in Tauri WebKitGTK. If it returns `null` there, replace with an in-app modal.
+- **Desktop image add/rename not driven in a real Tauri window (`D-024`)**: the base64 `assets` export, `adoptDiskImage` (fetch from the localhost server) is unverified there; the Rust decoder and path guard have unit tests. Deleting disk-only images is deliberately not offered, and export never deletes files.
+- **Dialogs in the desktop shell (`D-017`)**: names are asked with `askText` and confirmations with `askConfirm` (in-app modals, `src/app/dialogs.js`); neither was driven in a real Tauri window.
 - **Syntax colours can still switch off (`D-002`)**: `checkShade` permanently disables colouring on a detected wrap mismatch. The known cause (dropped `/` in `/>`) is fixed and guarded by a round-trip test, but any new tokenizer change must keep run text identical to the source. Settings > Syntax colours off/on re-enables without reload.
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
@@ -85,6 +84,13 @@ Last updated: 2026-11-03
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2za: 2026-11-06: ports from the sister repo plainchant-scribe
+
+- **Did**: reviewed `plainchant-scribe` (forked from this repo at `4c30d7b`). `askText` was already here; added `askConfirm` and used it for asset delete (the last `window.confirm`); ported the network-first, own-cache-only service worker ([`sw.js`](../sw.js), `D-035`) with fake-cache tests.
+- **Not ported yet** (offered to the maintainer): QR code for the network preview (`src/qr.js`), deflate support in `src/zip.js`, a CSS lint, light/dark manuscript theming, a round-trip corpus test.
+- **Verified**: `npm test` (`106/106`). Not driven in a browser or the desktop window.
+- **Next**: maintainer picks from the not-ported list.
 
 ### Session 2z: 2026-11-03: Prism for syntax colours (maintainer request)
 

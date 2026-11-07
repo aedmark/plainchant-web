@@ -57,9 +57,9 @@ function diskNote() {
     return linkedFolder ? ' Files already on disk are never changed or deleted by export.' : '';
 }
 
-function deleteAssetItem(item, uses) {
-    const message = 'Delete ' + item.path + '?' + (uses ? '\nIt is used in ' + uses + (uses === 1 ? ' place' : ' places') + ', and those links will break.' : '') + '\nYou can undo this with Ctrl/Cmd+Z.' + diskNote();
-    if (!window.confirm(message)) return;
+async function deleteAssetItem(item, uses) {
+    const text = (uses ? 'It is used in ' + uses + (uses === 1 ? ' place' : ' places') + ', and those links will break.\n' : '') + 'You can undo this with Ctrl/Cmd+Z.' + diskNote();
+    if (!await askConfirm({ title: 'Delete ' + item.path + '?', text: text, confirm: 'Delete' })) return;
     if (item.source === 'text') { deleteProjectFile(item.path); renderAssets(); return; }
     beginAssetChange();
     removeProjectAsset(item.path);
