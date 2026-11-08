@@ -9,9 +9,11 @@ Errors (exit 1):
   - a roadmap ID used twice, filed under the wrong phase, or with an unknown checkbox
   - a decision number used twice or out of order, or superseded by one that does not exist or comes earlier
   - an open question (Q-NNN) defined twice
-  - a roadmap ID, decision number or question mentioned in a doc that does not exist
+  - a held tension (T-NNN) used twice, out of order, or referenced but not defined
+  - a roadmap ID, decision number, question or tension mentioned in a doc that does not exist
   - two session-log entries with the same number (HANDOFF and docs/archive/ together)
   - a relative link, or a path in AGENTS.md's Layout table, that points at nothing
+  - an invisible or bidirectional control character in a document
 Warnings (exit 0):
   - HANDOFF's "Last updated" is missing, or older than its newest session-log entry
   - HANDOFF's session log or "Current state" has outgrown the limits below (time to archive)
@@ -35,6 +37,8 @@ CURRENT_STATE_LINES = 80
 ITEM_RE = re.compile(r"\bP(\d+)-(\d+)\b")
 DECISION_RE = re.compile(r"\bD-(\d{3})\b")
 QUESTION_RE = re.compile(r"\bQ-(\d{3})\b")
+TENSION_RE = re.compile(r"\bT-(\d{3})\b")
+INVISIBLE_RE = re.compile(r"[\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 LINK_RE = re.compile(r"\]\(([^)\s]+)\)|\b(?:href|src)=\"([^\"]+)\"")
 
@@ -93,7 +97,7 @@ def main():
                 items.update(m.group(1) for m in re.finditer(r"^- \[.\] (P\d+-\d+)\b", text, flags=re.M))
 
     decisions_path = ROOT / "docs" / "DECISIONS.md"
-    decisions, supersessions, questions = set(), [], set()
+    decisions, supersessions, questions, tensions = set(), [], set(), set()
     if decisions_path in texts:
         text, last = texts[decisions_path], 0
         for m in re.finditer(r"^## D-(\d{3})\b([^\n]*)", text, flags=re.M):
@@ -111,10 +115,25 @@ def main():
             if f"D-{by:03d}" in decisions and by <= number:
                 errors.append(f"{where(decisions_path, text, pos)}: D-{number:03d} is superseded by an earlier "
                               f"decision, D-{by:03d}")
+        last_t = 0
+        for m in re.finditer(r"^### T-(\d{3})\b", text, flags=re.M):
+            number = int(m.group(1))
+            if f"T-{m.group(1)}" in tensions:
+                errors.append(f"{where(decisions_path, text, m.start())}: T-{m.group(1)} is used twice")
+            elif number < last_t:
+                errors.append(f"{where(decisions_path, text, m.start())}: T-{m.group(1)} comes after T-{last_t:03d}")
+            tensions.add(f"T-{m.group(1)}")
+            last_t = max(last_t, number)
         for m in re.finditer(r"^- \*\*Q-(\d{3})\*\*", text, flags=re.M):
             if f"Q-{m.group(1)}" in questions:
                 errors.append(f"{where(decisions_path, text, m.start())}: Q-{m.group(1)} is used twice")
             questions.add(f"Q-{m.group(1)}")
+
+    for path in docs:
+        raw = path.read_text(encoding="utf-8")
+        for m in INVISIBLE_RE.finditer(raw):
+            errors.append(f"{where(path, raw, m.start())}: invisible or bidirectional control character "
+                          f"U+{ord(m.group(0)):04X}")
 
     for path, text in texts.items():
         if roadmap is not None:
@@ -125,6 +144,9 @@ def main():
             for m in DECISION_RE.finditer(text):
                 if m.group(0) not in decisions:
                     errors.append(f"{where(path, text, m.start())}: {m.group(0)} is not in DECISIONS.md")
+            for m in TENSION_RE.finditer(text):
+                if m.group(0) not in tensions:
+                    errors.append(f"{where(path, text, m.start())}: {m.group(0)} is not in DECISIONS.md's held tensions")
             for m in QUESTION_RE.finditer(text):
                 if m.group(0) not in questions:
                     errors.append(f"{where(path, text, m.start())}: {m.group(0)} is not in DECISIONS.md's open questions")
@@ -146,7 +168,7 @@ def main():
     handoff = ROOT / "docs" / "HANDOFF.md"
     if handoff in texts:
         text = texts[handoff]
-        session_re = re.compile(r"^### Session (\d+)\b([^\n]*)", flags=re.M)
+        session_re = re.compile(r"^### Session (\w+?)\b([^\n]*)", flags=re.M)
         sessions = [(m.group(1), (DATE_RE.search(m.group(2)) or [None])[0]) for m in session_re.finditer(text)]
         seen = set()
         for path in [handoff] + [p for p in texts if p.parent.name == "archive"]:

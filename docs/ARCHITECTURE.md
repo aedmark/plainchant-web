@@ -106,4 +106,10 @@ Code / Stage / Inspector input -> HtmlAst / CssAst byte-range splice -> projectF
 
 ## Claims vs. code
 
-- None currently known; all documented features are implemented and verified in `test/`.
+Places where a doc, a name, or a comment says more than the code does, so nobody builds on the claim. When a session
+meets friction where the code contradicts a documented claim (or the reverse), record the mismatch here and ask the
+maintainer rather than papering over it in code. Remove a row when the code catches up or the claim is corrected.
+
+- None currently known (checked 2026-11-08: module counts above match `src/*.js` and `src/app/*.js`). A passing
+  `test/structure.test.js` proves wiring, not behaviour; several features were driven only with synthetic pointer
+  events (see HANDOFF, "Known issues & gotchas").

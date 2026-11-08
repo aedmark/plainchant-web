@@ -4,6 +4,11 @@ Short, append-only record of choices that a future session might otherwise re-li
 Newest at the bottom. To reverse a decision, add a new entry that supersedes it; the old one keeps its text and only
 its status changes ("superseded by D-MMM").
 
+Record pre-existing choices too, the first time a session has to understand them ("status: accepted, recorded
+YYYY-MM-DD"). Every constraint in the codebase is an answer to an earlier question or failure mode; recording that
+originating question here stops a future session from removing a fence whose purpose it forgot. Fields: Context,
+Decision, Alternatives, Consequences, and an optional Review trigger.
+
 ---
 
 ## D-001 Zero-build vanilla JS frontend with classic scripts and UMD modules (2026-11-02, status: accepted)
@@ -218,6 +223,30 @@ its status changes ("superseded by D-MMM").
 **Alternatives:** Cache first refreshed in the background (rejected: every update shows one load late); cache first with a hash of every app file enforced by a test (rejected: one more step on every commit that touches the app).
 **Consequences:** Every online load makes a round trip per file, usually a 304. The "bump `CACHE_NAME` per release" gotcha no longer applies. The same-origin collision with Scribe is gone on Web's side; Scribe's dev server uses port 8081, Web stays on 8080.
 **Review trigger:** Loads are slow on poor connections, or files the user must keep using offline change on the server.
+
+## Held tensions
+
+A tension is two claims that are true and do not fit together yet. It is not an open question: an open question has an
+unknown answer; a held tension has two known answers and a price. Hold it only while the price of holding is lower than
+the price of choosing badly.
+
+Each tension names an owner, a review trigger, and the cost of holding both. A tension with no owner or no trigger is
+deleted at consolidation. A tension that survives review becomes a decision, with the losing claim recorded as an
+alternative. Numbers are permanent and ascend.
+
+```
+### T-NNN Title  (YYYY-MM-DD, status: held | resolved by D-MMM)
+**Owner:** ...
+**Claim A:** ...
+**Claim B:** ...
+**Why both hold:** ...
+**Cost of holding both:** ...
+**Review trigger:** ...
+```
+
+None held as of 2026-11-08.
+
+---
 
 ## Open questions
 
