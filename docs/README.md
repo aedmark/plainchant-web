@@ -11,6 +11,7 @@ to it instead of copying it.
 | [../AGENTS.md](../AGENTS.md) | Coding agents and maintainers | Standing working rules and repository conventions | Feature history or design rationale |
 | [../ROADMAP.md](../ROADMAP.md) | Maintainers and contributors | Planned scope and status | Detailed implementation notes |
 | [HANDOFF.md](HANDOFF.md) | The next work session | Current state, active context, immediate next steps | Permanent design rules |
+| [INVARIANTS.md](INVARIANTS.md) | Everyone, first | Bedrock rules (`INV-NNN`) and what enforces each | Conventions that change with the code |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Developers | System shape, interfaces, invariants, data flow | Chronological history |
 | [DECISIONS.md](DECISIONS.md) | Future decision-makers | Rationale and alternatives for durable choices, plus held tensions | Routine implementation detail |
 | [TESTING.md](TESTING.md) | Contributors and release owners | Verification commands, coverage boundaries, known pitfalls | A duplicate of current test results |
@@ -28,6 +29,7 @@ Update documents because a relevant fact changed, not merely because a session e
 | --- | --- |
 | User-visible behaviour | README if onboarding changed; CHANGELOG |
 | Component, interface, dependency, or data-flow change | ARCHITECTURE |
+| Bedrock rule added, relaxed, or retired | INVARIANTS, only by explicit maintainer decision; record the decision |
 | Durable tradeoff or reversal, or a tension held or resolved | DECISIONS; mark the old decision superseded, or resolve the held tension |
 | Test command, coverage, fixture, or environment change | TESTING |
 | Secret, trust boundary, sensitive data, or reporting-path change | SECURITY |

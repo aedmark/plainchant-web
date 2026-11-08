@@ -74,7 +74,7 @@ Not run this session: `cargo build`. Carried over from 2026-11-06: it passed the
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
 ### Next up
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)) is complete (`P7-01`..`P7-16`). Ask the maintainer what to plan next.
+1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)) is complete (`P7-01`..`P7-16`). `P8-01` (enforce the invariants that have no check) is open; otherwise ask the maintainer what to plan next.
 
 ### Open questions
 - None blocking. `Q-001` (Phase order) was resolved 2026-11-02: Phase 5 first. (See [`docs/DECISIONS.md`](DECISIONS.md).)
@@ -91,8 +91,9 @@ Not run this session: `cargo build`. Carried over from 2026-11-06: it passed the
 - **Verified**: `npm test` 106/106, `cargo test` 7/7, `check_docs.py` clean.
 - **Corrections**: `cargo test` count was recorded as 5/5; it is 7/7. The old checker's `\d+` session pattern skipped IDs like `2za`, so the 10-entry limit never fired.
 - **Also done**: [`TESTING.md`](TESTING.md) now has the suites table (Proves / Does not prove), Before any run, a change-to-check matrix, manual checks, and environment recipes (the stale "103 tests" count removed); [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`SECURITY.md`](SECURITY.md) follow the template's sections; `ARCHITECTURE.md` has the Claims-vs-code rule.
-- **Left undone**: no held tensions recorded (none were invented); the optional `INVARIANTS.md` / proof-badge layer from the Vedas variants is not adopted.
-- **Next**: maintainer decides whether to adopt `INVARIANTS.md`, and whether the 500-line cap versus near-limit files is a held tension.
+- **Then (maintainer: "go ahead")**: recorded `T-001` (source of truth against the Studio copy) and `T-002` (network preview against plain HTTP) in [`DECISIONS.md`](DECISIONS.md); added [`INVARIANTS.md`](INVARIANTS.md) (`INV-001`..`INV-006`, each with what enforces it) and a checker rule that every `INV-NNN` is defined once, ascending, cited elsewhere, and never cited undefined. Four invariants have no check; filed as `P8-01`.
+- **Left undone**: proof badges (`[OBSERVED]` and so on) on Verified claims and a bidirectional handoff-to-roadmap check from the Vedas variants are not adopted; `P8-01`.
+- **Next**: `P8-01`, or maintainer's choice.
 
 ### Session 2za: 2026-11-06: ports from the sister repo plainchant-scribe
 

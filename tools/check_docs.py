@@ -13,6 +13,7 @@ Errors (exit 1):
   - a roadmap ID, decision number, question or tension mentioned in a doc that does not exist
   - two session-log entries with the same number (HANDOFF and docs/archive/ together)
   - a relative link, or a path in AGENTS.md's Layout table, that points at nothing
+  - an invariant (INV-NNN) defined twice or out of order, referenced but not defined, or defined but never cited outside INVARIANTS.md
   - an invisible or bidirectional control character in a document
 Warnings (exit 0):
   - HANDOFF's "Last updated" is missing, or older than its newest session-log entry
@@ -27,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = [
     "AGENTS.md", "CLAUDE.md", "README.md", "ROADMAP.md",
-    "docs/README.md", "docs/ROADMAP.md", "docs/HANDOFF.md", "docs/ARCHITECTURE.md", "docs/DECISIONS.md",
+    "docs/README.md", "docs/INVARIANTS.md", "docs/ROADMAP.md", "docs/HANDOFF.md", "docs/ARCHITECTURE.md", "docs/DECISIONS.md",
     "docs/TESTING.md", "docs/SECURITY.md", "docs/CHANGELOG.md", "docs/CONTRIBUTING.md",
 ]
 # Keep in step with AGENTS.md (end of session, step 3) and HANDOFF's header.
@@ -39,6 +40,7 @@ DECISION_RE = re.compile(r"\bD-(\d{3})\b")
 QUESTION_RE = re.compile(r"\bQ-(\d{3})\b")
 TENSION_RE = re.compile(r"\bT-(\d{3})\b")
 INVISIBLE_RE = re.compile(r"[\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]")
+INVARIANT_RE = re.compile(r"\bINV-(\d{3})\b")
 DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 LINK_RE = re.compile(r"\]\(([^)\s]+)\)|\b(?:href|src)=\"([^\"]+)\"")
 
@@ -129,6 +131,22 @@ def main():
                 errors.append(f"{where(decisions_path, text, m.start())}: Q-{m.group(1)} is used twice")
             questions.add(f"Q-{m.group(1)}")
 
+    invariants_path = ROOT / "docs" / "INVARIANTS.md"
+    invariants = set()
+    if invariants_path in texts:
+        text, last_i = texts[invariants_path], 0
+        for m in re.finditer(r"^## INV-(\d{3})\b", text, flags=re.M):
+            number = int(m.group(1))
+            if f"INV-{m.group(1)}" in invariants:
+                errors.append(f"{where(invariants_path, text, m.start())}: INV-{m.group(1)} is used twice")
+            elif number < last_i:
+                errors.append(f"{where(invariants_path, text, m.start())}: INV-{m.group(1)} comes after INV-{last_i:03d}")
+            invariants.add(f"INV-{m.group(1)}")
+            last_i = max(last_i, number)
+        cited = {m.group(0) for p, x in texts.items() if p != invariants_path for m in INVARIANT_RE.finditer(x)}
+        for inv in sorted(invariants - cited):
+            errors.append(f"docs/INVARIANTS.md: {inv} is never cited outside INVARIANTS.md")
+
     for path in docs:
         raw = path.read_text(encoding="utf-8")
         for m in INVISIBLE_RE.finditer(raw):
@@ -144,6 +162,10 @@ def main():
             for m in DECISION_RE.finditer(text):
                 if m.group(0) not in decisions:
                     errors.append(f"{where(path, text, m.start())}: {m.group(0)} is not in DECISIONS.md")
+            if invariants_path in texts:
+                for m in INVARIANT_RE.finditer(text):
+                    if m.group(0) not in invariants:
+                        errors.append(f"{where(path, text, m.start())}: {m.group(0)} is not in INVARIANTS.md")
             for m in TENSION_RE.finditer(text):
                 if m.group(0) not in tensions:
                     errors.append(f"{where(path, text, m.start())}: {m.group(0)} is not in DECISIONS.md's held tensions")

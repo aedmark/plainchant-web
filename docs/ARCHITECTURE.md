@@ -60,10 +60,16 @@ Code / Stage / Inspector input -> HtmlAst / CssAst byte-range splice -> projectF
 
 ## Invariants
 
-- **Pure `src/*.js` modules never touch the DOM** (except `src/store.js` which wraps IndexedDB). Enforced by: Node unit execution in `test/run.js` without a DOM globals shim (D-001).
-- **Single global scope in `src/app/*.js` with no duplicate top-level declarations and max 500 lines per file.** Enforced by: `test/structure.test.js` (D-001).
+The bedrock rules are `INV-001` to `INV-006` in [INVARIANTS.md](INVARIANTS.md); the list below ties them to the code and adds conventions that may change with it.
+
+- **Pure `src/*.js` modules never touch the DOM** (except `src/store.js` which wraps IndexedDB, `INV-006`). Enforced by: Node unit execution in `test/run.js` without a DOM globals shim (D-001).
+- **Single global scope in `src/app/*.js` with no duplicate top-level declarations and max 500 lines per file** (`INV-006`). Enforced by: `test/structure.test.js` (D-001).
 - **No inline `<script>` or `<style>` in `app.html`, and `sw.js` `APP_FILES` matches all linked assets.** Enforced by: `test/structure.test.js` (P4-01).
-- **Opening a local folder never auto-writes to local disk.** Auto-save writes only to the Studio workspace in IndexedDB; disk writes occur only via explicit Export (`src/app/tauri-files.js`, D-006).
+- **Opening a local folder never auto-writes to local disk.** Auto-save writes only to the Studio workspace in IndexedDB; disk writes occur only via explicit Export (`src/app/tauri-files.js`, D-006, `INV-003`, held against T-001). Enforced by: nothing yet (P8-01).
+- **Visual edits splice exact byte ranges and studio artifacts live only in the preview** (`INV-002`, D-003). Enforced by: round-trip unit tests; nothing yet for exports (P8-01).
+- **Design mode strips user scripts; Live JS runs them** (`INV-005`, D-003). Enforced by: nothing yet (P8-01).
+- **The always-on asset server is loopback-only; network exposure is the opt-in preview server** (`INV-004`, D-029). Enforced by: `test/structure.test.js` and Rust tests.
+- **No build step and no runtime frontend dependency except vendored Prism** (`INV-001`, D-034). Enforced by: Prism checks in `test/structure.test.js`; nothing yet for new dependencies (P8-01).
 - **Clicking on the Design Stage never steals keyboard focus to `#editor`.** Enforced by `selectElementById` (`focusEditor: false`) in `src/app/layout.js` and `applyEdit` (`keepFocus: true`) in `src/app/typing.js` (D-009).
 
 ## Boundaries

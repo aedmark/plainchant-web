@@ -7,7 +7,7 @@ This is the canonical instruction file for coding agents. `CLAUDE.md` imports it
 ## Start here
 
 1. Read [docs/HANDOFF.md](docs/HANDOFF.md) for the current state, active work, and gotchas.
-2. Read the relevant item in [ROADMAP.md](ROADMAP.md) and the parts of [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/TESTING.md](docs/TESTING.md) that apply.
+2. Read [docs/INVARIANTS.md](docs/INVARIANTS.md), the relevant item in [ROADMAP.md](ROADMAP.md), and the parts of [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/TESTING.md](docs/TESTING.md) that apply.
 3. Inspect `git status` and recent history. Do not overwrite work you did not create.
 4. Separate observed repository facts from training-distribution defaults (fore-conceptions). Do not assume a build
    step, package manager, framework idiom, or directory role that is not in the files; verify important inherited
@@ -96,6 +96,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | Path or thing | Rule | Why |
 | --- | --- | --- |
 | `LICENSE`, `fonts/*.txt` | Do not edit | Legal and font licensing terms (D-001) |
+| `docs/INVARIANTS.md` | Do not edit without an explicit maintainer decision | The six bedrock rules; a change that would break one stops and asks |
 | `test/structure.test.js` invariants | Do not weaken | Enforces no-build, global-scope, 500-line limit, and offline cache rules (D-001, D-002) |
 
 ## Names and terms
@@ -106,6 +107,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | Stage | The live iframe preview (`#stageFrame`) operating in either **Design** mode or **Live JS** mode | Screenplay `#page` preview in Plainchant Prime |
 | Zone | One repository and the rules that apply inside it | A branch, a folder, or a chat thread |
 | Fore-conception | A training-distribution default or prior expectation an agent brings into a fresh session | An observed fact in the repository |
+| Invariant | A bedrock rule (`INV-NNN` in `docs/INVARIANTS.md`) that no agent relaxes without a maintainer decision | An architectural convention in `docs/ARCHITECTURE.md`, which changes with the code |
 | Held tension | Two true claims that do not fit together yet, with an owner and a review trigger (`T-NNN` in `docs/DECISIONS.md`) | An open question or a decision |
 | Studio Project Environment | The in-app working copy stored in IndexedDB (`projectFiles.entries`), isolated from local disk until exported | Direct auto-overwriting disk sync |
 
@@ -168,6 +170,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `ROADMAP.md` | Planned and completed work with stable IDs |
 | `docs/README.md` | Documentation map and update triggers |
 | `docs/HANDOFF.md` | Current state, next steps, gotchas, and bounded session history |
+| `docs/INVARIANTS.md` | Bedrock rules (`INV-NNN`) that change only by maintainer decision |
 | `docs/ARCHITECTURE.md` | Components, boundaries, invariants, state, and failure modes |
 | `docs/DECISIONS.md` | Append-only architectural and product decisions; open questions |
 | `docs/TESTING.md` | Test strategy, commands, limitations, and environment recipes |

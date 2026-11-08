@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plainchant Web: edit the page, keep the code</title>
     <meta name="description" content="A free, offline HTML5, CSS and JavaScript studio. Edit visually on the Stage or in code; your .html, .css and .js files stay the single source of truth.">
+    <meta name="author" content="Andrew Edmark">
     <meta name="theme-color" content="#000000">
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -24,6 +25,8 @@
             <a href="#premise">The idea</a>
             <a href="#primer">How to</a>
             <a href="#features">Features</a>
+            <a href="#desktop">Desktop</a>
+            <a href="#suite">The suite</a>
             <a href="docs/manual.html">Manual</a>
             <a href="https://github.com/aedmark/plainchant-web">Source</a>
         </nav>
@@ -38,10 +41,12 @@
             <p class="title-kicker">HTML5 · CSS · JavaScript</p>
             <h1 id="title">Plainchant Web<span class="cursor" aria-hidden="true">_</span></h1>
             <p class="title-tagline">Edit the page. Keep the code.</p>
-            <p class="title-meta"><span>Free</span> · Private · Works offline</p>
-            <p class="title-lede">A lightweight studio where you can click, drag and type on the page, or write the code directly. Either way, your own <code>.html</code>, <code>.css</code> and <code>.js</code> files stay clean, readable and yours.</p>
+            <p class="title-by">created by</p>
+            <p class="title-author">Andrew Edmark</p>
+            <p class="title-meta"><span>Free &amp; Open Source</span></p>
+            <p class="title-lede">A Dreamweaver-inspired studio where you can click, drag and style directly on the Stage, or write clean code by hand. Either way, your <code>.html</code>, <code>.css</code> and <code>.js</code> files remain pristine, readable and entirely yours.</p>
             <p class="title-action"><a class="btn primary" href="app.html">Open the Studio <span aria-hidden="true">&gt;</span></a></p>
-            <p class="title-note">No account. No install. A starter page is one click away.</p>
+
             <p class="title-turn" aria-hidden="true">Turn the page <span></span></p>
         </section>
 
@@ -161,24 +166,35 @@
             </aside>
         </section>
 
-        <section class="sheet" aria-labelledby="end-title">
+        <section class="sheet" id="suite" aria-labelledby="end-title">
             <span class="page-number" aria-hidden="true">5.</span>
-            <p class="page-label"><span>05</span> Your turn</p>
+            <p class="page-label"><span>05</span> The Plainchant Suite</p>
             <h2 class="end-title" id="end-title">Start building<span class="cursor" aria-hidden="true">_</span></h2>
-            <p class="action">Open the Studio with a starter page, or open one of your own folders. Nothing to sign up for and nothing to configure.</p>
+            <p class="action">Open the Studio with a starter template, or open one of your own project folders. Nothing to sign up for, zero build steps, and nothing to configure.</p>
             <p class="title-action"><a class="btn primary" href="app.html">Open the Studio <span aria-hidden="true">&gt;</span></a></p>
-            <p class="action small">Want the details? Read the <a href="docs/manual.html">manual</a>, or browse the <a href="https://github.com/aedmark/plainchant-web">source</a>. Plainchant Web is the web-design sibling of <a href="https://github.com/aedmark/plainchant">Plainchant</a>, the screenwriting app.</p>
+            <p class="action small">Plainchant Web is the visual web-design studio in the three-part Plainchant suite: companion to <a href="https://github.com/aedmark/plainchant">Plainchant</a> (the OG screenwriting app) and <a href="https://github.com/aedmark/plainchant-scribe">Plainchant Scribe</a> (the EPUB book typesetter). Read the <a href="docs/manual.html">manual</a> or browse the <a href="https://github.com/aedmark/plainchant-web">source</a>.</p>
         </section>
     </article>
 </main>
 
 <footer class="site-foot">
     <div class="wrap">
-        <p class="foot-brand">Plainchant Web <span>Edit the page. Keep the code.</span></p>
-        <div class="foot-links">
+        <div class="foot-col">
+            <p class="foot-brand">Plainchant Web <span>Edit the page. Keep the code.</span></p>
+            <p class="foot-credit">Designed &amp; coded by <a href="https://github.com/aedmark/">Andrew Edmark</a></p>
+        </div>
+        <div class="foot-links-group">
+            <span class="foot-group-label">Studio &amp; Docs</span>
+            <a href="app.html">Open Studio</a>
             <a href="docs/manual.html">Manual</a>
-            <a href="https://github.com/aedmark/plainchant-web">Source</a>
+            <a href="https://github.com/aedmark/plainchant-web">Source (GitHub)</a>
             <a href="LICENSE">License</a>
+        </div>
+        <div class="foot-links-group">
+            <span class="foot-group-label">Plainchant Suite</span>
+            <a href="https://github.com/aedmark/plainchant">Plainchant (Screenplay)</a>
+            <a href="index.html">Plainchant Web (Studio)</a>
+            <a href="https://github.com/aedmark/plainchant-scribe">Plainchant Scribe (EPUB)</a>
         </div>
     </div>
 </footer>

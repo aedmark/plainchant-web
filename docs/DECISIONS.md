@@ -244,7 +244,21 @@ alternative. Numbers are permanent and ascend.
 **Review trigger:** ...
 ```
 
-None held as of 2026-11-08.
+### T-001 Source files are the truth, but the Studio holds a working copy  (2026-11-08, status: held)
+**Owner:** maintainer
+**Claim A:** The project's `.html`, `.css`, and `.js` files are the single source of truth (the product's round-trip promise, `AGENTS.md`).
+**Claim B:** Opening a folder makes an isolated IndexedDB copy, and disk changes only on Export (D-006, INV-003); an Export never deletes, so a moved file leaves its old copy on disk (D-024).
+**Why both hold:** Opening a real project must not overwrite it before the user is ready (D-006), and the maintainer rejected auto-writing on every save. Edits still have to round-trip to real files.
+**Cost of holding both:** The disk and the Studio can diverge. **Reload from disk** and unsaved dots (D-033, D-017) manage it without removing it, and moves or renames can orphan files.
+**Review trigger:** A direct-save mode is proposed, or a user loses work to a divergence.
+
+### T-002 Network preview convenience against plain HTTP  (2026-11-08, status: held)
+**Owner:** maintainer
+**Claim A:** Seeing the working copy on a real phone is valuable and must stay simple (P7-12, D-029).
+**Claim B:** The preview is unencrypted HTTP, so anyone on the network with the link can read the project (`docs/SECURITY.md`).
+**Why both hold:** HTTPS needs a self-signed certificate warning on every phone, and the server is opt-in, token-gated, read-only, and off until the user presses **Start sharing**.
+**Cost of holding both:** Users must share only on a network they trust. No QR code exists, and the preview is unverified on real devices.
+**Review trigger:** The first real-device test, a report of an untrusted-network use, or a request for a QR code or TLS.
 
 ---
 
