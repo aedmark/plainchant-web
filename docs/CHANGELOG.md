@@ -6,8 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-27
+
+### Added
+
+- **Stage Formatting Toolbar**: RTF-style formatting strip above the Stage ([`src/app/style-bar.js`](../src/app/style-bar.js), [`src/typography.js`](../src/typography.js)) with rule target switcher, media/state scope pill, font family, size presets & stepper, bold/italic/underline/strikethrough, alignment, line height, letter spacing, and color pickers synced with the CSS Designer (`D-036`).
+- **Automated Invariant Checks (`P8-01`)**: Enforcement tests verifying zero runtime/build dependencies (`INV-001`), artifact-free exports and source buffers (`INV-002`), export-only disk writes (`INV-003`), and Design-mode user script stripping (`INV-005`).
+- **Desktop Bundling & CI/Release Workflows**: Configured Tauri v2 `"bundle"` targets (`all`) with generated cross-platform icons in `src-tauri/icons/` and GitHub Actions CI + tagged draft release workflows (`.github/workflows/ci.yml`, `.github/workflows/release.yml`).
+
 ### Changed
 
+- **Stage Interaction (`D-037`)**: Clicking an element on the Design Stage selects and highlights it reliably without immediately entering edit mode; double-clicking edits leaf text with `Escape` revert; CSS property edits patch the Stage styles live without full iframe reloads when structure hasn't changed; Properties and CSS Designer split overloaded Title/Max Width fields.
 - **Updates show on the next load**: the offline cache now asks the server first and falls back to its stored copy only when offline, and it leaves other apps' caches on the same address alone (`D-035`).
 - **Deleting an image or file from Assets** asks in a Studio dialog instead of the browser's confirm box.
 
@@ -73,6 +82,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/): `Added`
 
 ### Fixed
 
+- **Batch 1–3 Stability, Persistence, & Parser Hardening**: Fixed Stage selection tracking on Move/Duplicate/Delete and HTML tab switches, modal `z-index` stacking and overlay drag closes, Library active-project soft-delete switching, multi-page title/export `$` and `</script>` handling, CRLF false dirty indicators, IndexedDB auto-save failure notices & snapshot restoration, ZIP bounds/CRC validation, Tauri localhost server read timeouts & symlink containment, `CssAst` inline comments / `\\"` strings / `@keyframes` / `:not()` / `+`/`~` selectors, `HtmlAst` unquoted `/` and descendant duplicate IDs, `Format` template depth / SVG blocks / JSDoc indent detection, `Hints` RCDATA & part-file skipping, and `Editing`/`Suggest` HTML context guards.
 - Switching between files of different types (for example `index.html` to `script.js`) could leave the previous file's text drawn behind and below the new one in the editor. The syntax-colour layer kept the old lines when the language changed; it is now emptied then, and repainted whenever it disagrees with what it should show. Only the colour layer was wrong: the file contents and the line numbers were never changed.
 - Syntax colours no longer switch off by themselves. The HTML colouring dropped the `/` from self-closing tags (`<circle ... />`, `<path ... />`) and any stray quote inside a tag, so the coloured copy was a few characters shorter than the text and, at certain line widths, wrapped differently; the editor then turned colours off until reload. The colouring now keeps every character, falls back to plain text for any line that would not, shows a notice if colours are ever switched off, and turning **Syntax colours** off and on in Settings brings them back without a reload.
 - The floating Inspector no longer lets its header controls spill past the window edge: the tabs, selection label, and action buttons now wrap onto a second row, long element labels are truncated (full text on hover), and anything left over is clipped inside the window. Docked mode wraps the same way on narrow screens.

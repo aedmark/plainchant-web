@@ -177,7 +177,7 @@ function applyEdit(edit, options = {}) {
         if (options.keepFocus && previous !== editor) {
             editor.value = expected;
             editor.setSelectionRange(edit.selStart, edit.selStart);
-            render(false);
+            render(false, options);
             scheduleAutoSave();
         } else {
             editor.focus({ preventScroll: true });
@@ -377,7 +377,8 @@ editor.addEventListener('beforeinput', (e) => {
     if (applyingEdit || e.isComposing || !settings.indent) return;
     if (e.inputType !== 'insertLineBreak' && e.inputType !== 'insertParagraph') return;
     if (shiftDown) return;
-    const edit = Editing.enter(editor.value, editor.selectionStart, editor.selectionEnd, activeTab);
+    const indentUnit = typeof Format !== 'undefined' ? Format.detectIndent(editor.value, '  ') : '  ';
+    const edit = Editing.enter(editor.value, editor.selectionStart, editor.selectionEnd, activeTab, indentUnit);
     if (!edit) return;
     e.preventDefault();
     applyEdit(edit);
@@ -399,7 +400,7 @@ editor.addEventListener('beforeinput', (e) => {
             currentSnapshot = captureSnapshot();
         }, 600);
     }
-    render(true);
+    render(true, { cssOnly: activeTab === 'css' && activeFile === activeCssFile });
     currentSnapshot = captureSnapshot();
     updateHistoryButtons();
     scheduleSync();

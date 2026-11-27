@@ -39,7 +39,9 @@ does and does not prove. Report the exact checks run and any skipped; a partial 
 
 Direct-to-`master` with maintainer review in-session; use `feature/<topic>` only when asked. Commit and push only
 when the maintainer requests it. Commit messages are a concise imperative summary that cites roadmap IDs where one
-exists. Never force-push or rewrite shared history. A change is ready when its scope is clear, relevant checks pass,
+exists. Never force-push or rewrite shared history. CI runs via [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+on pushes and pull requests to `master`, and pushing a `v*` tag triggers [`.github/workflows/release.yml`](../.github/workflows/release.yml)
+to verify checks and build draft Tauri release bundles. A change is ready when its scope is clear, relevant checks pass,
 no sensitive data is present, and the documentation it invalidated has been updated.
 
 ## Compatibility & deprecations

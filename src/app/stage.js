@@ -21,7 +21,7 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '  var selectedId = ' + JSON.stringify(initialSelectedId || null) + ';',
         '  var forced = ' + JSON.stringify(forcedState || '') + ';',
         '  var FORCE = { hover: ["hover"], active: ["active", "hover"], focus: ["focus", "focus-within"], "focus-visible": ["focus-visible", "focus", "focus-within"], "focus-within": ["focus-within"] };',
-        '  var editingEl = null, dragState = null, suppressNextClick = false;',
+        '  var editingEl = null, editBase = "", dragState = null, suppressNextClick = false;',
         '  var marginBox = document.createElement("div"); marginBox.id = "pc-margin-box";',
         '  var paddingBox = document.createElement("div"); paddingBox.id = "pc-padding-box";',
         '  var badge = document.createElement("div"); badge.id = "pc-stage-badge";',
@@ -42,6 +42,8 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '    return {',
         '      display: cs.display, padding: cs.padding, margin: cs.margin, gap: cs.gap,',
         '      width: Math.round(r.width) + "px", height: Math.round(r.height) + "px", maxWidth: cs.maxWidth,',
+        '      fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle,',
+        '      textDecoration: cs.textDecorationLine || cs.textDecoration, lineHeight: cs.lineHeight, letterSpacing: cs.letterSpacing,',
         '      fontSize: cs.fontSize, textAlign: cs.textAlign, borderRadius: cs.borderRadius,',
         '      color: cs.color, backgroundColor: cs.backgroundColor',
         '    };',
@@ -102,10 +104,12 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '      }',
         '    } catch (err) {}',
         '  }',
+        '  function readEditText(el) { return el.querySelector("br,div,p") ? el.innerText : el.textContent; }',
         '  function startInlineEdit(el, x, y) {',
         '    if (!el || el === document.body || el === document.documentElement) return;',
         '    if (editingEl && editingEl !== el) finishInlineEdit(true);',
         '    if (editingEl === el) return;',
+        '    editBase = readEditText(el);',
         '    editingEl = el;',
         '    window.parent.postMessage({ type: "pc-inline-start", id: el.getAttribute("data-pc-id") }, "*");',
         '    el.setAttribute("data-pc-editing", "true");',
@@ -147,7 +151,8 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '        { cmd: "pc-duplicate", txt: "⧉", title: "Duplicate" },',
         '        { cmd: "pc-delete", txt: "✕", title: "Delete" }',
         '      ];',
-        '      if (el.tagName === "A" && el.getAttribute("href")) actions.unshift({ cmd: "pc-follow-link", txt: "Follow ↗", title: "Open the linked page (Ctrl/Cmd+Click)" });',
+        '      var href = el.tagName === "A" ? (el.getAttribute("href") || "").trim() : "";',
+        '      if (href && href.charAt(0) !== "#" && href.charAt(0) !== "?" && !/^([a-z][a-z0-9+.-]*:|\\/\\/)/i.test(href)) actions.unshift({ cmd: "pc-follow-link", txt: "Follow ↗", title: "Open the linked page (Ctrl/Cmd+Click)" });',
         '      actions.forEach(function(a) {',
         '        var btn = document.createElement("button");',
         '        btn.type = "button";',
@@ -162,9 +167,10 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '        badge.appendChild(btn);',
         '      });',
         '    }',
-        '    badge.style.display = " inline-flex";',
-        '    badge.style.top = Math.max(2, r.top - 24) + "px";',
-        '    badge.style.left = Math.max(2, r.left) + "px";',
+        '    badge.style.display = "inline-flex";',
+        '    var bw = badge.offsetWidth || 180;',
+        '    badge.style.top = (r.top < 28 ? Math.min(window.innerHeight - 26, r.bottom + 4) : r.top - 24) + "px";',
+        '    badge.style.left = Math.max(2, Math.min(window.innerWidth - bw - 4, r.left)) + "px";',
         '    updateBoxOverlay(el);',
         '  }',
         '  function clearDropTargets() {',
@@ -196,11 +202,11 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '    }',
         '  }',
         '  if (selectedId) setTimeout(function() { setSelect(selectedId); }, 10);',
-        '  window.addEventListener("scroll", function() {',
-        '    if (!selectedId) return;',
-        '    var t = document.querySelector(\'[data-pc-id="\' + selectedId + \'"]\');',
-        '    if (t) positionBadge(t);',
-        '  }, true);',
+        '  function repositionSelected() { if (!selectedId) return; var t = document.querySelector(\'[data-pc-id="\' + selectedId + \'"]\'); if (t) positionBadge(t); }',
+        '  window.addEventListener("scroll", repositionSelected, true);',
+        '  window.addEventListener("resize", repositionSelected);',
+        '  function cancelDrag() { if (!dragState) return; dragState = null; clearDropTargets(); }',
+        '  window.addEventListener("blur", cancelDrag);',
         '  document.addEventListener("mouseover", function(e) {',
         '    if (dragState && dragState.active) return;',
         '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
@@ -253,13 +259,17 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '  }, true);',
         '  document.addEventListener("mousemove", function(e) {',
         '    if (!dragState || editingEl) return;',
+        '    if (e.buttons === 0) { cancelDrag(); return; }',
         '    var dx = e.clientX - dragState.startX;',
         '    var dy = e.clientY - dragState.startY;',
         '    if (!dragState.active) {',
         '      if (Math.sqrt(dx * dx + dy * dy) < 6) return;',
         '      dragState.active = true;',
+        '      var hv = document.querySelectorAll("[data-pc-hover]");',
+        '      for (var h = 0; h < hv.length; h++) hv[h].removeAttribute("data-pc-hover");',
         '      dragState.sourceEl.setAttribute("data-pc-dragging", "true");',
         '      setSelect(dragState.sourceId);',
+        '      window.parent.postMessage({ type: "pc-select", id: dragState.sourceId, computed: readComputed(dragState.sourceEl) }, "*");',
         '    }',
         '    e.preventDefault();',
         '    var target = resolveDropTarget(e.target, dragState.sourceEl, e.shiftKey);',
@@ -308,11 +318,7 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '    if (link) { window.parent.postMessage({ type: "pc-navigate", href: link.getAttribute("href") }, "*"); return; }',
         '    setSelect(id);',
         '    window.parent.postMessage({ type: "pc-select", id: id, computed: readComputed(el) }, "*");',
-        '    if (isTextEditable(el)) {',
-        '      startInlineEdit(el, e.clientX, e.clientY);',
-        '    } else {',
-        '      window.focus();',
-        '    }',
+        '    window.focus();',
         '  }, true);',
         '  document.addEventListener("contextmenu", function(e) {',
         '    if (editingEl && editingEl.contains(e.target)) return;',
@@ -334,11 +340,12 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '    var el = editingEl;',
         '    editingEl = null;',
         '    var id = el.getAttribute("data-pc-id");',
-        '    var text = el.innerText;',
+        '    var text = keep ? readEditText(el) : editBase;',
+        '    if (!keep) el.textContent = editBase;',
         '    el.removeAttribute("contenteditable");',
         '    el.removeAttribute("data-pc-editing");',
-        '    if (keep && id) {',
-        '      window.parent.postMessage({ type: "pc-inline-edit", id: id, text: text }, "*");',
+        '    if (id) {',
+        '      window.parent.postMessage({ type: keep ? "pc-inline-edit" : "pc-inline-cancel", id: id, text: text }, "*");',
         '    }',
         '  }',
         '  document.addEventListener("input", function(e) {',
@@ -346,15 +353,18 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '    var id = editingEl.getAttribute("data-pc-id");',
         '    positionBadge(editingEl);',
         '    if (id) {',
-        '      window.parent.postMessage({ type: "pc-inline-input", id: id, text: editingEl.innerText }, "*");',
+        '      window.parent.postMessage({ type: "pc-inline-input", id: id, text: readEditText(editingEl) }, "*");',
         '    }',
         '  }, true);',
         '  document.addEventListener("dblclick", function(e) {',
         '    if (badge.contains(e.target)) return;',
         '    var el = e.target && e.target.closest ? e.target.closest("[data-pc-id]") : null;',
-        '    if (!el || el === document.body) return;',
+        '    if (!el || !isTextEditable(el)) return;',
         '    e.preventDefault();',
         '    e.stopPropagation();',
+        '    var id = el.getAttribute("data-pc-id");',
+        '    setSelect(id);',
+        '    window.parent.postMessage({ type: "pc-select", id: id, computed: readComputed(el) }, "*");',
         '    startInlineEdit(el, e.clientX, e.clientY);',
         '  }, true);',
         '  document.addEventListener("keydown", function(e) {',
@@ -385,6 +395,7 @@ function buildBridgeScript(designMode, initialSelectedId, forcedState) {
         '    var d = e.data || {};',
         '    if (d.type === "pc-highlight") setSelect(d.id);',
         '    if (d.type === "pc-force-state") { forced = d.state || ""; setSelect(selectedId); }',
+        '    if (d.type === "pc-patch-css") { var s = d.href ? document.querySelector(\'style#pc-project-css[data-pc-href="\' + d.href + \'"]\') : null; if (!s) s = document.getElementById("pc-project-css"); if (s) { s.textContent = d.css || ""; setSelect(selectedId); } }',
         '  });',
         '})();'
     ].join('\n');
@@ -429,6 +440,7 @@ function highlightOnStage(pcId) {
 }
 
 window.addEventListener('message', (e) => {
+    if (!stageFrame || e.source !== stageFrame.contentWindow) return;
     const data = e.data || {};
     if (data.type === 'pc-select' && data.id) {
         if (typeof closeContextMenu === 'function') closeContextMenu();
@@ -437,6 +449,7 @@ window.addEventListener('message', (e) => {
     } else if (data.type === 'pc-dismiss-menus') {
         if (typeof closeContextMenu === 'function') closeContextMenu();
         if (typeof setInsertMenuOpen === 'function') setInsertMenuOpen(false);
+        if (typeof closeAppMenus === 'function') closeAppMenus();
     } else if (data.type === 'pc-contextmenu') {
         if (data.computed) setStageComputedStyle(data.computed);
         if (data.id) selectElementById(data.id, { revealCode: true, focusEditor: false });
@@ -451,7 +464,7 @@ window.addEventListener('message', (e) => {
     } else if (data.type === 'pc-inline-input' && data.id) {
         const nextHtml = HtmlAst.setText(projectFiles.html, data.id, data.text);
         applyHtmlTransform(nextHtml, data.id, { skipStageRender: true, coalesceHistory: true });
-    } else if (data.type === 'pc-inline-edit' && data.id) {
+    } else if ((data.type === 'pc-inline-edit' || data.type === 'pc-inline-cancel') && data.id) {
         const nextHtml = HtmlAst.setText(projectFiles.html, data.id, data.text);
         applyHtmlTransform(nextHtml, data.id, { skipStageRender: true, coalesceHistory: true });
     } else if (data.type === 'pc-move-up' && data.id) {

@@ -5,23 +5,28 @@ const dropHint = document.getElementById('dropHint');
 async function importFiles(fileList) {
     const dropped = Array.from(fileList || []);
     const images = dropped.filter((f) => ImageLib.isImage(f.name));
-    if (images.length && typeof addImageFiles === 'function') addImageFiles(images);
     const files = dropped.filter((f) => Importing.accept(f.name) && !ImageLib.isImage(f.name));
     if (!files.length) {
-        if (!images.length) showNotice('Please choose .html, .css, or .js files.', true);
+        if (images.length && typeof addImageFiles === 'function') addImageFiles(images);
+        else if (!images.length) showNotice('Please choose .html, .css, or .js files.', true);
         return;
     }
     const entries = {};
     for (const file of files) {
         const text = Importing.decode(new Uint8Array(await file.arrayBuffer()));
-        if (Importing.kindOf(file.name) === 'html' && /^\s*\{|PLAINCHANT:FILE:/.test(text)) Object.assign(entries, Project.unpack(text).entries);
-        else entries[file.name] = text;
+        const isHtml = /\.html?$/i.test(file.name);
+        if (isHtml && (/PLAINCHANT:FILE:/.test(text) || /^\s*\{\s*"(?:plainchantWeb|html|entries)"/.test(text))) {
+            Object.assign(entries, Project.unpack(text).entries);
+        } else {
+            entries[file.name] = text;
+        }
     }
     flushSave();
     currentScriptId = newId();
     selectedPcId = null;
     clearLinkedFolder();
     loadProjectIntoEditor({ entries: entries });
+    if (images.length && typeof addImageFiles === 'function') addImageFiles(images);
     saveScript(true);
     saveProjectAssets();
     render(false);
@@ -42,10 +47,11 @@ window.addEventListener('dragenter', (e) => {
     dragDepth++;
     dropHint.hidden = false;
 });
-window.addEventListener('dragleave', () => {
-    dragDepth = Math.max(0, dragDepth - 1);
+window.addEventListener('dragleave', (e) => {
+    dragDepth = (e.clientX === 0 && e.clientY === 0) ? 0 : Math.max(0, dragDepth - 1);
     if (!dragDepth) dropHint.hidden = true;
 });
+window.addEventListener('blur', () => { dragDepth = 0; dropHint.hidden = true; });
 window.addEventListener('dragover', (e) => {
     if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) e.preventDefault();
 });

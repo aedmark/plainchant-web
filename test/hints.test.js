@@ -64,4 +64,11 @@ test('hints: the checker covers only .html files, sorts by file then position, a
     assert.equal(first.errors, 1);
     assert.deepEqual(checker.check(entries).problems, first.problems);
     assert.equal(checker.check({ 'a.html': '<img src="x.png" alt="">' }).problems.length, 0);
+
+    assert.deepEqual(Hints.checkHtml(doc('<a href=/>Home</a><textarea aria-label="x"><div>raw</textarea><h2 aria-labelledby="t"></h2>')), [], 'handles unquoted /, RCDATA textarea, and aria-labelledby headings');
+    const withPart = checker.check({
+        'index.html': doc('<label for="f">N</label><!-- pc:part src="parts/f.html" --><input id="f"><!-- /pc:part -->'),
+        'parts/f.html': '<input id="f"><label for="outer">O</label>'
+    });
+    assert.equal(withPart.problems.filter((p) => p.file === 'parts/f.html').length, 0, 'skips shared part files already embedded in pages');
 });

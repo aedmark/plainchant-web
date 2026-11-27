@@ -16,6 +16,7 @@ const propFollowBtn = document.getElementById('propFollowBtn');
 const propSrc = document.getElementById('propSrc');
 const propSrcBrowseBtn = document.getElementById('propSrcBrowseBtn');
 const propAlt = document.getElementById('propAlt');
+const propTitle = document.getElementById('propTitle');
 
 const cssTargetSelect = document.getElementById('cssTargetSelect');
 const cssJumpRuleBtn = document.getElementById('cssJumpRuleBtn');
@@ -28,7 +29,8 @@ const cssInputs = {
     'padding': document.getElementById('cssPadding'),
     'margin': document.getElementById('cssMargin'),
     'gap': document.getElementById('cssGap'),
-    'max-width': document.getElementById('cssWidth'),
+    'width': document.getElementById('cssWidth'),
+    'max-width': document.getElementById('cssMaxWidth'),
     'font-size': document.getElementById('cssFontSize'),
     'text-align': document.getElementById('cssTextAlign'),
     'border-radius': document.getElementById('cssRadius'),
@@ -41,14 +43,16 @@ const cssBgPicker = document.getElementById('cssBgPicker');
 
 let activeInspectorTab = 'props';
 let activeCssTarget = '';
+let pinnedCssTarget = null;
 let lastComputedStyle = null;
 
 function rgbToHex(color) {
     if (!color || typeof color !== 'string') return null;
-    const trimmed = color.trim();
-    if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) return trimmed.toLowerCase();
-    const m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(trimmed);
-    if (!m) return null;
+    const trimmed = color.trim().toLowerCase();
+    if (trimmed === 'transparent') return null;
+    if (/^#[0-9a-f]{6}$/.test(trimmed)) return trimmed;
+    const m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?/.exec(trimmed);
+    if (!m || (m[4] !== undefined && parseFloat(m[4]) === 0)) return null;
     const hex = (n) => Math.max(0, Math.min(255, parseInt(n, 10))).toString(16).padStart(2, '0');
     return '#' + hex(m[1]) + hex(m[2]) + hex(m[3]);
 }
@@ -59,8 +63,11 @@ function setStageComputedStyle(computed) {
     populateCssValues(node);
 }
 
-function switchInspectorTab(tab) {
-    if (activeInspectorTab === tab && !inspectorFloating) {
+function switchInspectorTab(tab, options = {}) {
+    if (options.forceOpen && inspectorPanel && inspectorPanel.hidden && typeof toggleInspector === 'function') {
+        toggleInspector(true);
+    }
+    if (activeInspectorTab === tab && !inspectorFloating && !options.forceOpen) {
         setInspectorCollapsed(!inspectorCollapsed);
         return;
     }
@@ -103,7 +110,8 @@ function refreshInspector() {
     inspDeleteBtn.disabled = !isMovable;
     inspPartBtn.disabled = !isMovable;
 
-    [propId, propClass, propText, propHref, propSrc, propAlt].forEach((input) => {
+    [propId, propClass, propText, propHref, propSrc, propAlt, propTitle].forEach((input) => {
+        if (!input) return;
         input.disabled = !hasNode;
         if (!hasNode) input.value = '';
     });
@@ -113,12 +121,14 @@ function refreshInspector() {
         propClass.value = node.attrs.class || '';
         const hasElementChildren = node.children.some((c) => c.type === 'element');
         propText.disabled = hasElementChildren || node.selfClosing;
-        propText.value = (!hasElementChildren && !node.selfClosing) ? HtmlAst.innerText(currentHtmlAst, node.id).trim() : '';
+        propText.value = (!hasElementChildren && !node.selfClosing) ? HtmlAst.unescapeHtml(HtmlAst.innerText(currentHtmlAst, node.id).trim()) : '';
         propHref.value = node.attrs.href || '';
         propFollowBtn.disabled = !projectLinkTarget(propHref.value);
         propSrcBrowseBtn.disabled = false;
         propSrc.value = node.attrs.src || '';
-        propAlt.value = node.attrs.alt || node.attrs.title || '';
+        propAlt.disabled = node.tag !== 'img' && node.tag !== 'area' && node.tag !== 'input';
+        propAlt.value = node.attrs.alt || '';
+        if (propTitle) propTitle.value = node.attrs.title || '';
     } else {
         lastComputedStyle = null;
         propFollowBtn.disabled = true;
@@ -131,6 +141,8 @@ function refreshInspector() {
 
 function populateCssTargets(node) {
     const options = [];
+    const nodeId = node ? node.id : null;
+    if (pinnedCssTarget && pinnedCssTarget.id !== nodeId) pinnedCssTarget = null;
     const typedState = activeCssTarget !== 'inline' ? CssAst.stateOf(activeCssTarget) : '';
     if (typedState) {
         activeCssState = typedState;
@@ -147,8 +159,14 @@ function populateCssTargets(node) {
         options.push('inline');
     } else {
         const all = CssAst.listSelectors(currentCssAst, currentHtmlAst);
-        all.rules.forEach((r) => options.push(r));
+        all.rules.forEach((r) => {
+            const base = CssAst.baseSelector(r);
+            if (options.indexOf(base) === -1) options.push(base);
+        });
         if (!options.length) options.push('body');
+    }
+    if (pinnedCssTarget && options.indexOf(pinnedCssTarget.target) === -1) {
+        options.unshift(pinnedCssTarget.target);
     }
 
     if (!activeCssTarget || options.indexOf(activeCssTarget) === -1) {
@@ -165,6 +183,7 @@ function populateCssTargets(node) {
         cssTargetSelect.appendChild(el);
     });
     refreshCssStateUi(node);
+    if (typeof refreshStyleToolbarTargets === 'function') refreshStyleToolbarTargets(options, cssLabel);
 }
 
 function populateCssValues(node) {
@@ -180,7 +199,8 @@ function populateCssValues(node) {
         'padding': comp.padding,
         'margin': comp.margin,
         'gap': comp.gap,
-        'max-width': comp.maxWidth && comp.maxWidth !== 'none' ? comp.maxWidth : comp.width,
+        'width': comp.width,
+        'max-width': comp.maxWidth && comp.maxWidth !== 'none' ? comp.maxWidth : '',
         'font-size': comp.fontSize,
         'border-radius': comp.borderRadius,
         'color': rgbToHex(comp.color) || comp.color,
@@ -190,8 +210,7 @@ function populateCssValues(node) {
     Object.keys(cssInputs).forEach((prop) => {
         const input = cssInputs[prop];
         if (!input) return;
-        const val = decls[prop] || (prop === 'max-width' ? (decls['width'] || '') : '');
-        input.value = val;
+        input.value = decls[prop] || '';
         if (input.tagName === 'INPUT' && compMap[prop]) {
             input.placeholder = String(compMap[prop]);
         }
@@ -210,9 +229,10 @@ function populateCssValues(node) {
             cssBoxSummary.textContent = '';
         }
     }
+    if (typeof refreshStyleToolbar === 'function') refreshStyleToolbar(node, decls, comp);
 }
 
-function applyCssPropertyChange(prop, value) {
+function applyCssPropertyChange(prop, value, options) {
     const node = selectedPcId ? HtmlAst.findById(currentHtmlAst, selectedPcId) : null;
     if (activeCssTarget === 'inline') {
         if (!node) return;
@@ -221,12 +241,12 @@ function applyCssPropertyChange(prop, value) {
         else map[prop] = String(value).trim();
         const formatted = CssAst.formatInlineStyle(map);
         const nextHtml = HtmlAst.setAttr(projectFiles.html, node.id, 'style', formatted || null);
-        applyHtmlTransform(nextHtml, node.id);
+        applyHtmlTransform(nextHtml, node.id, options);
         return;
     }
     const sel = cssEditSelector(node) || defaultSelectorFor(node);
     const nextCss = CssAst.setProperty(projectFiles.css, sel, prop, value, cssEditMedia());
-    applyCssTransform(nextCss);
+    applyCssTransform(nextCss, options);
 }
 
 function moveSelectedElement(direction, optId) {
@@ -326,6 +346,13 @@ propAlt.addEventListener('change', () => {
     applyHtmlTransform(HtmlAst.setAttr(projectFiles.html, selectedPcId, 'alt', propAlt.value.trim() || null), selectedPcId);
 });
 
+if (propTitle) {
+    propTitle.addEventListener('change', () => {
+        if (!selectedPcId) return;
+        applyHtmlTransform(HtmlAst.setAttr(projectFiles.html, selectedPcId, 'title', propTitle.value.trim() || null), selectedPcId);
+    });
+}
+
 if (inspMoveUpBtn) inspMoveUpBtn.addEventListener('click', () => moveSelectedElement('up'));
 if (inspMoveDownBtn) inspMoveDownBtn.addEventListener('click', () => moveSelectedElement('down'));
 if (inspDupBtn) inspDupBtn.addEventListener('click', () => duplicateSelectedElement());
@@ -340,7 +367,9 @@ inspDeleteBtn.addEventListener('click', deleteSelectedElement);
 
 cssTargetSelect.addEventListener('change', () => {
     activeCssTarget = cssTargetSelect.value;
+    pinnedCssTarget = null;
     const node = selectedPcId ? HtmlAst.findById(currentHtmlAst, selectedPcId) : null;
+    if (typeof refreshCssStateUi === 'function') refreshCssStateUi(node);
     populateCssValues(node);
 });
 
@@ -352,6 +381,7 @@ cssAddRuleBtn.addEventListener('click', () => {
     const typed = CssAst.stateOf(custom);
     if (typed) activeCssState = typed;
     activeCssTarget = typed ? CssAst.baseSelector(custom) : custom;
+    pinnedCssTarget = { id: selectedPcId || null, target: activeCssTarget };
     cssCustomSelector.value = '';
     const known = Array.from(cssTargetSelect.options).find((o) => o.value === activeCssTarget);
     if (known) {
@@ -377,111 +407,10 @@ Object.keys(cssInputs).forEach((prop) => {
 
 cssColorPicker.addEventListener('input', () => {
     cssInputs['color'].value = cssColorPicker.value;
-    applyCssPropertyChange('color', cssColorPicker.value);
+    applyCssPropertyChange('color', cssColorPicker.value, { coalesceHistory: true });
 });
 
 cssBgPicker.addEventListener('input', () => {
     cssInputs['background-color'].value = cssBgPicker.value;
-    applyCssPropertyChange('background-color', cssBgPicker.value);
-});
-
-const contextMenu = document.getElementById('contextMenu');
-const ctxHeaderLabel = document.getElementById('ctxHeaderLabel');
-const ctxInsertTrigger = document.getElementById('ctxInsertTrigger');
-
-function closeContextMenu() {
-    if (!contextMenu || contextMenu.hidden) return;
-    contextMenu.hidden = true;
-    const subWrap = contextMenu.querySelector('.ctx-has-sub');
-    if (subWrap) subWrap.classList.remove('sub-open');
-    if (ctxInsertTrigger) ctxInsertTrigger.setAttribute('aria-expanded', 'false');
-}
-
-function openContextMenuAt(clientX, clientY) {
-    if (!contextMenu) return;
-    if (typeof setInsertMenuOpen === 'function') setInsertMenuOpen(false);
-    const node = selectedPcId ? HtmlAst.findById(currentHtmlAst, selectedPcId) : null;
-    const hasNode = Boolean(node && node.tag !== 'html' && node.tag !== 'head');
-    const isMovable = Boolean(hasNode && node.tag !== 'body');
-
-    if (ctxHeaderLabel) {
-        ctxHeaderLabel.textContent = hasNode ? '<' + DomOutline.formatLabel(node) + '>' : '<body>';
-    }
-
-    contextMenu.querySelectorAll('[data-ctx-cmd]').forEach((btn) => {
-        const cmd = btn.dataset.ctxCmd;
-        if (cmd === 'move-up' || cmd === 'move-down' || cmd === 'duplicate' || cmd === 'wrap' || cmd === 'delete') {
-            btn.disabled = !isMovable;
-        } else if (cmd === 'undo') {
-            btn.disabled = Boolean(undoBtn && undoBtn.disabled);
-        } else if (cmd === 'redo') {
-            btn.disabled = Boolean(redoBtn && redoBtn.disabled);
-        }
-    });
-
-    contextMenu.hidden = false;
-    const menuWidth = contextMenu.offsetWidth || 220;
-    const menuHeight = contextMenu.offsetHeight || 290;
-    const maxX = Math.max(8, window.innerWidth - menuWidth - 8);
-    const maxY = Math.max(8, window.innerHeight - menuHeight - 8);
-    const x = Math.max(8, Math.min(clientX, maxX));
-    const y = Math.max(8, Math.min(clientY, maxY));
-
-    contextMenu.style.left = x + 'px';
-    contextMenu.style.top = y + 'px';
-    contextMenu.classList.toggle('flip-left', x + menuWidth + 260 > window.innerWidth);
-}
-
-if (contextMenu) {
-    if (ctxInsertTrigger) {
-        ctxInsertTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const wrap = ctxInsertTrigger.closest('.ctx-has-sub');
-            if (!wrap) return;
-            const next = !wrap.classList.contains('sub-open');
-            wrap.classList.toggle('sub-open', next);
-            ctxInsertTrigger.setAttribute('aria-expanded', String(next));
-        });
-    }
-
-    contextMenu.addEventListener('click', (e) => {
-        const ins = e.target.closest('[data-insert]');
-        if (ins && ins.dataset.insert) {
-            closeContextMenu();
-            insertSnippet(ins.dataset.insert);
-            return;
-        }
-        const act = e.target.closest('[data-ctx-cmd]');
-        if (!act || act.disabled) return;
-        const cmd = act.dataset.ctxCmd;
-        closeContextMenu();
-        if (cmd === 'move-up') moveSelectedElement('up');
-        else if (cmd === 'move-down') moveSelectedElement('down');
-        else if (cmd === 'duplicate') duplicateSelectedElement();
-        else if (cmd === 'wrap' && selectedPcId) {
-            applyHtmlTransform(HtmlAst.wrapElement(projectFiles.html, selectedPcId, 'div', { class: 'wrapper' }), selectedPcId);
-        } else if (cmd === 'inspect-css') {
-            switchInspectorTab('css');
-            jumpToActiveCssRule();
-        } else if (cmd === 'undo') performUndo();
-        else if (cmd === 'redo') performRedo();
-        else if (cmd === 'delete') deleteSelectedElement();
-    });
-}
-
-editor.addEventListener('contextmenu', (e) => {
-    if (activeTab !== 'html') return;
-    e.preventDefault();
-    syncElementState();
-    openContextMenuAt(e.clientX, e.clientY);
-});
-
-document.addEventListener('click', (e) => {
-    if (contextMenu && !contextMenu.hidden && !contextMenu.contains(e.target)) {
-        closeContextMenu();
-    }
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeContextMenu();
+    applyCssPropertyChange('background-color', cssBgPicker.value, { coalesceHistory: true });
 });

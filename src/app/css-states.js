@@ -16,8 +16,9 @@ function cssEditSelector(node) {
 
 function sendForceState() {
     if (!stageFrame || !stageFrame.contentWindow) return;
+    const state = (stageMode === 'design' && activeCssTarget !== 'inline') ? activeCssState : '';
     try {
-        stageFrame.contentWindow.postMessage({ type: 'pc-force-state', state: stageMode === 'design' ? activeCssState : '' }, '*');
+        stageFrame.contentWindow.postMessage({ type: 'pc-force-state', state: state }, '*');
     } catch (e) {
     }
 }
@@ -25,11 +26,12 @@ function sendForceState() {
 function refreshCssStateUi(node) {
     if (typeof refreshCssMediaUi === 'function') refreshCssMediaUi();
     const inline = activeCssTarget === 'inline';
-    if (inline && activeCssState) activeCssState = '';
+    const shownState = inline ? '' : activeCssState;
     cssStateButtons.forEach((btn) => {
-        btn.setAttribute('aria-pressed', String(btn.dataset.state === activeCssState));
+        btn.setAttribute('aria-pressed', String(btn.dataset.state === shownState));
         btn.disabled = inline && btn.dataset.state !== '';
     });
+    sendForceState();
     if (inline) {
         cssStateHint.textContent = 'Inline styles cannot have states.';
     } else if (!activeCssState) {

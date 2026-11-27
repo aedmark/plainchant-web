@@ -4,25 +4,22 @@
 
 ## Current state
 
-_Last updated: 2026-11-08, session 2zb, on `master` at `0ffb1b1`: documentation brought in line with the current Manifold standard (AGENTS.md rules, held tensions, checker, handoff layout). Uncommitted: those doc edits, plus `index.html` and `src/home.css` (not mine)._
+_Last updated: 2026-11-27, session 2zg, on `master`: Tauri v2 bundle config & icons, CI/Release workflows, `1.0.0` changelog & `docs/INVARIANTS.md` updated for `v1.0.0` release._
 
-**Session owner:** none live. The `index.html` and `src/home.css` edits in the working tree belong to the maintainer.
+**Session owner:** none live.
+- **Phase**: Phases 1-8 complete (`P1-01`..`P8-01`) ([`ROADMAP.md`](../ROADMAP.md))
 
-- **Phase**: Phases 1-6 complete; `P7-04`, `P7-05`, `P7-06`, `P7-07`, `P7-01`, `P7-03`, `P7-08`, `P7-11`, `P7-12`, `P7-14`, `P7-15`, `P7-02`, `P7-09`, `P7-10`, `P7-13`, `P7-16` done; Phase 7 backlog continues (`P6-01`, `P6-02`) ([`ROADMAP.md`](../ROADMAP.md))
-
-**Verified** (2026-11-08, on `0ffb1b1` plus uncommitted doc edits, Linux, Node v22.23.4, local Cargo)
+**Verified** (2026-11-27, Linux, Node v22.23.4)
 
 | Suite | Result |
 | --- | --- |
-| `npm test` | **106/106** |
+| `npm test` | **119/119** |
 | `cargo test --manifest-path src-tauri/Cargo.toml` | **7/7** |
-| `python3 tools/manual.py check docs/plainchant-web.manual.json` and `python3 -m unittest tools/test_manual.py` | **passed** (3 sections, 22 entries) |
+| `cargo build --manifest-path src-tauri/Cargo.toml` | **passed** |
+| `python3 tools/manual.py check ...` & `test_manual.py` | **passed** |
 | `python3 tools/check_docs.py` | **0 errors, 0 warnings** |
 
-Not run this session: `cargo build`. Carried over from 2026-11-06: it passed then.
-
-**Corrections**
-- The earlier note said `cargo test` ran `5/5`; it runs `7/7` (2026-11-08).
+Browser check (`http://localhost:8080/app.html`): verified `<p>Click here` + Tab stays prose, `li#item*2` + Tab deduplicates IDs (`#item`, `#item-2`), `<a href=/>` reports no stray tag error in Problems, Stage context Duplicate selects `#ctaBtn-copy`, and Format file (`#formatBtn`) completes cleanly with zero console errors. Real Tauri window dialogs remain unexercised here.
 
 ### What works
 - **Foundations & Parsers (`P1-01`..`P1-04`)**: Non-destructive HTML5 (`src/html-ast.js`) and CSS (`src/css-ast.js`) byte-offset parsers and splicers (`D-001`, `D-003`), multi-file project bundler (`src/project.js`, `D-004`), and transparent-textarea syntax shader (`src/code-shade.js`, `src/app/shade.js`, `D-002`).
@@ -52,6 +49,7 @@ Not run this session: `cargo build`. Carried over from 2026-11-06: it passed the
 - **Format (`P7-14`, `D-030`)**: **Edit > Format file** and `Alt+Shift+F`; HTML and CSS rebuilt, JS re-indented only (`src/format.js`, `src/app/format-ui.js`).
 - **Network preview (`P7-12`, `D-029`)**: **Preview** dialog; desktop **Start sharing** runs a token-gated read-only server on the LAN with live reload, browser build opens a snapshot tab (`src/app/preview-ui.js`, `src/preview.js`, `src-tauri/src/preview.rs`).
 - **Asset manager (`P7-02`, `D-023`)**: Assets modal, picker, uploads and deletes for blob images in the browser build (`src/app/asset-ui.js`, `src/imagelib.js`).
+- **Stage formatting bar (`D-036`)**: [`src/app/style-bar.js`](../src/app/style-bar.js) (`#styleToolbar`) and [`src/typography.js`](../src/typography.js) provide an RTF-style toolbar above the Stage (target rule switcher, scope pill, font family, size presets/stepper, `B`/`I`/`U`/`S`, alignment, line height, letter spacing, and text/background color pickers) mirrored in the CSS Designer.
 
 ### In flight
 - Nothing half-built.
@@ -74,7 +72,7 @@ Not run this session: `cargo build`. Carried over from 2026-11-06: it passed the
 - **Stage Focus vs. Editor Selection**: Selecting or typing in a Stage element must keep `focusEditor: false` / `keepFocus: true` so keyboard focus stays inside the Stage iframe (`D-009`).
 
 ### Next up
-1. **Phase 7 backlog** ([`ROADMAP.md`](../ROADMAP.md)) is complete (`P7-01`..`P7-16`). `P8-01` (enforce the invariants that have no check) is open; otherwise ask the maintainer what to plan next.
+1. **All phases (`P1-01`..`P8-01`) complete.** Review and publish the `v1.0.0` draft GitHub Release once `.github/workflows/release.yml` finishes building desktop bundles.
 
 ### Open questions
 - None blocking. `Q-001` (Phase order) was resolved 2026-11-02: Phase 5 first. (See [`docs/DECISIONS.md`](DECISIONS.md).)
@@ -84,6 +82,38 @@ Not run this session: `cargo build`. Carried over from 2026-11-06: it passed the
 ## Session log
 
 <!-- Prepend new entries directly below this comment. Keep the last 10 entries here; move older ones to `docs/archive/handoff-log.md`. -->
+
+### Session 2zg: 2026-11-27: Desktop bundle setup, CI/Release workflows, and v1.0.0 release
+
+- **Did**: Configured cross-platform Tauri v2 `bundle` in [src-tauri/tauri.conf.json](../src-tauri/tauri.conf.json) and generated desktop icons in `src-tauri/icons/`; created [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) and [`.github/workflows/release.yml`](../.github/workflows/release.yml); rolled [`docs/CHANGELOG.md`](CHANGELOG.md) to `1.0.0`, updated `Enforced by:` lines in [`docs/INVARIANTS.md`](INVARIANTS.md) (maintainer-approved) and [`docs/CONTRIBUTING.md`](CONTRIBUTING.md), committed to `master`, and pushed `master` + tag `v1.0.0`.
+- **Verified**: `npm test` (119/119), `cargo test --manifest-path src-tauri/Cargo.toml` (7/7), `cargo tauri build --no-bundle`, `python3 tools/check_docs.py` (0 errors, 0 warnings), and manual checks.
+- **Next**: Inspect the draft release artifacts produced by GitHub Actions and publish `v1.0.0`.
+
+### Session 2zf: 2026-11-27: Batch 3 parser, formatter, linter, and P8-01 invariant fixes (code review follow-up)
+
+- **Did**: Hardened [src/css-ast.js](../src/css-ast.js) (inline comments, `\\"` escapes, `@import`/`@keyframes`, empty `@media`, `+`/`~`/`:not()` combinators, whitespace decls, `forceStates`/`listSelectors` `[attr]` skips) and [src/html-ast.js](../src/html-ast.js) (`href=/` unquoted slash, descendant `duplicateElement` IDs/labels); fixed [src/format.js](../src/format.js), [src/links.js](../src/links.js), [src/project.js](../src/project.js) (`parseSrcset`, `url(...)` parens), [src/hints.js](../src/hints.js) (`textarea`/`title` RCDATA, `Parts.isPart` skip), [src/parts.js](../src/parts.js) (report nested parts per `D-014`, indent-tolerant sync comparison), [src/editing.js](../src/editing.js) & [src/suggest.js](../src/suggest.js); added `P8-01` invariant tests for `INV-001`..`INV-005` in [test/structure.test.js](../test/structure.test.js) and [test/project.test.js](../test/project.test.js).
+- **Verified**: `npm test` (119/119), `cargo test --manifest-path src-tauri/Cargo.toml` (7/7), `cargo build --manifest-path src-tauri/Cargo.toml`, `python3 tools/check_docs.py`, manual checks, and Chromium browser smoke test of Batch 3 flows (zero console errors).
+- **Next**: Maintainer confirmation to update `Enforced by:` prose in `docs/INVARIANTS.md`.
+
+### Session 2ze: 2026-11-27: Batch 2 data integrity, persistence, and Tauri backend fixes (code review follow-up)
+
+- **Did**: Hardened multi-page `Project.setTitle`/`exportSingleHtml` and CRLF `FileSync.dirtyPaths` in [src/project.js](../src/project.js) and [src/filesync.js](../src/filesync.js); added 32-bit/CRC/path-traversal bounds in [src/zip.js](../src/zip.js); updated `assetSignature`, `Store.keepVersion`, and `ProjectLink.normalizePath('/')`; hardened persistence, Library delete/trash switching, snapshot restore, mixed drag-drop import, Explorer/+File validation, disk folder sync, asset quotas/paths, Part propagation, Preview sharing stop on project switch, and menu focus; added dynamic modal `z-index` stacking and drag-close guard in [src/app/dialogs.js](../src/app/dialogs.js); added localhost server read timeout, symlink containment guards, exact-byte save comparison, and SVG preview asset key retention in [src-tauri/src/main.rs](../src-tauri/src/main.rs) and [src-tauri/src/preview.rs](../src-tauri/src/preview.rs).
+- **Verified**: `npm test` (113/113), `cargo test --manifest-path src-tauri/Cargo.toml` (7/7), `cargo build --manifest-path src-tauri/Cargo.toml`, `python3 tools/check_docs.py`, manual checks, and Chromium browser smoke test of Batch 2 flows (zero console errors).
+- **Next**: Proceed to Batch 3 (Parser & `P8-01` hardening) when maintainer confirms.
+
+### Session 2zd: 2026-11-27: Batch 1 WYSIWYG fixes (code review follow-up)
+
+- **Did**: fixed `selectedPcId` ordering in `applyHtmlTransform` and preserved selection when returning to `activeHtmlFile` ([`src/app/core.js`](../src/app/core.js)); added `Project.buildPreviewCss` and Design-mode live CSS patching via `pc-patch-css` ([`src/project.js`](../src/project.js), [`src/app/stage-live.js`](../src/app/stage-live.js), [`src/app/stage.js`](../src/app/stage.js)); switched Stage to click-to-select + `dblclick` leaf edit with `Escape` revert (`pc-inline-cancel`) and safer drag/badge bounds; fixed `rgbToHex` transparent alpha, `Use Selector` pinning, `switchInspectorTab(..., { forceOpen: true })`, split `Alt`/`Title` and `Width`/`Max Width`, `HtmlAst.unescapeHtml` entity decoding, floating drag `bottom`/`right` clearing, Breakpoint/Viewport sync, Layout declared values, and `<a>` `toggleDecoration` preservation (moved `#contextMenu` handlers to [`src/app/menus.js`](../src/app/menus.js) to keep [`src/app/inspector-ui.js`](../src/app/inspector-ui.js) under 500 lines).
+- **Decided**: `D-037` (supersedes `D-009` per maintainer choice).
+- **Verified**: `npm test` (`113/113`), `python3 tools/check_docs.py`, manual checks, `cargo build`, and Chromium browser verification at `http://localhost:8080/app.html` (zero console errors).
+- **Next**: Batch 2 (data integrity & multi-file sync fixes) in the next turn.
+
+### Session 2zc: 2026-11-27: RTF-style Stage formatting toolbar & CSS Designer typography
+
+- **Did**: added [`src/typography.js`](../src/typography.js) (pure UMD helpers + [`test/typography.test.js`](../test/typography.test.js)), `#styleToolbar` above `#canvasBody` in [`app.html`](../app.html) and [`src/styles.css`](../src/styles.css), [`src/app/style-bar.js`](../src/app/style-bar.js) synced with CSS Designer (`#cssFontFamily`, `#cssFontSize`, `#cssStyleToggles`, `#cssTextAlign` with `justify`, `#cssLineHeight`, `#cssLetterSpacing`), computed typography telemetry in [`src/app/stage.js`](../src/app/stage.js) `readComputed()`, and coalesced undo on color-picker drags (`applyCssTransform` in [`src/app/core.js`](../src/app/core.js)). Registered new assets in [`sw.js`](../sw.js) and added a wiring check in [`test/structure.test.js`](../test/structure.test.js).
+- **Decided**: `D-036` (maintainer chose Stage formatting bar + CSS Designer parity, full typography + alignment + color controls, targeting the active CSS rule with a compact target switcher in the toolbar).
+- **Verified**: `npm test` (`111/111`), `python3 tools/check_docs.py`, manual checks, `cargo build`, and Chromium browser verification at `http://localhost:8080/app.html` (zero console errors).
+- **Next**: maintainer feedback on any remaining CSS/UI friction (such as border/spacing/quick-style toolbars).
 
 ### Session 2zb: 2026-11-08: adopt the expanded Manifold standard (docs only)
 
@@ -121,38 +151,4 @@ Not run this session: `cargo build`. Carried over from 2026-11-06: it passed the
 - **Verified**: `npm test`; browser check at desktop and phone width (no horizontal overflow). Copy was written from what the app does; the desktop app has only been run on Linux, so the page names no platforms.
 - **Next**: more maintainer feedback. The manual link (`docs/manual.html`) is not in the service worker cache and is not in the Tauri `dist` build, so it works on a web host only.
 
-### Session 2w: 2026-11-03: Open file / folder / project and one folder = one project (maintainer feedback)
-
-- **Did**: folder links saved in the existing `files` store; reopening a known folder opens its project with **Reload from disk** when the disk changed; **Open file…**; canonical folder paths and `use_project_folder` in Rust ([`src/projectlink.js`](../src/projectlink.js), [`src/app/project-links.js`](../src/app/project-links.js)).
-- **Decided**: `D-033` (maintainer chose: open the Studio copy and offer a reload; standalone one-file projects).
-- **Verified**: `npm test`, `cargo test`; browser check with a faked Tauri bridge (first open, reopen without a duplicate, disk change, reload and undo, switch away and back, link survives a page reload, Open file with css, html, and several files). No real desktop window or directory picker.
-- **Next**: more maintainer feedback. Folders opened before this change have no saved link.
-
-### Session 2v: 2026-11-03: toolbar File and Edit menus (maintainer feedback)
-
-- **Did**: **File ▾** and **Edit ▾** menus replace the New, Projects, Folder, Export, Preview, Copy, and Format buttons ([`src/app/menus.js`](../src/app/menus.js)); the Format button left the tab strip.
-- **Decided**: `D-032` (maintainer chose File / Edit menus). Insert, Assets, and Save stay on the toolbar (Undo and Redo moved into Edit).
-- **Verified**: `npm test`; browser check of open, switch, close, focus, arrow keys, Escape, and each moved item. Desktop window not checked.
-- **Next**: more maintainer feedback on odd behaviour.
-
-### Session 2u: 2026-11-03: Explorer polish (maintainer feedback)
-
-- **Did**: Folders collapse (`explorerCollapsed`, `toggleExplorerDir`, `expandExplorerTo` in `src/app/core.js`); clicking an image opens the Assets dialog filtered to it instead of inserting `<img>`.
-- **Verified**: `npm test`; browser check of collapse, filter, auto-expand on open, and image click (HTML unchanged). Collapsed state is per session and not remembered.
-- **Next**: more maintainer feedback on odd behaviour.
-
-### Session 2t: 2026-11-03: P7-15 keyboard shortcut cheat sheet
-
-- **Did**: [`src/shortcuts.js`](../src/shortcuts.js); shortcut section in the Help guide ([`src/app/help.js`](../src/app/help.js)); [`test/shortcuts.test.js`](../test/shortcuts.test.js).
-- **Decided**: `D-031`.
-- **Verified**: `npm test` (`92/92`); browser check that `F1` shows 5 groups and 25 rows. Full check results are in this session's final report.
-- **Next**: Phase 7 is complete; ask the maintainer what to plan next.
-
-### Session 2s: 2026-11-03: P7-14 format the current file
-
-- **Did**: [`src/format.js`](../src/format.js) (HTML, CSS, JS formatters); [`src/app/format-ui.js`](../src/app/format-ui.js), the **Format** button, and `Alt+Shift+F`.
-- **Decided**: `D-030` (JS is re-indentation only; no JSON).
-- **Verified**: `npm test` (`90/90`); browser check of the shortcut, all three file types, stage update, and undo. Full check results are in this session's final report.
-- **Next**: ask whether `P7-15` is next.
-
-Older sessions (1 through 2r) are in [archive/handoff-log.md](archive/handoff-log.md).
+Older sessions (1 through 2w) are in [archive/handoff-log.md](archive/handoff-log.md).

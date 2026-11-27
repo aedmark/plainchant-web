@@ -14,21 +14,19 @@ states what enforces it; "Nothing yet" is an honest answer and is tracked in the
 - **Rule:** The app is static HTML, CSS, and vanilla JavaScript that runs from a file or a plain static server. The only
   third-party runtime code is the vendored, unmodified Prism.
 - **Why:** Direct `file://` and offline use, a codebase one person can read, and nothing to break on upgrade (D-001, D-034).
-- **Enforced by:** The Prism vendoring, licence, and load-order checks in `test/structure.test.js`. Nothing yet stops a
-  new dependency or build tool from being added.
+- **Enforced by:** `test/structure.test.js` (`P8-01 INV-001` checks zero `package.json` dependencies/devDependencies, no `node_modules`, no bundler configs, local `src/` scripts only, and Prism vendoring/licence/load-order).
 
 ## INV-002 Editing never rewrites what the user did not touch
 - **Rule:** Visual edits splice exact byte ranges in the user's HTML and CSS. Studio artifacts (`data-pc-id`, the bridge
   script, forced-state selector twins) exist only in the preview document and never in a source buffer or export.
 - **Why:** Round-trip editing is the product; serializing the live DOM destroys formatting and comments (D-003).
-- **Enforced by:** Round-trip and splice unit tests in `test/html-ast.test.js` and `test/css-ast.test.js`. Nothing yet
-  proves that no artifact reaches a source buffer or an export.
+- **Enforced by:** Round-trip and splice unit tests in `test/html-ast.test.js` and `test/css-ast.test.js`, plus `P8-01 INV-002` in `test/project.test.js` verifying `pack`, `exportSingleHtml`, `Zip.build`, and AST mutations contain no studio artifacts.
 
 ## INV-003 Disk is written only on an explicit Export
 - **Rule:** Opening a folder creates an isolated Studio copy in IndexedDB. Auto-save writes only to that copy; project
   files on disk change only when the user triggers Export, and Export never deletes files already on disk.
 - **Why:** Opening a real project must be safe (D-006, D-024).
-- **Enforced by:** Nothing yet. Held in tension with "source files are the single source of truth" (T-001).
+- **Enforced by:** `test/structure.test.js` (`P8-01 INV-003` verifies disk-write APIs appear only in explicit export flows inside `src/app/tauri-files.js` and Rust `src-tauri/src/main.rs` contains no deletion calls). Held in tension with "source files are the single source of truth" (T-001).
 
 ## INV-004 The always-on asset server is loopback-only
 - **Rule:** The localhost asset server binds `127.0.0.1` and rejects `..` and root components. Anything reachable from
@@ -41,7 +39,7 @@ states what enforces it; "Nothing yet" is an honest answer and is tracked in the
 - **Rule:** Design mode strips user `<script>` tags before the studio bridge is injected. User scripts run only after
   the user switches the Stage to Live JS, inside the sandboxed `#stageFrame`.
 - **Why:** Users open third-party folders (D-003; `docs/SECURITY.md`).
-- **Enforced by:** Nothing yet; the stripping is in `Project.assemblePreview` with no dedicated test.
+- **Enforced by:** `test/project.test.js` (`P8-01 INV-005` verifies `Project.assemblePreview` strips all inline, module, external, and mixed-case user scripts in Design mode) and `test/structure.test.js` (`#stageFrame` strict `sandbox`).
 
 ## INV-006 Pure modules are pure, and the app scripts stay small and unambiguous
 - **Rule:** `src/*.js` modules load in Node without a DOM (except the IndexedDB wrapper `src/store.js`). Every

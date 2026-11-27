@@ -40,17 +40,22 @@ function setInsertEdgeScroll(speed) {
 function describeInsertDrop(point) {
     const rect = stageFrame.getBoundingClientRect();
     const inStage = point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom;
-    if (!inStage) return { drop: null, hint: '' };
+    if (!inStage || document.elementFromPoint(point.x, point.y) !== stageFrame) return { drop: null, hint: '' };
     if (stageMode !== 'design') return { drop: null, hint: 'Switch the Stage to Design mode to drop here' };
     const doc = stageDocument();
     if (!doc) return { drop: null, hint: '' };
     const hit = doc.elementFromPoint(point.x - rect.left, point.y - rect.top);
     let el = hit && hit.closest ? hit.closest('[data-pc-id]') : null;
     if (!el || el === doc.documentElement) el = doc.body;
-    const node = el ? HtmlAst.findById(currentHtmlAst, el.getAttribute('data-pc-id')) : null;
+    let node = el ? HtmlAst.findById(currentHtmlAst, el.getAttribute('data-pc-id')) : null;
     if (!node) return { drop: null, hint: '' };
     const box = el.getBoundingClientRect();
-    const place = DomOutline.dropPlacement(node, box.height ? (point.y - rect.top - box.top) / box.height : 0.5);
+    let place = DomOutline.dropPlacement(node, box.height ? (point.y - rect.top - box.top) / box.height : 0.5);
+    if (node.tag === 'body') {
+        const trailingScript = (node.children || []).find((c) => c.type === 'element' && c.tag === 'script');
+        if (trailingScript) place = { position: 'before', zone: 'inside' };
+        if (trailingScript) node = trailingScript;
+    }
     el.setAttribute('data-pc-drop-target', place.zone);
     const edge = point.y - rect.top < INSERT_EDGE_SCROLL_ZONE ? -14 : (rect.bottom - point.y < INSERT_EDGE_SCROLL_ZONE ? 14 : 0);
     setInsertEdgeScroll(edge);
@@ -105,7 +110,7 @@ document.addEventListener('pointermove', (e) => {
     insertGhost.textContent = outcome.hint || (insertDrag.label + (outcome.drop ? ' → ' + outcome.drop.zone + ' <' + outcome.drop.tag + '>' : ''));
     insertGhost.classList.toggle('no-drop', !outcome.drop);
     insertGhost.style.left = Math.min(e.clientX + 14, window.innerWidth - 220) + 'px';
-    insertGhost.style.top = (e.clientY + 14) + 'px';
+    insertGhost.style.top = Math.max(4, Math.min(e.clientY + 14, window.innerHeight - 30)) + 'px';
 });
 
 document.addEventListener('pointerup', (e) => {

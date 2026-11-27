@@ -109,7 +109,7 @@ function layoutBridgeMain(Layout) {
         var t = document.createElement('div');
         t.style.cssText = 'position:fixed;pointer-events:none;background:#0f172a;color:#fff;font:600 11px/1.3 system-ui,sans-serif;padding:2px 6px;border-radius:4px;white-space:nowrap;z-index:1;';
         t.style.left = near.style.left;
-        t.style.top = (parseFloat(near.style.top) - 22) + 'px';
+        t.style.top = Math.max(4, parseFloat(near.style.top) - 22) + 'px';
         layer.appendChild(t);
         return t;
     }

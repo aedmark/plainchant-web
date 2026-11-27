@@ -22,7 +22,8 @@
 
     function dirtyPaths(entries, saved) {
         const base = saved || {};
-        return Object.keys(entries || {}).filter((path) => entries[path] !== base[path]);
+        const norm = (s) => String(s == null ? '' : s).replace(/\r\n?/g, '\n');
+        return Object.keys(entries || {}).filter((path) => !(path in base) || norm(entries[path]) !== norm(base[path]));
     }
 
     return { canon: canon, decide: decide, dirtyPaths: dirtyPaths, TYPES: TYPES };

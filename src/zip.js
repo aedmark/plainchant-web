@@ -62,7 +62,7 @@
             seen.add(path);
             const name = utf8(path);
             const data = typeof file.data === 'string' ? utf8(file.data) : file.data;
-            if (data.length > MAX_SIZE || offset > MAX_SIZE) throw new Error('"' + path + '" is too large for a zip file.');
+            if (data.length > MAX_SIZE || offset + 30 + name.length + data.length > MAX_SIZE) throw new Error('"' + path + '" is too large for a zip file.');
             const crc = crc32(data);
             const fields = [].concat(u16(20), u16(0x0800), u16(0), u16(stamp.time), u16(stamp.date), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0));
             chunks.push(Uint8Array.from([0x50, 0x4B, 0x03, 0x04].concat(fields)), name, data);
@@ -70,6 +70,7 @@
             offset += 30 + name.length + data.length;
         });
         const centralSize = central.reduce((n, c) => n + c.length, 0);
+        if (centralSize > MAX_SIZE || offset + centralSize + 22 > MAX_SIZE) throw new Error('The zip file is too large.');
         const end = Uint8Array.from([0x50, 0x4B, 0x05, 0x06].concat(u16(0), u16(0), u16(files.length), u16(files.length), u32(centralSize), u32(offset), u16(0)));
         const all = chunks.concat(central, [end]);
         const out = new Uint8Array(all.reduce((n, c) => n + c.length, 0));
@@ -88,7 +89,7 @@
         const decoder = new TextDecoder();
         const out = [];
         for (let i = 0; i < count; i++) {
-            if (view.getUint32(at, true) !== 0x02014B50) throw new Error('Damaged zip directory.');
+            if (at + 46 > end || view.getUint32(at, true) !== 0x02014B50) throw new Error('Damaged zip directory.');
             const method = view.getUint16(at + 10, true);
             const crc = view.getUint32(at + 16, true);
             const size = view.getUint32(at + 24, true);
@@ -96,10 +97,16 @@
             const extraLength = view.getUint16(at + 30, true);
             const commentLength = view.getUint16(at + 32, true);
             const local = view.getUint32(at + 42, true);
+            if (at + 46 + nameLength + extraLength + commentLength > end) throw new Error('Damaged zip directory.');
             const path = decoder.decode(bytes.subarray(at + 46, at + 46 + nameLength));
+            if (path.startsWith('/') || path.indexOf('\\') !== -1 || path.split('/').some((s) => s === '..')) throw new Error('Unsafe path in zip file.');
             if (method !== 0) throw new Error('Only stored entries can be read.');
+            if (local + 30 > bytes.length || view.getUint32(local, true) !== 0x04034B50) throw new Error('Damaged zip entry.');
             const dataStart = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
-            out.push({ path: path, size: size, crc: crc, data: bytes.subarray(dataStart, dataStart + size) });
+            if (dataStart + size > bytes.length) throw new Error('Truncated zip entry.');
+            const slice = bytes.subarray(dataStart, dataStart + size);
+            if (crc32(slice) !== crc) throw new Error('Corrupt zip entry: ' + path);
+            out.push({ path: path, size: size, crc: crc, data: slice });
             at += 46 + nameLength + extraLength + commentLength;
         }
         return out;

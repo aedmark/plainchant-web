@@ -19,6 +19,41 @@ test('project: pack, unpack, assemblePreview, and exportSingleHtml preserve mult
     assert.includes(bundled, '<style>');
     assert.includes(bundled, '<script>');
     assert.ok(!bundled.includes('href="styles.css"'), 'external stylesheet link replaced by inline style');
+
+    const dollarCss = {
+        entries: {
+            'index.html': '<!DOCTYPE html><html><head><link rel="stylesheet" href="styles.css"></head><body><p>hi</p></body></html>',
+            'styles.css': '.price::before { content: "$$100 $& $1"; }\n.btn:hover { color: red; }'
+        }
+    };
+    const dollarPreview = Project.assemblePreview(dollarCss, { liveJs: false, forceStates: true });
+    assert.includes(dollarPreview, 'content: "$$100 $& $1";');
+    assert.includes(dollarPreview, '[data-pc-force~="hover"]');
+    assert.includes(Project.buildPreviewCss(dollarCss, 'styles.css', { forceStates: true }), '[data-pc-force~="hover"]');
+
+    const multiPage = {
+        activeHtml: 'about.html',
+        html: '<!DOCTYPE html><html><head><title>About</title></head><body><h1>About</h1></body></html>',
+        entries: {
+            'index.html': '<!DOCTYPE html><html><head><title>Home</title></head><body><h1>Home</h1></body></html>',
+            'about.html': '<!DOCTYPE html><html><head><title>About</title></head><body><h1>About</h1></body></html>',
+            'app.js': 'const tag = "</script>";'
+        }
+    };
+    const renamed = Project.setTitle(multiPage, 'New Home Title');
+    assert.includes(renamed.entries['index.html'], '<title>New Home Title</title>');
+    assert.includes(renamed.entries['about.html'], '<title>About</title>', 'renaming project title does not overwrite index.html with about.html');
+    const customBundled = Project.exportSingleHtml({
+        activeHtml: 'about.html',
+        html: '<html><head><link rel="stylesheet" href="theme.css"></head><body><script src="app.js"></script></body></html>',
+        entries: {
+            'about.html': '<html><head><link rel="stylesheet" href="theme.css"></head><body><script src="app.js"></script></body></html>',
+            'theme.css': 'p::before { content: "$$1"; }',
+            'app.js': 'const s = "</script>";'
+        }
+    });
+    assert.includes(customBundled, 'content: "$$1";');
+    assert.includes(customBundled, 'const s = "<\\/script>";');
 });
 
 test('project: resolves linked style.css, multi-file entries, and baseUrl for real folders like portfolio', () => {
@@ -401,8 +436,8 @@ test('files: duplicateFile, deleteFile, and treeAfter keep the file list and tre
 });
 
 test('filesync: dirtyPaths lists files that differ from the saved baseline, including new files', () => {
-    const saved = { 'index.html': 'a', 'style.css': 'b' };
-    assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a', 'style.css': 'b' }, saved), []);
+    const saved = { 'index.html': 'a\r\nb', 'style.css': 'b' };
+    assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a\nb', 'style.css': 'b' }, saved), [], 'CRLF vs LF differences alone do not mark dirty');
     assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a!', 'style.css': 'b', 'new.js': '' }, saved), ['index.html', 'new.js']);
     assert.deepEqual(FileSync.dirtyPaths({ 'index.html': 'a' }, null), ['index.html']);
 });
@@ -532,6 +567,9 @@ test('zip: builds a valid stored zip with correct CRCs, UTF-8 names, and binary 
     assert.equal(Zip.list(Zip.build([{ path: '/lead.txt', data: 'x' }]))[0].path, 'lead.txt', 'leading slashes are dropped');
     assert.throws(() => Zip.build([{ path: 'a.txt', data: 'x' }, { path: 'a.txt', data: 'y' }]), 'duplicates are rejected');
     assert.throws(() => Zip.list(new Uint8Array(40)), 'garbage is not a zip');
+    const tampered = bytes.slice();
+    tampered[45] ^= 0xFF;
+    assert.throws(() => Zip.list(tampered), 'corrupted data fails CRC check');
 });
 
 test('imagelib: lists images from every source, makes unique upload paths, and formats sizes', () => {
@@ -637,4 +675,75 @@ test('folders: moveFolder refuses unsafe or clashing moves', () => {
     assert.ok(Project.validateFolderPath(['index.html'], ['img'], 'IMG').error, 'folder names are compared without regard to case');
     assert.ok(Project.validateFolderPath(['index.html'], [], 'index.html/x').error);
     assert.equal(Project.validateFolderPath(['index.html'], ['img'], '/assets//fonts/').path, 'assets/fonts');
+});
+
+test('batch3: links parens/srcset/@import, parts nesting/indent, editing guards, and suggest context', () => {
+    const lc = Links.createChecker();
+    const res = lc.check({
+        'index.html': '<img src="u" alt="x" srcset="data:image/png;base64,AAA, img2.png 2x"><link rel="stylesheet" href="s.css">',
+        's.css': '@import      url("b.css");\nbody { background: url("img (1).png"); }'
+    }, ['img2.png', 'b.css', 'img (1).png']);
+    assert.equal(res.errors, 1);
+    assert.equal(res.problems[0].ref, 'u');
+    assert.equal(res.problems[0].file, 'index.html');
+    const cssMissing = lc.check({ 's.css': '@import "i";\nbody { background: url("u"); }' });
+    assert.equal('s.css' && '@import "i";\nbody { background: url("u"); }'.slice(cssMissing.problems[0].start, cssMissing.problems[0].end), 'i');
+    assert.equal('@import "i";\nbody { background: url("u"); }'.slice(cssMissing.problems[1].start, cssMissing.problems[1].end), 'u');
+
+    const nestedParts = Parts.scan({
+        'index.html': '<!-- pc:part src="parts/a.html" --><div>\n        <p>hi</p>\n    </div><!-- /pc:part -->',
+        'parts/a.html': '<div>\n  <p>hi</p>\n</div>\n<!-- pc:part src="b.html" -->x<!-- /pc:part -->',
+        'parts/b.html': 'x\n'
+    });
+    assert.equal(nestedParts.invalid.length, 1, 'reports nested part-in-part as invalid per D-014');
+    const formattedSync = Parts.scan({
+        'index.html': '    <!-- pc:part src="parts/card.html" -->\n    <div>\n        <p>hi</p>\n    </div>\n    <!-- /pc:part -->',
+        'parts/card.html': '<div>\n  <p>hi</p>\n</div>\n'
+    });
+    assert.equal(formattedSync.regions[0].state, 'synced', 'indented formatted regions remain synced');
+
+    assert.equal(Editing.expandAbbrev('<p>Click here', 13, 'html'), null);
+    assert.equal(Editing.expandAbbrev('<div class="foo', 15, 'html'), null);
+    assert.equal(Editing.expandAbbrev('li#item*2', 9, 'html').insert, '<li id="item"></li>\n<li id="item-2"></li>');
+    assert.equal(Editing.enter('<path d="M0"/>', 14, 14, 'html'), null);
+    assert.equal(Editing.enter('<style>\nbody {', 14, 14, 'html').insert, '\n  ');
+
+    assert.equal(Suggest.at('@media (max-width: 768px) {\n  p', 31, 'css', {}), null, 'does not treat selector inside @media as CSS property');
+    assert.ok(Suggest.at('<p', 2, 'html', {}).labels.includes('p'), 'offers exact tag match');
+    const multiClass = Suggest.at('<div class="sec', 15, 'html', {
+        entries: { 'a.css': '.one {}', 'b.css': '.secondary {}' }
+    });
+    assert.deepEqual(multiClass.options, ['secondary']);
+});
+
+test('P8-01 INV-005 & INV-002: Design mode strips all user scripts and studio artifacts never reach exports or sources', () => {
+    const files = {
+        entries: {
+            'index.html': '<!DOCTYPE html><html><head><script src="app.js"></script><SCRIPT TYPE="module">console.log(1)</SCRIPT></head><body><h1>Hi</h1><script>\nwindow.evil=1;\n</script><script src="https://evil.test/x.js"></script></body></html>',
+            'styles.css': '.btn:hover { color: red; }',
+            'app.js': 'window.ok = "</script>";'
+        }
+    };
+    const design = Project.assemblePreview(files, { liveJs: false, forceStates: true, bridgeScript: 'window.__BRIDGE = 1;' });
+    assert.excludes(design, 'app.js');
+    assert.excludes(design, 'window.evil');
+    assert.excludes(design, 'evil.test');
+    assert.excludes(design, 'console.log(1)');
+    assert.excludes(design, 'pc-console-bridge');
+    assert.includes(design, 'id="pc-bridge-script"');
+
+    const live = Project.assemblePreview(files, { liveJs: true, bridgeScript: 'window.__BRIDGE = 1;' });
+    assert.includes(live, 'window.ok = "<\\/script>";');
+
+    const artifacts = ['data-pc-id', 'data-line', 'data-pc-drop-target', 'data-pc-force', 'pc-console-bridge', 'pc-bridge-css', 'pc-bridge-script', 'pc-project-js', 'pc-project-css'];
+    const packed = Project.pack(files);
+    const single = Project.exportSingleHtml(files);
+    const zipEntries = Zip.list(Zip.build(Object.keys(files.entries).map((p) => ({ path: p, data: files.entries[p] }))));
+    const zipText = zipEntries.map((e) => new TextDecoder().decode(e.data)).join('\n');
+    const mutatedHtml = HtmlAst.duplicateElement(HtmlAst.setText(files.entries['index.html'], HtmlAst.parse(files.entries['index.html']).elements.find((e) => e.tag === 'h1').id, 'Yo'), HtmlAst.parse(files.entries['index.html']).elements.find((e) => e.tag === 'h1').id).html;
+    const mutatedCss = CssAst.setProperty(files.entries['styles.css'], '.btn:hover', 'color', 'blue');
+
+    [packed, single, zipText, mutatedHtml, mutatedCss].forEach((buf) => {
+        artifacts.forEach((art) => assert.excludes(buf, art, art + ' must never leak into source or export'));
+    });
 });

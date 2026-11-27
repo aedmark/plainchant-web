@@ -43,6 +43,7 @@
             title: 'Design Stage',
             items: [
                 { keys: ['Click'], action: 'Select an element and highlight its code', file: 'src/app/stage.js', needle: 'pc-select' },
+                { keys: ['Double-click'], action: 'Edit text in place', file: 'src/app/stage.js', needle: 'startInlineEdit(el' },
                 { keys: ['Ctrl/Cmd+Click'], action: 'Follow a link to another project page', file: 'src/app/stage.js', needle: '(e.ctrlKey || e.metaKey) && el.closest("a[href]")' },
                 { keys: ['Enter'], action: 'Finish editing text in place', file: 'src/app/stage.js', needle: 'finishInlineEdit(true)' },
                 { keys: ['Shift+Enter'], action: 'New line while editing text in place', file: 'src/app/stage.js', needle: 'e.key === "Enter" && !e.shiftKey' },

@@ -5,6 +5,7 @@ const previewOpenBtn = document.getElementById('previewOpenBtn');
 const previewUrlsBox = document.getElementById('previewUrls');
 
 let previewInfo = null;
+let previewScriptId = null;
 let previewAssetSig = '';
 let previewTimer = null;
 let previewTabUrl = '';
@@ -60,13 +61,22 @@ async function startPreview() {
     const payload = previewPayload();
     const assets = await encodeProjectAssets();
     previewInfo = await tauriInvoke('preview_start', { files: payload.files, assets: assets, entry: payload.entry });
+    previewScriptId = currentScriptId;
     previewAssetSig = Preview.assetSignature(projectAssets);
 }
 
 async function stopPreview() {
     clearTimeout(previewTimer);
     previewInfo = null;
+    previewScriptId = null;
     await tauriInvoke('preview_stop', {});
+}
+
+function stopPreviewIfDifferent() {
+    if (!previewInfo || previewScriptId === currentScriptId) return;
+    stopPreview().catch(() => {});
+    renderPreviewPanel();
+    showNotice('Stopped network preview because you switched projects.');
 }
 
 async function pushPreview() {

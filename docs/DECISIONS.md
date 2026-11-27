@@ -61,7 +61,7 @@ Decision, Alternatives, Consequences, and an optional Review trigger.
 **Alternatives:** Native HTML5 Drag-and-Drop API (rejected: unreliable across WebKitGTK and iframe boundaries).
 **Consequences:** Releasing the mouse button anywhere after a drag guide line appears reliably reorders the element and clears all drop indicators.
 
-## D-009 Focus-preserving Stage selection and single-click inline WYSIWYG text editing (2026-11-02, status: accepted)
+## D-009 Focus-preserving Stage selection and single-click inline WYSIWYG text editing (2026-11-02, status: superseded by D-037)
 **Context:** Clicking an element on the Design Stage previously scheduled `editor.focus()` and selected the HTML tag in `<textarea id="editor">`, causing subsequent keystrokes to overwrite the HTML element in the Code editor instead of editing text on the Design Stage (P2-04).
 **Decision:** Clicking on the Design Stage highlights the element's code lines (`.sh-selected-line`) and scrolls the Code editor without focusing `#editor`. Clicking any text-editable leaf element on the Stage immediately activates `contenteditable="true"`, places the text caret at the click coordinates (`caretRangeFromPoint`), and streams live `pc-inline-input` updates to the Code editor (`skipStageRender: true`) without reloading the Stage iframe mid-typing.
 **Alternatives:** Requiring double-click to edit text and focusing the code editor on single click (rejected: breaks natural WYSIWYG typing instinct and risks accidental tag deletion).
@@ -223,6 +223,18 @@ Decision, Alternatives, Consequences, and an optional Review trigger.
 **Alternatives:** Cache first refreshed in the background (rejected: every update shows one load late); cache first with a hash of every app file enforced by a test (rejected: one more step on every commit that touches the app).
 **Consequences:** Every online load makes a round trip per file, usually a 304. The "bump `CACHE_NAME` per release" gotcha no longer applies. The same-origin collision with Scribe is gone on Web's side; Scribe's dev server uses port 8081, Web stays on 8080.
 **Review trigger:** Loads are slow on poor connections, or files the user must keep using offline change on the server.
+
+## D-036 Stage RTF-style formatting toolbar targeting the active CSS rule (2026-11-27, status: accepted; extends D-007)
+**Context:** Styling typography in the CSS Designer required opening the Inspector, switching tabs, and typing raw CSS values into text inputs, with no controls for font family, bold, italic, underline, strikethrough, line height, or letter spacing.
+**Decision:** Add a permanent `#styleToolbar` strip above `#canvasBody` (`src/app/style-bar.js`, pure helpers in `src/typography.js`) and mirror the new typography controls into `#inspCssPane`. Toolbar edits call `applyCssPropertyChange()` against the active CSS target (`activeCssTarget`, `activeCssState`, `activeCssMedia`), with a compact target switcher (`#tbCssTarget`) and active-scope pill (`#tbScopeBadge`) directly in the toolbar so users always see whether they are editing a class/tag rule, `element.style`, a breakpoint, or a pseudo-state. `applyCssTransform()` supports `coalesceHistory` so color-picker drags collapse into one undo step.
+**Alternatives:** Forcing toolbar edits to inline `style="..."` only (rejected by maintainer: breaks stylesheet-first CSS editing); wrapping partial inline text selections in `<strong>`/`<em>` (deferred: kept toolbar scoped to CSS rules and inline styles on the selected element); putting the logic inside `src/app/inspector-ui.js` (rejected: already at 487/500 lines).
+**Consequences:** Styling typography takes one click in Split or Design-only view without opening the Inspector, and `src/app/inspector-ui.js` stays under the 500-line cap (D-001).
+
+## D-037 Click-to-select, double-click inline editing, and live CSS patching on Design Stage (2026-11-27, status: accepted; supersedes D-009)
+**Context:** Single-click inline editing (`D-009`) trapped `Delete`, `Alt+Arrow`, and pointer drag on leaf elements, `dblclick` on containers destroyed nested markup, `Escape` did not revert streamed `pc-inline-input` edits, and every CSS change reloaded `stageFrame.srcdoc`, resetting scroll and swallowing clicks.
+**Decision:** Single-click on the Design Stage selects the element cleanly (`window.focus()` without entering `contenteditable`). Double-clicking a leaf text-editable element (`isTextEditable`) enters inline editing, captures pre-edit text so `Escape` reverts via `pc-inline-cancel`, and uses `textContent` when no line-break markup exists so CSS `text-transform` never mutates source casing. Design-mode CSS edits (`applyCssTransform` and typing in `activeCssFile`) post `pc-patch-css` via `patchStageCss()` (`Project.buildPreviewCss`) to update `#pc-project-css` in place without reloading the iframe. Also split `Alt`/`Title` and `Width`/`Max Width` into separate Inspector fields and preserve `selectedPcId` when switching back to `activeHtmlFile`.
+**Alternatives:** Keeping single-click inline edit (`D-009`) or allowing `innerHTML` inline editing on nested containers (rejected by maintainer: click-to-select + double-click leaf editing avoids cursor traps and accidental tag loss).
+**Consequences:** Drag-reorder, `Delete`, `Alt+Arrow`, and styling controls work immediately on click; CSS edits keep Stage scroll and overlays intact; Live JS mode still reloads `srcdoc`.
 
 ## Held tensions
 

@@ -14,9 +14,9 @@ function cssMediaPreset(query) {
 
 function refreshCssMediaUi() {
     const inline = activeCssTarget === 'inline';
-    if (inline && activeCssMedia) activeCssMedia = '';
+    const shownMedia = inline ? '' : activeCssMedia;
     cssMediaButtons.forEach((btn) => {
-        btn.setAttribute('aria-pressed', String(btn.dataset.media === activeCssMedia));
+        btn.setAttribute('aria-pressed', String(btn.dataset.media === shownMedia));
         btn.disabled = inline && btn.dataset.media !== '';
     });
     if (inline) {
@@ -32,7 +32,17 @@ function refreshCssMediaUi() {
 function setCssMedia(query) {
     const preset = cssMediaPreset(query);
     activeCssMedia = preset ? preset.query : '';
-    setStageViewport(preset ? preset.key : 'full');
+    setStageViewport(preset ? preset.key : 'full', true);
+    refreshCssMediaUi();
+    if (typeof refreshCssStateUi === 'function') refreshCssStateUi(selectedNodeForCss());
+    populateCssValues(selectedNodeForCss());
+}
+
+function syncCssMediaFromViewport(vp) {
+    if (!activeCssMedia) return;
+    const preset = cssMediaPreset(activeCssMedia);
+    if (preset && preset.key === vp) return;
+    activeCssMedia = '';
     refreshCssMediaUi();
     if (typeof refreshCssStateUi === 'function') refreshCssStateUi(selectedNodeForCss());
     populateCssValues(selectedNodeForCss());

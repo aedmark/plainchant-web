@@ -137,6 +137,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/app/asset-ui.js` | Assets modal: thumbnails, usage, insert/use/pick/delete, and adding images |
 | `src/zip.js` | Dependency-free ZIP writer and reader (stored entries, CRC-32, UTF-8 names; UMD, no DOM) |
 | `src/shortcuts.js` | Keyboard-shortcut list for the Help guide, each entry naming its handler (UMD, no DOM) |
+| `src/typography.js` | Font presets, size stepping, and bold/italic/decoration/align toggle rules for CSS editing (UMD, no DOM) |
 | `src/format.js` | HTML, CSS, and JS formatter: block layout, rule layout, and re-indentation (UMD, no DOM) |
 | `src/projectlink.js` | Folder ownership (one folder = one project), text hashing, and disk-change detection (UMD, no DOM) |
 | `src/app/project-links.js` | Saved folder links, reopening a known folder, **Reload from disk**, and export linking |
@@ -159,6 +160,7 @@ Things an agent must not change without explicit permission. Every rule includes
 | `src/app/stage-layout.js` | In-iframe layout bridge: grid guides, gap handles, drag preview (loaded after `stage-live.js`) |
 | `src/app/css-media.js` | CSS Designer breakpoint bar: media-scoped edits and Stage viewport sync |
 | `src/app/layout-ui.js` | Layout group in the CSS Designer and handling of gap-drag messages |
+| `src/app/style-bar.js` | RTF-style Stage formatting toolbar and CSS Designer typography controls (`#styleToolbar`) |
 | `src/app/insert-drag.js` | Pointer-based drag from the Insert menu onto the Design Stage (drop guide, ghost label, insert) |
 | `src/app/stage-live.js` | Live JS link bridge and project link following (loaded after `stage.js`) |
 | `src/app/console-ui.js` | Console Inspector tab: log rows, filters, unread badge, click-to-jump (loaded after `inspector-ui.js`) |

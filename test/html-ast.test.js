@@ -158,3 +158,31 @@ test('dom-outline: dropPlacement chooses before, after, or inside from the point
     assert.equal(DomOutline.dropPlacement(div, -3).zone, 'before');
     assert.equal(DomOutline.dropPlacement(div, 7).zone, 'after');
 });
+
+test('html-ast: unescapeHtml decodes entities without double-unescaping', () => {
+    assert.equal(HtmlAst.unescapeHtml('Live &amp; Design &lt;Modes&gt; &quot;OK&quot; &#39;1&#39;'), 'Live & Design <Modes> "OK" \'1\'');
+    assert.equal(HtmlAst.unescapeHtml('A &amp;amp; B'), 'A &amp; B');
+    assert.equal(HtmlAst.unescapeHtml(HtmlAst.escapeHtml('Fish & Chips')), 'Fish & Chips');
+});
+
+test('html-ast: unquoted slash href=/ is not self-closing and duplicateElement deduplicates descendant IDs', () => {
+    const ast = HtmlAst.parse('<p><a href=/>Home</a></p><svg><path d="M0"/></svg>');
+    const a = ast.elements.find((e) => e.tag === 'a');
+    assert.equal(a.selfClosing, false);
+    assert.equal(a.attrs.href, '/');
+    assert.equal(HtmlAst.innerText(ast, a.id), 'Home');
+    const pathEl = ast.elements.find((e) => e.tag === 'path');
+    assert.equal(pathEl.selfClosing, true);
+
+    const card = '<body>\n  <section id="sec"><label for="nameInput">Name</label><input id="nameInput"></section>\n</body>';
+    const rootId = HtmlAst.parse(card).elements.find((e) => e.tag === 'section').id;
+    const dup1 = HtmlAst.duplicateElement(card, rootId);
+    assert.includes(dup1.html, 'id="sec-copy"');
+    assert.includes(dup1.html, 'id="nameInput-copy"');
+    assert.includes(dup1.html, 'for="nameInput-copy"');
+
+    const rootId2 = HtmlAst.parse(dup1.html).elements.find((e) => e.tag === 'section').id;
+    const dup2 = HtmlAst.duplicateElement(dup1.html, rootId2);
+    assert.includes(dup2.html, 'id="sec-copy-2"');
+    assert.includes(dup2.html, 'id="nameInput-copy-2"');
+});

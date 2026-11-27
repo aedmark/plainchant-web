@@ -47,3 +47,16 @@ function followSelectedLink(pcId) {
     const node = HtmlAst.findById(currentHtmlAst, pcId || selectedPcId);
     if (node && node.attrs && node.attrs.href) followProjectLink(node.attrs.href);
 }
+
+function patchStageCss() {
+    if (stageTimer || stageMode !== 'design' || !stageFrame || !stageFrame.contentWindow) return false;
+    try {
+        const doc = stageFrame.contentDocument;
+        if (!doc || !doc.getElementById('pc-project-css')) return false;
+        const css = Project.buildPreviewCss(projectFiles, activeCssFile, { assetUrls: projectAssetUrls, forceStates: true });
+        stageFrame.contentWindow.postMessage({ type: 'pc-patch-css', href: activeCssFile, css: css }, '*');
+        return true;
+    } catch (e) {
+        return false;
+    }
+}

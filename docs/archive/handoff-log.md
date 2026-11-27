@@ -1,6 +1,40 @@
 # Handoff session log (archived)
 
-Entries moved from [`docs/HANDOFF.md`](../HANDOFF.md) on 2026-11-08, newest first.
+Entries moved from [`docs/HANDOFF.md`](../HANDOFF.md) on 2026-11-08 and 2026-11-27, newest first.
+
+### Session 2w: 2026-11-03: Open file / folder / project and one folder = one project (maintainer feedback)
+
+- **Did**: folder links saved in the existing `files` store; reopening a known folder opens its project with **Reload from disk** when the disk changed; **Open file…**; canonical folder paths and `use_project_folder` in Rust ([`src/projectlink.js`](../../src/projectlink.js), [`src/app/project-links.js`](../../src/app/project-links.js)).
+- **Decided**: `D-033` (maintainer chose: open the Studio copy and offer a reload; standalone one-file projects).
+- **Verified**: `npm test`, `cargo test`; browser check with a faked Tauri bridge (first open, reopen without a duplicate, disk change, reload and undo, switch away and back, link survives a page reload, Open file with css, html, and several files). No real desktop window or directory picker.
+- **Next**: more maintainer feedback. Folders opened before this change have no saved link.
+
+### Session 2v: 2026-11-03: toolbar File and Edit menus (maintainer feedback)
+
+- **Did**: **File ▾** and **Edit ▾** menus replace the New, Projects, Folder, Export, Preview, Copy, and Format buttons ([`src/app/menus.js`](../../src/app/menus.js)); the Format button left the tab strip.
+- **Decided**: `D-032` (maintainer chose File / Edit menus). Insert, Assets, and Save stay on the toolbar (Undo and Redo moved into Edit).
+- **Verified**: `npm test`; browser check of open, switch, close, focus, arrow keys, Escape, and each moved item. Desktop window not checked.
+- **Next**: more maintainer feedback on odd behaviour.
+
+### Session 2u: 2026-11-03: Explorer polish (maintainer feedback)
+
+- **Did**: Folders collapse (`explorerCollapsed`, `toggleExplorerDir`, `expandExplorerTo` in `../../src/app/core.js`); clicking an image opens the Assets dialog filtered to it instead of inserting `<img>`.
+- **Verified**: `npm test`; browser check of collapse, filter, auto-expand on open, and image click (HTML unchanged). Collapsed state is per session and not remembered.
+- **Next**: more maintainer feedback on odd behaviour.
+
+### Session 2t: 2026-11-03: P7-15 keyboard shortcut cheat sheet
+
+- **Did**: [`src/shortcuts.js`](../../src/shortcuts.js); shortcut section in the Help guide ([`src/app/help.js`](../../src/app/help.js)); [`test/shortcuts.test.js`](../../test/shortcuts.test.js).
+- **Decided**: `D-031`.
+- **Verified**: `npm test` (`92/92`); browser check that `F1` shows 5 groups and 25 rows. Full check results are in this session's final report.
+- **Next**: Phase 7 is complete; ask the maintainer what to plan next.
+
+### Session 2s: 2026-11-03: P7-14 format the current file
+
+- **Did**: [`src/format.js`](../../src/format.js) (HTML, CSS, JS formatters); [`src/app/format-ui.js`](../../src/app/format-ui.js), the **Format** button, and `Alt+Shift+F`.
+- **Decided**: `D-030` (JS is re-indentation only; no JSON).
+- **Verified**: `npm test` (`90/90`); browser check of the shortcut, all three file types, stage update, and undo. Full check results are in this session's final report.
+- **Next**: ask whether `P7-15` is next.
 
 ### Session 2r: 2026-11-03: P7-12 preview in a browser or on a phone
 

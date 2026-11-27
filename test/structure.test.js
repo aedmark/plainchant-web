@@ -436,3 +436,52 @@ test('offline: app files come from the network first and refresh the cache, so a
     assert.equal(offline.added.length, (fs.readFileSync(path.join(root, 'sw.js'), 'utf8').match(/^    '[^']+',?$/gm) || []).length, 'install stores every app file');
     assert.ok(offline.added.every((req) => req.cache === 'reload'), 'install skips the browser\'s HTTP cache');
 });
+
+test('structure: the Stage formatting toolbar, Typography module, and style-bar.js are wired in', () => {
+    ['id="styleToolbar"', 'id="tbCssTarget"', 'id="tbScopeBadge"', 'id="tbFontFamily"', 'id="tbFontSize"', 'id="tbFontDec"', 'id="tbFontInc"', 'id="tbBold"', 'id="tbItalic"', 'id="tbUnderline"', 'id="tbStrike"', 'id="tbLineHeight"', 'id="tbLetterSpacing"', 'id="tbColor"', 'id="tbBgColor"', 'id="cssFontFamily"', 'id="cssStyleToggles"', 'id="cssLineHeight"', 'id="cssLetterSpacing"'].forEach((needle) => assert.includes(html, needle));
+    const order = Array.from(html.matchAll(/<script src="([^"]+)"><\/script>/g)).map((m) => m[1]);
+    assert.ok(order.indexOf('src/typography.js') !== -1 && order.indexOf('src/typography.js') < order.indexOf('src/app/core.js'), 'typography.js loads before the app scripts');
+    assert.ok(listed.indexOf('style-bar.js') > listed.indexOf('css-media.js') && listed.indexOf('style-bar.js') > listed.indexOf('inspector-ui.js'), 'style-bar.js loads after inspector-ui.js and css-media.js');
+    assert.includes(readRoot('src/app/inspector-ui.js'), 'refreshStyleToolbar(');
+    assert.includes(readRoot('src/app/inspector-ui.js'), 'refreshStyleToolbarTargets(');
+});
+
+test('structure: Design Stage click-to-select, dblclick leaf edit, live CSS patch, and split Inspector fields (D-037)', () => {
+    ['id="propTitle"', 'id="cssMaxWidth"'].forEach((needle) => assert.includes(html, needle));
+    const stage = readRoot('src/app/stage.js');
+    assert.includes(stage, 'pc-patch-css');
+    assert.includes(stage, 'pc-inline-cancel');
+    assert.includes(stage, 'e.source !== stageFrame.contentWindow');
+    assert.includes(readRoot('src/app/stage-live.js'), 'function patchStageCss(');
+    assert.includes(readRoot('src/app/menus.js'), 'function openContextMenuAt(');
+});
+
+test('P8-01 INV-001: zero build tools or runtime frontend dependencies exist beyond vendored Prism', () => {
+    const pkg = JSON.parse(readRoot('package.json'));
+    assert.equal(Object.keys(pkg.dependencies || {}).length, 0, 'no runtime dependencies in package.json');
+    assert.equal(Object.keys(pkg.devDependencies || {}).length, 0, 'no devDependencies in package.json');
+    assert.equal(pkg.scripts.test, 'node test/run.js');
+    assert.ok(!fs.existsSync(path.join(root, 'node_modules')), 'node_modules must not exist');
+    ['vite.config.js', 'vite.config.ts', 'webpack.config.js', 'rollup.config.js', 'tsconfig.json', '.babelrc', '.babelrc.json', 'esbuild.config.js'].forEach((cfg) => {
+        assert.ok(!fs.existsSync(path.join(root, cfg)), cfg + ' bundler config must not exist');
+    });
+    const scriptTags = Array.from(html.matchAll(/<script src="([^"]+)"/g)).map((m) => m[1]);
+    assert.ok(scriptTags.every((s) => s.startsWith('src/')), 'app.html loads only local src/ scripts');
+});
+
+test('P8-01 INV-003 & INV-005: disk writes live only in explicit export flows and stage iframe uses strict sandbox', () => {
+    const writeTokens = ['save_project_folder', 'createWritable', 'writeBrowserDirEntries'];
+    onDisk.filter((f) => f !== 'tauri-files.js').forEach((file) => {
+        const text = fs.readFileSync(path.join(appDir, file), 'utf8');
+        writeTokens.forEach((tok) => assert.ok(!text.includes(tok), file + ' must never write directly to disk (' + tok + ')'));
+    });
+    const tauriJs = readRoot('src/app/tauri-files.js');
+    assert.includes(tauriJs, 'exportProjectToFolder');
+    assert.includes(tauriJs, "tauriInvoke('save_project_folder'");
+    assert.includes(tauriJs, 'await writeBrowserDirEntries(');
+    const openBody = tauriJs.slice(tauriJs.indexOf('function openProjectFolder'), tauriJs.indexOf('function exportProjectToFolder'));
+    assert.ok(!/save_project_folder|writeBrowserDirEntries|createWritable/.test(openBody), 'opening a folder never writes to disk');
+    const mainRs = readRoot('src-tauri/src/main.rs');
+    assert.ok(!/remove_file|remove_dir|remove_dir_all/.test(mainRs), 'Tauri export must never delete files on disk (INV-003)');
+    assert.includes(html, '<iframe id="stageFrame" title="Live WYSIWYG Stage" sandbox="allow-scripts allow-same-origin">');
+});

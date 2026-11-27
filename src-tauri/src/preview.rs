@@ -5,7 +5,7 @@
 //! live in memory; images that exist only on disk fall back to the linked folder.
 
 use serde::Serialize;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream, UdpSocket};
@@ -22,6 +22,7 @@ const VERSION_PATH: &str = "__pc_version";
 #[derive(Default)]
 struct Content {
     files: HashMap<String, Vec<u8>>,
+    asset_keys: HashSet<String>,
     entry: String,
     version: u64,
 }
@@ -88,6 +89,7 @@ fn set_content(
     entry: String,
 ) -> Result<(), String> {
     let mut next: HashMap<String, Vec<u8>> = HashMap::new();
+    let mut next_asset_keys: HashSet<String> = HashSet::new();
     let mut guard = content.lock().map_err(|_| "preview state is unavailable".to_string())?;
     for (path, text) in files {
         if !is_safe_relative(Path::new(&path)) {
@@ -102,12 +104,14 @@ fn set_content(
                     return Err(format!("unsafe preview path: {}", path));
                 }
                 let bytes = decode_base64(&b64).ok_or_else(|| format!("could not decode {}", path))?;
+                next_asset_keys.insert(path.clone());
                 next.insert(path, bytes);
             }
         }
         None => {
             for (path, bytes) in guard.files.iter() {
-                if !next.contains_key(path) && !is_text_ext(Path::new(path)) {
+                if !next.contains_key(path) && (guard.asset_keys.contains(path) || !is_text_ext(Path::new(path))) {
+                    next_asset_keys.insert(path.clone());
                     next.insert(path.clone(), bytes.clone());
                 }
             }
@@ -115,6 +119,7 @@ fn set_content(
     }
     if guard.files != next || guard.entry != entry {
         guard.files = next;
+        guard.asset_keys = next_asset_keys;
         guard.entry = entry;
         guard.version += 1;
     }
@@ -167,7 +172,12 @@ fn lookup(
         return None;
     }
     let dir = root.lock().ok()?.clone()?;
-    let bytes = fs::read(dir.join(path)).ok()?;
+    let canon_dir = fs::canonicalize(&dir).ok()?;
+    let canon_file = fs::canonicalize(dir.join(path)).ok()?;
+    if !canon_file.starts_with(&canon_dir) {
+        return None;
+    }
+    let bytes = fs::read(&canon_file).ok()?;
     Some((bytes, mime_for_path(path)))
 }
 
@@ -378,5 +388,10 @@ mod tests {
         set_content(&content, files(&[("index.html", "<p>y</p>")]), None, "index.html".to_string()).unwrap();
         assert_eq!(content.lock().unwrap().version, v + 1);
         assert!(content.lock().unwrap().files.contains_key("images/a.png"));
+
+        let svg = Some(BTreeMap::from([("images/logo.svg".to_string(), "PHN2Zy8+".to_string())]));
+        set_content(&content, pairs.clone(), svg, "index.html".to_string()).unwrap();
+        set_content(&content, files(&[("index.html", "<p>z</p>")]), None, "index.html".to_string()).unwrap();
+        assert!(content.lock().unwrap().files.contains_key("images/logo.svg"));
     }
 }
