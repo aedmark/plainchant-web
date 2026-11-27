@@ -73,6 +73,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -83,18 +88,12 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - name: Install cargo-tauri CLI
-        uses: taiki-e/install-action@cargo-tauri
-        with:
-          version: "2"
-
       - name: Build Tauri bundle and upload draft release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: .
-          tauriScript: cargo tauri
           tagName: ${{ github.ref_name }}
           releaseName: "Plainchant Web ${{ github.ref_name }}"
           releaseBody: "See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for details, and verify downloads against your platform below."
