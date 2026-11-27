@@ -19,6 +19,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Stage frontend assets into src-tauri/dist
+        run: node -e "const fs=require('fs'),p=require('path');fs.mkdirSync('src-tauri/dist',{recursive:true});['index.html','app.html','manifest.webmanifest','sw.js'].forEach(f=>fs.copyFileSync(f,p.join('src-tauri/dist',f)));['src','fonts','icons'].forEach(d=>fs.cpSync(d,p.join('src-tauri/dist',d),{recursive:true}));"
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -77,6 +80,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: Stage frontend assets into src-tauri/dist
+        run: node -e "const fs=require('fs'),p=require('path');fs.mkdirSync('src-tauri/dist',{recursive:true});['index.html','app.html','manifest.webmanifest','sw.js'].forEach(f=>fs.copyFileSync(f,p.join('src-tauri/dist',f)));['src','fonts','icons'].forEach(d=>fs.cpSync(d,p.join('src-tauri/dist',d),{recursive:true}));"
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
